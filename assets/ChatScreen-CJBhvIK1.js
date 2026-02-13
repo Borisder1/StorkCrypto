@@ -1,4 +1,4 @@
-import{u as S,r,j as e,B as v,t as g,l as k,m as T,n as R}from"./index-BIKLfaiE.js";const $=({onClose:x})=>{const{settings:n,chatHistory:u,addChatMessage:b,setIsAIChatOpen:C,assets:o,userStats:p,wallet:i}=S(),[h,y]=r.useState(""),[d,j]=r.useState(!1),[a,E]=r.useState(!1),m=r.useRef(null),N=r.useRef(null);r.useEffect(()=>{(async()=>{const s=o.reduce((c,I)=>c+(I.value||0),0),l=o.map(c=>`${c.ticker}: ${c.amount.toFixed(4)} ($${c.value.toFixed(2)})`).join(", ");i.isConnected&&`${i.walletType}${i.address}`;const w=`
+import{u as S,r,j as e,B as v,t as g,l as k,m as T,n as R}from"./index-vlgs8B6t.js";const $=({onClose:x})=>{const{settings:n,chatHistory:u,addChatMessage:b,setIsAIChatOpen:C,assets:o,userStats:p,wallet:i}=S(),[h,y]=r.useState(""),[d,j]=r.useState(!1),[a,E]=r.useState(!1),m=r.useRef(null),N=r.useRef(null);r.useEffect(()=>{(async()=>{const s=o.reduce((c,I)=>c+(I.value||0),0),l=o.map(c=>`${c.ticker}: ${c.amount.toFixed(4)} ($${c.value.toFixed(2)})`).join(", ");i.isConnected&&`${i.walletType}${i.address}`;const w=`
             USER_PROFILE:
             - Rank: Level ${p.level} (${p.subscriptionTier})
             - Total Equity: $${s.toFixed(0)}
