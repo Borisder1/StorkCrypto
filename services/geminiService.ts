@@ -18,15 +18,19 @@ const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, mo
     if (USE_EDGE_FUNCTION) {
         try {
             const { data, error } = await supabase.functions.invoke('ask-ai', {
-                body: { prompt, config, history }
+                body: { prompt, config, history },
+                headers: {
+                    'Content-Type': 'application/json'
+                }
             });
             if (error) throw error;
             let resultText = data?.text || data;
             if (typeof resultText === 'object' && resultText !== null) return resultText;
             if (config.responseMimeType === 'application/json' && typeof resultText === 'string') return parseCleanJSON(resultText);
             return resultText;
-        } catch (e) {
-            console.warn("[AI] Edge Function failed, falling back to local...", e);
+        } catch (e: any) {
+            console.warn("[AI] Edge Function failed (CORS or Network), falling back to local...", e);
+            // If it's a CORS error (net::ERR_FAILED), we immediately fall back to local AI
         }
     }
 
