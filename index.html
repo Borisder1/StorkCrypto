@@ -11,42 +11,10 @@
     <link rel="icon" type="image/jpeg" href="/logo.jpg">
     
     <title>StorkCrypto</title>
-    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            fontFamily: {
-              orbitron: ['Orbitron', 'sans-serif'],
-              'space-mono': ['"Space Mono"', 'monospace'],
-              sans: ['Inter', 'sans-serif'],
-            },
-            colors: {
-              'brand-bg': 'var(--app-bg)', 
-              'brand-card': 'rgba(15, 23, 42, 0.9)',
-              'brand-cyan': '#00d9ff', 
-              'brand-green': '#10b981', 
-              'brand-purple': '#8b5cf6',
-              'brand-danger': '#ef4444', 
-            },
-            animation: {
-              'spin-slow': 'spin 8s linear infinite',
-              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-              'marquee': 'marquee 40s linear infinite',
-              'scanline': 'scanline 8s linear infinite',
-            },
-            keyframes: {
-              marquee: { '0%': { transform: 'translateX(0%)' }, '100%': { transform: 'translateX(-50%)' } },
-              scanline: { '0%': { top: '-10%' }, '100%': { top: '110%' } },
-            }
-          }
-        }
-      }
-    </script>
     <style>
        :root {
             --app-bg: #0f172a; /* Default Twilight (Lighter than #020617) */
