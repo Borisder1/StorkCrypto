@@ -216,7 +216,7 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
                     trial_ends_at: get().userStats.trialEndsAt,
                     subscription_tier: get().userStats.subscriptionTier,
                     last_active: new Date().toISOString()
-                }, { onConflict: 'id' });
+                }); // Removed { onConflict: 'id' } as it causes 400 in PostgREST without explicit column
                 
                 if (insErr) console.warn("Profile Upsert Warning:", insErr.message);
             }

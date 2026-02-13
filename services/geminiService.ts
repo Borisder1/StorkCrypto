@@ -4,7 +4,13 @@ import { supabase } from './supabaseClient';
 
 const USE_EDGE_FUNCTION = true; 
 
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAI = () => {
+    const key = process.env.API_KEY || process.env.GEMINI_API_KEY;
+    if (!key) {
+        console.warn("[AI] GEMINI_API_KEY not found in process.env");
+    }
+    return new GoogleGenAI({ apiKey: key || 'EMPTY_KEY' });
+};
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
