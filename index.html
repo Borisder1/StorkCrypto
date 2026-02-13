@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" content="#0f172a">
+    <meta name="description" content="StorkCrypto: High-contrast neural terminal for crypto intelligence.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="%BASE_URL%manifest.json">
+    
+    <title>StorkCrypto</title>
+    <script>
+      window.process = window.process || { env: { NODE_ENV: 'development' } };
+      window.global = window; 
+
+      window.onload = function() {
+        setTimeout(function() {
+            const root = document.getElementById('root');
+            if (root && (root.innerHTML.trim() === '' || root.children.length === 0)) {
+                const debugInfo = document.createElement('div');
+                debugInfo.style.cssText = "position:fixed; inset:0; background:#020617; color:#ef4444; padding:20px; font-family:monospace; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;";
+                debugInfo.innerHTML = "<h1 style='font-size:24px; margin-bottom:10px; font-weight:900; letter-spacing: 2px;'>TERMINAL ERROR</h1><p style='color:#94a3b8; margin-bottom:20px;'>Failed to initialize React environment. Module resolution conflict.</p><button onclick='window.location.reload()' style='padding:12px 30px; background:#ef4444; color:white; border:none; border-radius:12px; font-weight:bold; cursor:pointer; text-transform:uppercase; letter-spacing:1px;'>Force Reboot</button>";
+                document.body.appendChild(debugInfo);
+            }
+        }, 5000);
+      };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Space+Mono:wght@400;700&family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              orbitron: ['Orbitron', 'sans-serif'],
+              'space-mono': ['"Space Mono"', 'monospace'],
+              sans: ['Inter', 'sans-serif'],
+            },
+            colors: {
+              'brand-bg': 'var(--app-bg)', 
+              'brand-card': 'rgba(15, 23, 42, 0.9)',
+              'brand-cyan': '#00d9ff', 
+              'brand-green': '#10b981', 
+              'brand-purple': '#8b5cf6',
+              'brand-danger': '#ef4444', 
+            },
+            animation: {
+              'spin-slow': 'spin 8s linear infinite',
+              'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+              'marquee': 'marquee 40s linear infinite',
+              'scanline': 'scanline 8s linear infinite',
+            },
+            keyframes: {
+              marquee: { '0%': { transform: 'translateX(0%)' }, '100%': { transform: 'translateX(-50%)' } },
+              scanline: { '0%': { top: '-10%' }, '100%': { top: '110%' } },
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+       :root {
+            --app-bg: #0f172a; /* Default Twilight (Lighter than #020617) */
+            --primary-color: #00d9ff;
+            color-scheme: dark;
+       }
+       body {
+            background-color: var(--app-bg);
+            color: white;
+            overflow: hidden;
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            transition: background-color 0.5s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom": "https://esm.sh/react-dom@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "react/jsx-runtime": "https://esm.sh/react@18.2.0/jsx-runtime",
+    "recharts": "https://esm.sh/recharts@2.12.2?external=react,react-dom",
+    "@google/genai": "https://esm.sh/@google/genai@1.38.0",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.7",
+    "lightweight-charts": "https://unpkg.com/lightweight-charts@4.1.1/dist/lightweight-charts.standalone.production.mjs",
+    "zustand": "https://esm.sh/zustand@4.5.2?external=react",
+    "zustand/middleware": "https://esm.sh/zustand@4.5.2/middleware?external=react",
+    "@tonconnect/ui-react": "https://esm.sh/@tonconnect/ui-react@2.0.2?external=react,react-dom",
+    "@tonconnect/sdk": "https://esm.sh/@tonconnect/sdk@3.0.2",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "zustand/": "https://esm.sh/zustand@^5.0.10/"
+  }
+}
+</script>
+ 
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

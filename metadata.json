@@ -1,0 +1,7 @@
+{
+  "name": "StorkCrypto",
+  "description": "A futuristic crypto portfolio tracker and AI-powered news aggregator and chatbot, designed for Telegram Web Apps. Get real-time portfolio insights, up-to-the-minute news grounded by Google Search, and ask any crypto-related questions to our advanced AI assistant.",
+  "requestFramePermissions": [
+    "geolocation"
+  ]
+}
