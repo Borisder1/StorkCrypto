@@ -197,19 +197,28 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
                         subscriptionTier: (profile.subscription_tier as any) || 'FREE'
                     } 
                 }));
-            } else {
-                const { error: insErr } = await supabase.from('profiles').insert({ id });
                 
-                if (!insErr) {
+                // Update existing profile with latest TG info
+                if (tgUser) {
                     await supabase.from('profiles').update({ 
-                        first_name: tgUser?.first_name || 'OPERATOR',
-                        username: tgUser?.username || '',
-                        telegram_chat_id: tgUser?.telegram_chat_id || null, 
-                        trial_ends_at: get().userStats.trialEndsAt, // СИНХРОНІЗАЦІЯ ДЛЯ ВОРКЕРА
-                        subscription_tier: get().userStats.subscriptionTier, // СИНХРОНІЗАЦІЯ ДЛЯ ВОРКЕРА
+                        first_name: tgUser.first_name || 'OPERATOR',
+                        username: tgUser.username || '',
                         last_active: new Date().toISOString()
                     }).eq('id', id);
                 }
+            } else {
+                // Use upsert to prevent 409 Conflict if record was created between select and insert
+                const { error: insErr } = await supabase.from('profiles').upsert({ 
+                    id,
+                    first_name: tgUser?.first_name || 'OPERATOR',
+                    username: tgUser?.username || '',
+                    telegram_chat_id: tgUser?.telegram_chat_id || null, 
+                    trial_ends_at: get().userStats.trialEndsAt,
+                    subscription_tier: get().userStats.subscriptionTier,
+                    last_active: new Date().toISOString()
+                }, { onConflict: 'id' });
+                
+                if (insErr) console.warn("Profile Upsert Warning:", insErr.message);
             }
         } catch (e) {
             console.warn("DB_UPLINK_OFFLINE");

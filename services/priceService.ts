@@ -83,20 +83,26 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
         }
 
         // 3. Спроба Coincap (Fallback для всіх інших монет)
-        const cResp = await fetch(`${COINCAP_API_URL}/assets?limit=100`);
-        if (cResp.ok) {
-            const cData = await cResp.json();
-            cData.data.forEach((coin: any) => {
-                // Оновлюємо тільки якщо ще немає з Binance або дані з Binance старіші
-                if (!priceMap[coin.id] || priceMap[coin.id].source !== 'BINANCE') {
-                    priceMap[coin.id] = {
-                        usd: parseFloat(coin.priceUsd),
-                        usd_24h_change: parseFloat(coin.changePercent24Hr),
-                        lastUpdate: now,
-                        source: 'COINCAP'
-                    };
-                }
+        try {
+            const cResp = await fetch(`${COINCAP_API_URL}/assets?limit=100`, {
+                signal: AbortSignal.timeout(5000) // Таймаут 5 секунд
             });
+            if (cResp.ok) {
+                const cData = await cResp.json();
+                cData.data.forEach((coin: any) => {
+                    // Оновлюємо тільки якщо ще немає з Binance або дані з Binance старіші
+                    if (!priceMap[coin.id] || priceMap[coin.id].source !== 'BINANCE') {
+                        priceMap[coin.id] = {
+                            usd: parseFloat(coin.priceUsd),
+                            usd_24h_change: parseFloat(coin.changePercent24Hr),
+                            lastUpdate: now,
+                            source: 'COINCAP'
+                        };
+                    }
+                });
+            }
+        } catch (err) {
+            console.warn("CoinCap API unreachable, using partial data or cache");
         }
 
         if (Object.keys(priceMap).length > 0) {
