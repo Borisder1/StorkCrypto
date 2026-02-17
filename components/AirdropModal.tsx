@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { PickaxeIcon, TimerIcon, GiftIcon, ShieldIcon, TelegramIcon, LinkIcon, ChevronRightIcon, ActivityIcon } from './icons';
+import { PickaxeIcon, GiftIcon, ShieldIcon, TelegramIcon, LinkIcon, ChevronRightIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
 
@@ -202,7 +201,7 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                                 </>
                             ) : (
                                 <>
-                                    <PickaxeIcon className="w-4 h-4" /> HARVEST TOKENS
+                                    <ActivityIcon className="w-4 h-4" /> HARVEST TOKENS
                                 </>
                             )}
                         </button>
