@@ -27,14 +27,14 @@ const UpgradeBanner: React.FC = () => {
         if (shouldShow) {
             const calculateTime = () => {
                 const diff = expiryTime - Date.now();
-                
+
                 if (diff <= 0) {
                     setTimeLeftLabel('EXPIRED');
                     setIsUrgent(true);
                 } else {
                     const d = Math.floor(diff / (1000 * 60 * 60 * 24));
                     const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    
+
                     if (d < 3) setIsUrgent(true); // Urgent if less than 3 days
                     else setIsUrgent(false);
 
@@ -42,7 +42,7 @@ const UpgradeBanner: React.FC = () => {
                     else setTimeLeftLabel(`${h}H ${Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))}M`);
                 }
             };
-            
+
             calculateTime();
             const interval = setInterval(calculateTime, 60000);
             return () => clearInterval(interval);
@@ -59,9 +59,9 @@ const UpgradeBanner: React.FC = () => {
     // VISUAL STYLES based on state
     // Free/Trial: Green/Cyan friendly prompt
     // Expiring Paid: Red/Orange warning
-    
+
     const isPaidExpiring = !isFree && isUrgent;
-    
+
     const borderColor = isPaidExpiring ? 'border-red-500/50' : 'border-brand-green/30';
     const glowColor = isPaidExpiring ? 'from-red-500/20 via-orange-500/20 to-red-500/20' : 'from-brand-green/20 via-brand-cyan/20 to-brand-green/20';
     const btnColor = isPaidExpiring ? 'bg-red-500 text-white' : 'bg-brand-green text-black';
@@ -70,7 +70,7 @@ const UpgradeBanner: React.FC = () => {
     return (
         <div className="relative group w-full mb-4 cursor-pointer animate-fade-in" onClick={handleUpgrade}>
             <div className={`absolute inset-0 bg-gradient-to-r blur-md opacity-50 transition-opacity group-hover:opacity-80 ${glowColor}`}></div>
-            
+
             <div className={`relative bg-black/60 border rounded-2xl p-4 flex items-center justify-between backdrop-blur-md overflow-hidden ${borderColor}`}>
                 {/* Shimmer Effect */}
                 <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent pointer-events-none"></div>
@@ -79,9 +79,9 @@ const UpgradeBanner: React.FC = () => {
                     <div className={`w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.4)] ${isPaidExpiring ? 'from-red-900 to-black' : 'from-brand-green to-brand-cyan'}`}>
                         {icon}
                     </div>
-                <div className="flex-1 min-w-0 mr-2">
+                    <div className="flex-1 min-w-0 mr-2">
                         <h3 className={`text-sm font-bold font-orbitron tracking-wide flex flex-wrap items-center gap-2 ${isPaidExpiring ? 'text-red-400' : 'text-white'}`}>
-                            <span className="whitespace-nowrap">{isPaidExpiring ? 'RENEWAL IMMINENT' : (isFree ? 'TRIAL ACCESS' : 'UPGRADE TO PRO')}</span>
+                            <span className="whitespace-nowrap leading-none">{isPaidExpiring ? 'RENEWAL IMMINENT' : (isFree ? 'TRIAL ACCESS' : 'UPGRADE TO PRO')}</span>
                             {!isPaidExpiring && <span className="text-[8px] bg-brand-green text-black px-1.5 rounded font-black animate-pulse self-center">ACTIVE</span>}
                         </h3>
                         <p className="text-[10px] text-slate-300 font-mono truncate">

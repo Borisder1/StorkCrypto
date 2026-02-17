@@ -64,7 +64,7 @@ const ConnectivityWidget: React.FC = () => {
     );
 };
 
-const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNavigate }) => {
+const HomeScreen: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavigate }) => {
     const {
         assets = [],
         userStats,

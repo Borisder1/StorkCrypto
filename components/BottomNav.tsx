@@ -34,13 +34,13 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                         >
                             {/* Active Light Pillar */}
                             {isActive && (
-                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-8 h-12 bg-gradient-to-t from-brand-cyan/20 to-transparent blur-md"></div>
+                                <div className="absolute -top-12 left-1/2 -translate-x-1/2 w-8 h-12 bg-gradient-to-t from-[#00F0FF]/20 to-transparent blur-md"></div>
                             )}
 
-                            <div className={`relative z-10 transition-all duration-300 ${isActive ? 'text-brand-cyan -translate-y-1 scale-110 drop-shadow-[0_0_8px_rgba(0,217,255,0.8)]' : 'text-slate-500 hover:text-slate-200 hover:scale-105'}`}>
+                            <div className={`relative z-10 transition-all duration-300 ${isActive ? 'text-[#00F0FF] -translate-y-1 scale-110 drop-shadow-[0_0_10px_#00F0FF]' : 'text-slate-500 hover:text-slate-200 hover:scale-105'}`}>
                                 <div className={`p-2.5 rounded-2xl transition-all duration-300 ${isActive
-                                        ? 'bg-gradient-to-br from-brand-cyan/20 to-brand-purple/10 shadow-[0_0_20px_rgba(0,240,255,0.2)]'
-                                        : 'bg-white/5 group-hover:bg-white/10'
+                                    ? 'bg-gradient-to-br from-[#00F0FF]/20 to-brand-purple/10 shadow-[0_0_20px_rgba(0,240,255,0.4)]'
+                                    : 'bg-white/5 group-hover:bg-white/10'
                                     }`}>
                                     {React.cloneElement(item.icon, {
                                         className: `w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`
@@ -49,12 +49,12 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                             </div>
 
                             {/* Label */}
-                            <span className={`text-[10px] font-inter mt-1 transition-all duration-300 whitespace-nowrap ${isActive ? 'text-brand-cyan opacity-100 translate-y-0 font-semibold' : 'text-slate-400 opacity-80'}`}>
+                            <span className={`text-[10px] font-inter mt-1 transition-all duration-300 whitespace-nowrap ${isActive ? 'text-[#00F0FF] opacity-100 translate-y-0 font-semibold drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]' : 'text-slate-400 opacity-80'}`}>
                                 {item.label}
                             </span>
 
                             {/* Dot Indicator */}
-                            <div className={`absolute -bottom-2 w-1 h-1 rounded-full transition-all duration-300 ${isActive ? 'bg-brand-cyan scale-100 shadow-[0_0_5px_#00d9ff]' : 'bg-transparent scale-0'}`}></div>
+                            <div className={`absolute -bottom-2 w-1 h-1 rounded-full transition-all duration-300 ${isActive ? 'bg-[#00F0FF] scale-100 shadow-[0_0_8px_#00F0FF]' : 'bg-transparent scale-0'}`}></div>
                         </button>
                     );
                 })}

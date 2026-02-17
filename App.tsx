@@ -90,6 +90,18 @@ const App: React.FC = () => {
         return () => clearTimeout(timer);
     }, [syncUserData, settings.themeMode, updateSettings, redeemReferral]);
 
+    const [isNavigating, setIsNavigating] = useState(false);
+
+    const handleNavigation = (tab: string) => {
+        if (tab === activeTab) return;
+        setIsNavigating(true);
+        triggerHaptic('selection');
+        setTimeout(() => {
+            navigateTo(tab);
+            setIsNavigating(false);
+        }, 600);
+    };
+
     if (isLoading) return <LoadingScreen onComplete={() => setIsLoading(false)} />;
     if (maintenanceMode && settings?.isAuthenticated) return <MaintenanceScreen />;
 
@@ -99,6 +111,22 @@ const App: React.FC = () => {
             <SimulationManager />
             <WalletListener />
 
+            {/* Navigation Loading Overlay */}
+            {isNavigating && (
+                <div className="absolute inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="flex flex-col items-center gap-3">
+                        <div className="relative">
+                            <ActivityIcon className="w-10 h-10 text-brand-cyan animate-spin" />
+                            <div className="absolute inset-0 border-2 border-brand-cyan/30 rounded-full animate-ping"></div>
+                        </div>
+                        <div className="flex flex-col items-center">
+                            <span className="text-brand-cyan font-mono text-xs font-bold tracking-[0.2em] animate-pulse">SCANNING</span>
+                            <span className="text-[8px] text-brand-cyan/50 font-mono mt-1">ENCRYPTING CONNECTION</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {!settings?.isAuthenticated ? (
                 <AuthScreen />
             ) : (
@@ -107,7 +135,7 @@ const App: React.FC = () => {
                     <LevelUpOverlay />
 
                     <main className="flex-grow overflow-y-auto overflow-x-hidden relative z-0 pt-10 pb-24 no-scrollbar">
-                        <HomeScreen onNavigate={navigateTo} />
+                        <HomeScreen onNavigate={handleNavigation} />
                     </main>
 
                     <ModalManager />
@@ -120,7 +148,7 @@ const App: React.FC = () => {
                         <BotIcon className="w-8 h-8" />
                     </button>
 
-                    <BottomNav items={navItems} activeTab={activeTab} onTabChange={navigateTo} />
+                    <BottomNav items={navItems} activeTab={activeTab} onTabChange={handleNavigation} />
                 </div>
             )}
         </div>

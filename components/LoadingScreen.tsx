@@ -63,9 +63,8 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
 
   const handleComplete = () => {
     setIsExiting(true);
-    setTimeout(() => {
-      if (onComplete) onComplete();
-    }, 800);
+    // Instant transition as requested
+    if (onComplete) onComplete();
   };
 
   useEffect(() => {

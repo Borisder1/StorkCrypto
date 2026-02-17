@@ -138,6 +138,11 @@ const en: Dictionary = {
     'ticker.cache': 'CACHE',
     'toast.alert_added': 'Alert Added Successfully',
     'loading.skip': 'SKIP_SEQUENCE',
+    'system.failure': 'SYSTEM FAILURE',
+    'system.reboot': 'REBOOT TERMINAL',
+    'system.home': 'BACK TO HOME',
+    'whale.awaiting': 'Awaiting Whale Activity',
+    'missions.offline': 'Missions Offline',
 };
 
 const ua: Dictionary = {
@@ -275,6 +280,11 @@ const ua: Dictionary = {
     'ticker.cache': 'КЕШ',
     'toast.alert_added': 'Сповіщення успішно додано',
     'loading.skip': 'ПРОПУСТИТИ',
+    'system.failure': 'ЗБІЙ СИСТЕМИ',
+    'system.reboot': 'ПЕРЕЗАВАНТАЖИТИ ТЕРМІНАЛ',
+    'system.home': 'НА ГОЛОВНУ',
+    'whale.awaiting': 'Очікування активності китів',
+    'missions.offline': 'Місії Офлайн',
 };
 
 const pl: Dictionary = {

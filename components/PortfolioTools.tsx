@@ -6,7 +6,7 @@ import LockedFeature from './LockedFeature';
 
 export const PortfolioTools: React.FC = () => {
     const [activeTool, setActiveTool] = useState<'TIME_MACHINE' | 'IL_CALC' | 'TAX_EST' | 'SHIELD'>('SHIELD');
-    
+
     // Time Machine State
     const [tmAsset, setTmAsset] = useState('BTC');
     const [tmAmount, setTmAmount] = useState('1000');
@@ -42,7 +42,7 @@ export const PortfolioTools: React.FC = () => {
         const priceRatioA = 1 + (parseFloat(ilTokenA) / 100);
         const priceRatioB = 1 + (parseFloat(ilTokenB) / 100);
         if (priceRatioA <= 0 || priceRatioB <= 0) return;
-        const k = priceRatioA / priceRatioB; 
+        const k = priceRatioA / priceRatioB;
         const il = (2 * Math.sqrt(k) / (1 + k)) - 1;
         setIlResult(Math.abs(il * 100));
     };
@@ -82,7 +82,7 @@ export const PortfolioTools: React.FC = () => {
                         <ShieldIcon className="w-4 h-4 text-brand-cyan" />
                         <span className="text-xs font-bold text-white">ASSET PROTECTION</span>
                     </div>
-                    
+
                     <div className="bg-black/30 rounded-xl p-4 border border-white/5 mb-3">
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-[10px] text-slate-400">CONTRACT APPROVALS</span>
@@ -96,14 +96,14 @@ export const PortfolioTools: React.FC = () => {
                         </div>
                     </div>
 
-                    <button 
+                    <button
                         onClick={runSecurityScan}
                         disabled={scanStatus === 'SCANNING'}
-                        className={`w-full max-w-[90%] mx-auto block py-3 rounded-xl text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-2 ${scanStatus === 'SAFE' ? 'bg-green-500/20 text-green-400 border border-green-500/50' : 'bg-brand-cyan text-black hover:bg-white box-glow'}`}
+                        className={`w-[90%] max-w-[350px] mx-auto block py-3 rounded-xl text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-2 ${scanStatus === 'SAFE' ? 'bg-green-500/20 text-green-400 border border-green-500/50' : 'bg-brand-cyan text-black hover:bg-white box-glow'}`}
                     >
                         {scanStatus === 'SAFE' ? 'SYSTEM SECURE' : 'SCAN PERMISSIONS'}
                     </button>
-                    
+
                     <p className="text-[8px] text-slate-500 mt-2 text-center">
                         Checks for infinite approvals and malicious contracts on connected wallet.
                     </p>
@@ -130,11 +130,11 @@ export const PortfolioTools: React.FC = () => {
                             </select>
                             <input type="number" value={tmAmount} onChange={(e) => setTmAmount(e.target.value)} className="bg-black/30 border border-white/10 rounded-lg p-2 text-xs text-white outline-none" placeholder="$ Invested" />
                         </div>
-                        
+
                         {tmResult !== null && (
                             <div className="bg-brand-cyan/10 border border-brand-cyan/30 rounded-xl p-3 mb-3 text-center">
                                 <p className="text-[9px] text-slate-400 uppercase">Current Value Would Be</p>
-                                <p className="text-2xl font-black text-brand-cyan font-orbitron">${tmResult.toLocaleString(undefined, {maximumFractionDigits: 0})}</p>
+                                <p className="text-2xl font-black text-brand-cyan font-orbitron">${tmResult.toLocaleString(undefined, { maximumFractionDigits: 0 })}</p>
                                 <p className="text-[10px] text-brand-cyan font-bold">+{((tmResult - parseFloat(tmAmount)) / parseFloat(tmAmount) * 100).toFixed(0)}% ROI</p>
                             </div>
                         )}
