@@ -97,6 +97,10 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
       lettersWrapper.innerHTML = '';
+      lettersWrapper.style.display = 'flex';
+      lettersWrapper.style.flexDirection = 'column'; // FORCE VERTICAL
+      lettersWrapper.style.alignItems = 'center';
+
       word.split('').forEach((char) => {
         const container = document.createElement('div');
         container.className = 'letter-container';
@@ -267,6 +271,12 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           100% { transform: translate(50px, 50px); }
         }
 
+        .letters-vertical {
+          display: flex;
+          flex-direction: column !important;
+          align-items: center;
+        }
+
         .letter-container {
           position: relative;
           margin: clamp(0px, 0.1vh, 2px) 0;
@@ -392,7 +402,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
 
       {/* 📝 Контейнер з літерами STORKCRYPTO (ВЕРТИКАЛЬНИЙ — як в оригіналі) */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
+        <div ref={lettersWrapperRef} className="letters-vertical" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
       </div>
 
       {/* 📊 Прогрес-бар */}
