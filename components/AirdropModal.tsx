@@ -100,7 +100,7 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
         if (task.link) {
             // Use Telegram WebApp for better integration if available
             if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.openLink(task.link);
+                (window.Telegram.WebApp as any).openLink(task.link);
             } else {
                 window.open(task.link, '_blank');
             }
@@ -208,105 +208,104 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                         </button>
                     </div>
 
-                </div>
-
-                {/* UPGRADE SYSTEM */}
-                <div className="grid grid-cols-2 gap-3">
-                    <button
-                        onClick={() => useStore.getState().upgradeMining('RATE')}
-                        className="bg-black/40 border border-white/10 rounded-2xl p-4 flex flex-col items-center gap-2 hover:bg-white/5 active:scale-95 transition-all group"
-                    >
-                        <div className="w-8 h-8 rounded-full bg-brand-cyan/20 flex items-center justify-center border border-brand-cyan/50 group-hover:shadow-[0_0_15px_#00d9ff]">
-                            <PickaxeIcon className="w-4 h-4 text-brand-cyan" />
-                        </div>
-                        <div className="text-center">
-                            <span className="text-[9px] font-black text-white uppercase block">Turbo Mode</span>
-                            <span className="text-[8px] font-mono text-brand-cyan">500 $STORK</span>
-                        </div>
-                    </button>
-
-                    <button
-                        onClick={() => useStore.getState().upgradeMining('STORAGE')}
-                        className="bg-black/40 border border-white/10 rounded-2xl p-4 flex flex-col items-center gap-2 hover:bg-white/5 active:scale-95 transition-all group"
-                    >
-                        <div className="w-8 h-8 rounded-full bg-brand-purple/20 flex items-center justify-center border border-brand-purple/50 group-hover:shadow-[0_0_15px_#8b5cf6]">
-                            <ShieldIcon className="w-4 h-4 text-brand-purple" />
-                        </div>
-                        <div className="text-center">
-                            <span className="text-[9px] font-black text-white uppercase block">Deep Storage</span>
-                            <span className="text-[8px] font-mono text-brand-purple">300 $STORK</span>
-                        </div>
-                    </button>
-                </div>
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex justify-between items-center hover:bg-white/10 transition-colors duration-300">
-                    <div>
-                        <p className="text-[9px] text-slate-500 uppercase font-black font-inter tracking-wider">Total Balance</p>
-                        <p className="text-xl font-black text-white font-mono tracking-tight">{userStats.storkBalance.toFixed(2)} $STORK</p>
-                    </div>
-                    <GiftIcon className="w-8 h-8 text-brand-purple opacity-50 drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
-                </div>
-
-                {/* TASKS LIST */}
-                <div>
-                    <h3 className="text-white font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2 font-orbitron">
-                        <ShieldIcon className="w-4 h-4 text-brand-purple text-glow" /> AIRDROP_PROTOCOL
-                    </h3>
-
-                    <div className="space-y-3">
-                        {tasks.length === 0 ? (
-                            <div className="bg-brand-card/30 border border-brand-border rounded-[2rem] p-6 flex flex-col items-center justify-center min-h-[140px] text-center relative overflow-hidden group">
-                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none"></div>
-                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-purple/50 to-transparent animate-[scanline_4s_linear_infinite]"></div>
-
-                                <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center mb-3 relative">
-                                    <ShieldIcon className="w-6 h-6 text-slate-700" />
-                                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-brand-purple rounded-full animate-ping"></div>
-                                </div>
-
-                                <h3 className="text-white font-black text-[10px] font-orbitron uppercase tracking-widest mb-1 text-glow">NO_TASKS_AVAILABLE</h3>
-                                <p className="text-slate-500 text-[8px] font-mono max-w-[180px]">
-                                    All protocols executed. Stand by for new directives from command.
-                                </p>
+                    {/* UPGRADE SYSTEM */}
+                    <div className="grid grid-cols-2 gap-3">
+                        <button
+                            onClick={() => useStore.getState().upgradeMining('RATE')}
+                            className="bg-black/40 border border-white/10 rounded-2xl p-4 flex flex-col items-center gap-2 hover:bg-white/5 active:scale-95 transition-all group"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-brand-cyan/20 flex items-center justify-center border border-brand-cyan/50 group-hover:shadow-[0_0_15px_#00d9ff]">
+                                <PickaxeIcon className="w-4 h-4 text-brand-cyan" />
                             </div>
-                        ) : (
-                            tasks.map(task => (
-                                <div
-                                    key={task.id}
-                                    onClick={() => handleTaskClick(task)}
-                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 ${task.isCompleted ? 'bg-brand-green/10 border-brand-green/30 opacity-60' : verifyingTaskId === task.id ? 'bg-brand-cyan/10 border-brand-cyan/50 animate-pulse' : 'bg-white/5 border-white/5 hover:border-brand-purple/40 hover:bg-white/10 active:scale-[0.95] active:bg-brand-purple/20 cursor-pointer'}`}
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors duration-300 ${task.isCompleted ? 'border-brand-green bg-brand-green/20 text-brand-green' : verifyingTaskId === task.id ? 'border-brand-cyan bg-brand-cyan/20 text-brand-cyan' : 'border-white/10 bg-black/40 text-slate-400'}`}>
-                                            {verifyingTaskId === task.id ? (
-                                                <ActivityIcon className="w-5 h-5 animate-spin" />
-                                            ) : (
-                                                <>
-                                                    {task.icon === 'TELEGRAM' && <TelegramIcon className="w-5 h-5" />}
-                                                    {task.icon === 'TWITTER' && <LinkIcon className="w-5 h-5" />}
-                                                    {task.icon === 'WALLET' && <ShieldIcon className="w-5 h-5" />}
-                                                    {task.icon === 'INVITE' && <GiftIcon className="w-5 h-5" />}
-                                                </>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <p className={`text-xs font-bold ${task.isCompleted ? 'text-brand-green line-through' : 'text-white'}`}>{task.title}</p>
-                                            <p className="text-[9px] text-brand-purple font-mono font-bold">+{task.reward} $STORK</p>
-                                        </div>
-                                    </div>
-                                    {task.isCompleted ? (
-                                        <span className="text-[9px] font-black text-brand-green uppercase bg-brand-green/10 px-2 py-1 rounded">DONE</span>
-                                    ) : (
-                                        <ChevronRightIcon className="w-4 h-4 text-slate-600" />
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                </div>
+                            <div className="text-center">
+                                <span className="text-[9px] font-black text-white uppercase block">Turbo Mode</span>
+                                <span className="text-[8px] font-mono text-brand-cyan">500 $STORK</span>
+                            </div>
+                        </button>
 
+                        <button
+                            onClick={() => useStore.getState().upgradeMining('STORAGE')}
+                            className="bg-black/40 border border-white/10 rounded-2xl p-4 flex flex-col items-center gap-2 hover:bg-white/5 active:scale-95 transition-all group"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-brand-purple/20 flex items-center justify-center border border-brand-purple/50 group-hover:shadow-[0_0_15px_#8b5cf6]">
+                                <ShieldIcon className="w-4 h-4 text-brand-purple" />
+                            </div>
+                            <div className="text-center">
+                                <span className="text-[9px] font-black text-white uppercase block">Deep Storage</span>
+                                <span className="text-[8px] font-mono text-brand-purple">300 $STORK</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex justify-between items-center hover:bg-white/10 transition-colors duration-300">
+                        <div>
+                            <p className="text-[9px] text-slate-500 uppercase font-black font-inter tracking-wider">Total Balance</p>
+                            <p className="text-xl font-black text-white font-mono tracking-tight">{userStats.storkBalance.toFixed(2)} $STORK</p>
+                        </div>
+                        <GiftIcon className="w-8 h-8 text-brand-purple opacity-50 drop-shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
+                    </div>
+
+                    {/* TASKS LIST */}
+                    <div>
+                        <h3 className="text-white font-black text-sm uppercase tracking-widest mb-4 flex items-center gap-2 font-orbitron">
+                            <ShieldIcon className="w-4 h-4 text-brand-purple text-glow" /> AIRDROP_PROTOCOL
+                        </h3>
+
+                        <div className="space-y-3">
+                            {tasks.length === 0 ? (
+                                <div className="bg-brand-card/30 border border-brand-border rounded-[2rem] p-6 flex flex-col items-center justify-center min-h-[140px] text-center relative overflow-hidden group">
+                                    <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none"></div>
+                                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-purple/50 to-transparent animate-[scanline_4s_linear_infinite]"></div>
+
+                                    <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center mb-3 relative">
+                                        <ShieldIcon className="w-6 h-6 text-slate-700" />
+                                        <div className="absolute -top-1 -right-1 w-2 h-2 bg-brand-purple rounded-full animate-ping"></div>
+                                    </div>
+
+                                    <h3 className="text-white font-black text-[10px] font-orbitron uppercase tracking-widest mb-1 text-glow">NO_TASKS_AVAILABLE</h3>
+                                    <p className="text-slate-500 text-[8px] font-mono max-w-[180px]">
+                                        All protocols executed. Stand by for new directives from command.
+                                    </p>
+                                </div>
+                            ) : (
+                                tasks.map(task => (
+                                    <div
+                                        key={task.id}
+                                        onClick={() => handleTaskClick(task)}
+                                        className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 ${task.isCompleted ? 'bg-brand-green/10 border-brand-green/30 opacity-60' : verifyingTaskId === task.id ? 'bg-brand-cyan/10 border-brand-cyan/50 animate-pulse' : 'bg-white/5 border-white/5 hover:border-brand-purple/40 hover:bg-white/10 active:scale-[0.95] active:bg-brand-purple/20 cursor-pointer'}`}
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors duration-300 ${task.isCompleted ? 'border-brand-green bg-brand-green/20 text-brand-green' : verifyingTaskId === task.id ? 'border-brand-cyan bg-brand-cyan/20 text-brand-cyan' : 'border-white/10 bg-black/40 text-slate-400'}`}>
+                                                {verifyingTaskId === task.id ? (
+                                                    <ActivityIcon className="w-5 h-5 animate-spin" />
+                                                ) : (
+                                                    <>
+                                                        {task.icon === 'TELEGRAM' && <TelegramIcon className="w-5 h-5" />}
+                                                        {task.icon === 'TWITTER' && <LinkIcon className="w-5 h-5" />}
+                                                        {task.icon === 'WALLET' && <ShieldIcon className="w-5 h-5" />}
+                                                        {task.icon === 'INVITE' && <GiftIcon className="w-5 h-5" />}
+                                                    </>
+                                                )}
+                                            </div>
+                                            <div>
+                                                <p className={`text-xs font-bold ${task.isCompleted ? 'text-brand-green line-through' : 'text-white'}`}>{task.title}</p>
+                                                <p className="text-[9px] text-brand-purple font-mono font-bold">+{task.reward} $STORK</p>
+                                            </div>
+                                        </div>
+                                        {task.isCompleted ? (
+                                            <span className="text-[9px] font-black text-brand-green uppercase bg-brand-green/10 px-2 py-1 rounded">DONE</span>
+                                        ) : (
+                                            <ChevronRightIcon className="w-4 h-4 text-slate-600" />
+                                        )}
+                                    </div>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                </div>
             </div>
         </div>
-        </div >
     );
 };
 

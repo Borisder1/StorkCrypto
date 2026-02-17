@@ -13,6 +13,7 @@ import WalletListener from './components/WalletListener';
 import { LoadingScreen } from './components/LoadingScreen';
 import { HomeIcon, NewspaperIcon, ActivityIcon, RadarIcon, PieChartIcon, BookIcon, BotIcon } from './components/icons';
 import { useStore } from './store';
+import { NavItem } from './types';
 import { getTranslation } from './utils/translations';
 import { triggerHaptic } from './utils/haptics';
 
@@ -98,7 +99,7 @@ const App: React.FC = () => {
         setIsNavigating(true);
         triggerHaptic('selection');
         setTimeout(() => {
-            navigateTo(tab);
+            navigateTo(tab as NavItem);
             setIsNavigating(false);
         }, 600);
     };
