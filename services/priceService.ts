@@ -53,7 +53,7 @@ export const TICKER_TO_ID = MASTER_ASSET_LIST.reduce((acc, item) => {
  */
 export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> => {
     const now = Date.now();
-    
+
     // 1. Check Cache
     if (now - CACHE.PRICES.timestamp < CACHE.PRICES.ttl && Object.keys(CACHE.PRICES.data).length > 0) {
         return CACHE.PRICES.data;
@@ -65,7 +65,7 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
         // 2. Спроба Binance (Найшвидший)
         const binanceSymbols = MASTER_ASSET_LIST.slice(0, 8).map(a => `"${a.ticker}USDT"`).join(',');
         const bResp = await fetch(`${BINANCE_API_URL}/ticker/24hr?symbols=[${binanceSymbols}]`);
-        
+
         if (bResp.ok) {
             const bData = await bResp.json();
             bData.forEach((item: any) => {
@@ -84,10 +84,25 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
 
         // 3. Спроба Coincap (Fallback для всіх інших монет)
         try {
-            const cResp = await fetch(`${COINCAP_API_URL}/assets?limit=100`, {
-                signal: AbortSignal.timeout(5000) // Таймаут 5 секунд
-            });
-            if (cResp.ok) {
+            let cResp: Response | null = null;
+
+            // Try direct CoinCap first
+            try {
+                cResp = await fetch(`${COINCAP_API_URL}/assets?limit=100`, {
+                    signal: AbortSignal.timeout(5000)
+                });
+            } catch (_directErr) {
+                // Direct failed (likely CORS), try via proxy
+                try {
+                    cResp = await fetch(`https://corsproxy.io/?${encodeURIComponent(`${COINCAP_API_URL}/assets?limit=100`)}`, {
+                        signal: AbortSignal.timeout(5000)
+                    });
+                } catch (_proxyErr) {
+                    cResp = null;
+                }
+            }
+
+            if (cResp && cResp.ok) {
                 const cData = await cResp.json();
                 cData.data.forEach((coin: any) => {
                     // Оновлюємо тільки якщо ще немає з Binance або дані з Binance старіші
@@ -122,14 +137,14 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
     // Це вирішує проблему "всі квадрати червоні", якщо API не працює.
     return MASTER_ASSET_LIST.reduce((acc, asset, index) => {
         // Генеруємо фейкову зміну від -15% до +15%
-        const randomChange = (Math.random() * 30) - 15; 
+        const randomChange = (Math.random() * 30) - 15;
         const randomPrice = Math.random() * 1000 + 10;
-        
-        acc[asset.id] = { 
-            usd: randomPrice, 
-            usd_24h_change: randomChange, 
-            lastUpdate: now, 
-            source: 'CACHE' 
+
+        acc[asset.id] = {
+            usd: randomPrice,
+            usd_24h_change: randomChange,
+            lastUpdate: now,
+            source: 'CACHE'
         };
         return acc;
     }, {} as MarketPriceMap);
@@ -138,27 +153,27 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
 export const getOHLCData = async (id: string, timeframe: string = '1'): Promise<OHLCData[]> => {
     const asset = MASTER_ASSET_LIST.find(a => a.id === id || a.ticker === id);
     const ticker = asset ? asset.ticker : id.toUpperCase();
-    
+
     try {
         let symbol = `${ticker}USDT`;
         const response = await fetch(`${BINANCE_API_URL}/klines?symbol=${symbol}&interval=1h&limit=50`);
         if (response.ok) {
             const raw = await response.json();
-            return raw.map((d: any) => ({ 
-                time: d[0], 
-                open: parseFloat(d[1]), 
-                high: parseFloat(d[2]), 
-                low: parseFloat(d[3]), 
-                close: parseFloat(d[4]), 
-                volume: parseFloat(d[5]) 
+            return raw.map((d: any) => ({
+                time: d[0],
+                open: parseFloat(d[1]),
+                high: parseFloat(d[2]),
+                low: parseFloat(d[3]),
+                close: parseFloat(d[4]),
+                volume: parseFloat(d[5])
             }));
         }
         throw new Error();
     } catch (e) {
         // Fallback: Generate fake candles to prevent crash
-        return Array.from({length: 20}).map((_, i) => ({ 
-            time: Date.now() - (20 - i) * 3600000, 
-            open: 100 + i, high: 105 + i, low: 95 + i, close: 102 + i, volume: 1000 
+        return Array.from({ length: 20 }).map((_, i) => ({
+            time: Date.now() - (20 - i) * 3600000,
+            open: 100 + i, high: 105 + i, low: 95 + i, close: 102 + i, volume: 1000
         }));
     }
 };
@@ -185,11 +200,11 @@ const deriveSignal = (change: number, rsi: number): string => {
 
 export const scanMarket = async (): Promise<AssetMetrics[]> => {
     const prices = await getCryptoPrices();
-    
+
     return MASTER_ASSET_LIST.map((asset) => {
         const data = prices[asset.id];
         const change = data?.usd_24h_change || 0;
-        
+
         // Smart Math for consistency
         const calculatedRSI = deriveRSI(change);
         const signal = deriveSignal(change, calculatedRSI);

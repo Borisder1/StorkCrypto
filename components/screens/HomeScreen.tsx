@@ -14,7 +14,7 @@ import UpgradeBanner from '../UpgradeBanner';
 
 const MarketPulseWidget: React.FC = () => {
     const [pulse, setPulse] = useState({ dom: 52.4, fear: 64, phase: 'BULLISH_EXPANSION' });
-    
+
     useEffect(() => {
         const interval = setInterval(() => {
             setPulse(prev => ({
@@ -28,16 +28,16 @@ const MarketPulseWidget: React.FC = () => {
 
     return (
         <div className="grid grid-cols-3 gap-3 mb-8">
-            <div className="bg-brand-card/40 border border-white/5 rounded-2xl p-3 text-center group hover:border-brand-cyan/30 transition-all">
+            <div className="bg-brand-card/40 border border-white/5 rounded-2xl p-3 text-center interactive-card">
                 <p className="text-[7px] text-slate-500 uppercase font-black mb-1">BTC_DOM</p>
                 <p className="text-xs font-black text-brand-cyan">{pulse.dom.toFixed(1)}%</p>
             </div>
-            <div className="bg-brand-card/40 border border-white/5 rounded-2xl p-3 text-center relative overflow-hidden group hover:border-brand-green/30 transition-all">
+            <div className="bg-brand-card/40 border border-white/5 rounded-2xl p-3 text-center relative overflow-hidden interactive-card">
                 <p className="text-[7px] text-slate-500 uppercase font-black mb-1">FEAR_GREED</p>
                 <p className={`text-xs font-black ${pulse.fear > 60 ? 'text-brand-green' : pulse.fear < 40 ? 'text-brand-danger' : 'text-yellow-500'}`}>{pulse.fear}</p>
-                <div className="absolute bottom-0 left-0 h-0.5 bg-brand-cyan opacity-20" style={{width: `${pulse.fear}%`}}></div>
+                <div className="absolute bottom-0 left-0 h-0.5 bg-brand-cyan opacity-20" style={{ width: `${pulse.fear}%` }}></div>
             </div>
-            <div className="bg-brand-card/40 border border-white/5 rounded-2xl p-3 text-center group hover:border-brand-purple/30 transition-all">
+            <div className="bg-brand-card/40 border border-white/5 rounded-2xl p-3 text-center interactive-card">
                 <p className="text-[7px] text-slate-500 uppercase font-black mb-1">MARKET_PHASE</p>
                 <p className="text-[8px] font-black text-brand-purple truncate uppercase tracking-tighter">{pulse.phase}</p>
             </div>
@@ -58,28 +58,28 @@ const ConnectivityWidget: React.FC = () => {
                 </div>
             </div>
             <div className="flex gap-1">
-                {[1,2,3,4,5].map(i => <div key={i} className={`w-1 h-3 rounded-full ${i < 5 ? 'bg-brand-cyan shadow-[0_0_5px_#00d9ff]' : 'bg-slate-700'}`}></div>)}
+                {[1, 2, 3, 4, 5].map(i => <div key={i} className={`w-1 h-3 rounded-full ${i < 5 ? 'bg-brand-cyan shadow-[0_0_5px_#00d9ff]' : 'bg-slate-700'}`}></div>)}
             </div>
         </div>
     );
 };
 
 const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNavigate }) => {
-    const { 
-        assets = [], 
-        userStats, 
-        navigateTo, 
-        updateAssetPrice, 
+    const {
+        assets = [],
+        userStats,
+        navigateTo,
+        updateAssetPrice,
         notifications = [],
         settings,
         setShowAirdrop,
         setShowSentinel
     } = useStore();
-    
+
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
     const unreadCount = (notifications || []).filter(n => !n.read).length;
-    const totalBalance = (assets || []).reduce((a,c) => a + (c.value || 0), 0);
-    
+    const totalBalance = (assets || []).reduce((a, c) => a + (c.value || 0), 0);
+
     const [wsStatus, setWsStatus] = useState<'CONNECTING' | 'LIVE' | 'OFFLINE'>('CONNECTING');
 
     useEffect(() => {
@@ -95,9 +95,9 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
 
     return (
         <div className="min-h-screen relative pb-40">
-             <TacticalBackground />
-             
-             <div className="px-5 pt-4 relative z-20 max-w-md mx-auto">
+            <TacticalBackground />
+
+            <div className="px-5 pt-4 relative z-20 max-w-md mx-auto">
                 <div className="flex justify-between items-center mb-6 py-2 border-b border-white/5 backdrop-blur-sm bg-black/20 rounded-2xl px-4">
                     <div className="flex items-center gap-3" onClick={() => navigateTo('profile')}>
                         <div className="relative group cursor-pointer">
@@ -125,13 +125,13 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                         <div className="absolute top-0 right-0 p-6 opacity-10">
                             <ZapIcon className="w-24 h-24 text-brand-cyan" />
                         </div>
-                        
+
                         <div className="flex justify-between items-start mb-6 relative z-10">
                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-orbitron flex items-center gap-2">
-                                <PieChartIcon className="w-3.5 h-3.5 text-brand-cyan" /> NET_LIQUIDITY
+                                <PieChartIcon className="w-3.5 h-3.5 text-brand-cyan" /> {t('home.total_equity')}
                             </span>
                         </div>
-                        
+
                         <div className="flex items-baseline gap-2 mb-8 relative z-10">
                             <span className="text-5xl font-black text-white font-orbitron tracking-tighter drop-shadow-[0_0_15px_rgba(0,217,255,0.4)]">
                                 <NumberTicker value={totalBalance} prefix="$" fractionDigits={0} />
@@ -140,12 +140,12 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                         </div>
 
                         <div className="grid grid-cols-2 gap-3 relative z-10">
-                            <div className="bg-black/40 rounded-xl p-3 border border-white/5 flex items-center justify-between">
-                                <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Growth_24h</span>
+                            <div className="bg-black/40 rounded-xl p-3 border border-white/5 flex items-center justify-between interactive-card">
+                                <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest">{t('home.pnl_24h')}</span>
                                 <span className="text-xs font-black text-brand-green font-mono">+4.1%</span>
                             </div>
-                            <div className="bg-black/40 rounded-xl p-3 border border-white/5 flex items-center justify-between">
-                                <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest">Rank_Index</span>
+                            <div className="bg-black/40 rounded-xl p-3 border border-white/5 flex items-center justify-between interactive-card">
+                                <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest">{t('home.level')}_INDEX</span>
                                 <span className="text-xs font-black text-brand-purple font-mono">#{userStats.level}</span>
                             </div>
                         </div>
@@ -156,14 +156,14 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                 <MarketPulseWidget />
 
                 <div className="grid grid-cols-2 gap-3 mb-8">
-                    <button onClick={() => { triggerHaptic('medium'); setShowAirdrop(true); }} className="relative group overflow-hidden rounded-[2rem] border border-brand-cyan/20 h-28 bg-[#0a0f1e]/60 transition-all hover:border-brand-cyan/50 active:scale-95 shadow-lg">
+                    <button onClick={() => { triggerHaptic('medium'); setShowAirdrop(true); }} className="relative group overflow-hidden rounded-[2rem] border border-brand-cyan/20 h-28 bg-[#0a0f1e]/60 transition-all hover:border-brand-cyan/50 hover:shadow-[0_0_25px_rgba(0,240,255,0.15)] active:scale-95 shadow-lg">
                         <div className="absolute inset-0 bg-brand-cyan/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         <div className="relative z-10 p-5 flex flex-col justify-between h-full text-left">
                             <div className="w-10 h-10 rounded-xl bg-brand-cyan/10 border border-brand-cyan/20 flex items-center justify-center shadow-inner"><PickaxeIcon className="w-5 h-5 text-brand-cyan" /></div>
                             <div><h3 className="font-orbitron font-black text-white text-[11px] uppercase tracking-wider">Mining_Hub</h3><p className="text-[8px] text-brand-cyan font-mono opacity-60">EARNING_STORK</p></div>
                         </div>
                     </button>
-                    <button onClick={() => { triggerHaptic('medium'); setShowSentinel(true); }} className="relative group overflow-hidden rounded-[2rem] border border-brand-purple/20 h-28 bg-[#0a0f1e]/60 transition-all hover:border-brand-purple/50 active:scale-95 shadow-lg">
+                    <button onClick={() => { triggerHaptic('medium'); setShowSentinel(true); }} className="relative group overflow-hidden rounded-[2rem] border border-brand-purple/20 h-28 bg-[#0a0f1e]/60 transition-all hover:border-brand-purple/50 hover:shadow-[0_0_25px_rgba(139,92,246,0.15)] active:scale-95 shadow-lg">
                         <div className="absolute inset-0 bg-brand-purple/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                         <div className="relative z-10 p-5 flex flex-col justify-between h-full text-left">
                             <div className="w-10 h-10 rounded-xl bg-brand-purple/10 border border-brand-purple/20 flex items-center justify-center shadow-inner"><ShieldIcon className="w-5 h-5 text-brand-purple" /></div>
@@ -173,18 +173,18 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                 </div>
 
                 <AIInsightWidget />
-                
+
                 {userStats.subscriptionTier === 'FREE' && <UpgradeBanner />}
 
                 <div className="mt-10 space-y-6">
                     <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-[0.4em] font-orbitron flex items-center gap-3">
-                        <div className="w-6 h-[1px] bg-brand-cyan/50"></div> 
+                        <div className="w-6 h-[1px] bg-brand-cyan/50"></div>
                         {t('home.intel_feed')}
                     </h3>
                     <WhaleTrackerWidget />
                     <QuestWidget />
                 </div>
-             </div>
+            </div>
         </div>
     );
 };

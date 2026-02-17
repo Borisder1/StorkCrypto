@@ -52,7 +52,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   const progressBarRef = useRef<HTMLDivElement>(null);
   const scannerLineRef = useRef<HTMLDivElement>(null);
   const progressContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const [progress, setProgress] = useState(0);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [progressVisible, setProgressVisible] = useState(false);
@@ -64,13 +64,13 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   const handleComplete = () => {
     setIsExiting(true);
     setTimeout(() => {
-        if (onComplete) onComplete();
+      if (onComplete) onComplete();
     }, 800);
   };
 
   useEffect(() => {
-    // Show Skip button after 2.5s
-    const skipTimer = setTimeout(() => setShowSkip(true), 2500);
+    // Show Skip button after 2s
+    const skipTimer = setTimeout(() => setShowSkip(true), 2000);
     return () => clearTimeout(skipTimer);
   }, []);
 
@@ -96,50 +96,27 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     // 📝 Створюємо літери динамічно
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
-      // Add responsive styles dynamically
-      const style = document.createElement('style');
-      style.textContent = `
-        .letter-container {
-          font-size: clamp(12px, 5vw, 32px) !important;
-          width: 0.8em !important;
-          height: 1.2em !important;
-        }
-        @media (max-width: 380px) {
-          .letter-container {
-            font-size: clamp(10px, 4vw, 24px) !important;
-          }
-        }
-        .loading-screen-exit {
-          opacity: 0;
-          filter: blur(10px);
-          transform: scale(1.1);
-          transition: all 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045);
-          pointer-events: none;
-        }
-      `;
-      document.head.appendChild(style);
-
       lettersWrapper.innerHTML = '';
       word.split('').forEach((char) => {
         const container = document.createElement('div');
         container.className = 'letter-container';
-        
+
         const inner = document.createElement('div');
         inner.className = 'letter-inner';
-        
+
         const finalFace = document.createElement('div');
         finalFace.className = 'letter-face final-face';
         finalFace.textContent = char;
-        
+
         const scramblerFace = document.createElement('div');
         scramblerFace.className = 'letter-face scrambler-face';
         scramblerFace.textContent = '?';
-        
+
         inner.appendChild(finalFace);
         inner.appendChild(scramblerFace);
         container.appendChild(inner);
         lettersWrapper.appendChild(container);
-        
+
         letterElements.push({ element: container, revealed: false });
       });
     }
@@ -147,7 +124,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     // 🎬 Анімація частинок
     function animateParticles() {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       particles.forEach((p, index) => {
         p.draw(ctx);
         p.update();
@@ -155,7 +132,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           particles.splice(index, 1);
         }
       });
-      
+
       if (particles.length > 0 || animationFrameId) {
         animationFrameId = requestAnimationFrame(animateParticles);
       }
@@ -172,18 +149,18 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
       const wrapperRect = lettersWrapper?.getBoundingClientRect();
       if (!wrapperRect || !scannerLineRef.current) return;
 
-      // ⚡ ФАЗА 1: Сканування літер (1.5 секунди)
+      // ⚡ ФАЗА 1: Сканування літер (2.5 секунди)
       setScannerVisible(true);
       scannerLineRef.current.style.top = `${wrapperRect.top}px`;
 
       let startTime = performance.now();
-      
+
       function scan(time: number) {
         const elapsed = time - startTime;
-        const scanDuration = 1500;
+        const scanDuration = 2500;
         const progress = Math.min(elapsed / scanDuration, 1);
         const currentY = wrapperRect.top + wrapperRect.height * progress;
-        
+
         if (scannerLineRef.current) {
           scannerLineRef.current.style.transform = `translateX(-50%) translateY(${currentY - wrapperRect.top}px)`;
         }
@@ -217,7 +194,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           const textRect = lettersWrapper?.getBoundingClientRect();
           const barRect = progressContainerRef.current?.getBoundingClientRect();
           const progressBarWidth = progressBarRef.current?.offsetWidth || 0;
-          
+
           if (textRect && barRect) {
             // Генеруємо 5 частинок кожні 50мс
             for (let i = 0; i < 5; i++) {
@@ -232,7 +209,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
         }, 50);
 
         let transferStartTime = Date.now();
-        
+
         function updateProgressBar() {
           const elapsed = Date.now() - transferStartTime;
           const currentProgress = Math.min(elapsed / chargeDuration, 1);
@@ -242,7 +219,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           }
         }
         updateProgressBar();
-        
+
         await new Promise((resolve) => setTimeout(resolve, chargeDuration));
         clearInterval(chargeInterval);
       }
@@ -271,7 +248,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   }, []);
 
   return (
-    <div className={`fixed inset-0 z-[9999] bg-[#020617] flex flex-col items-center justify-center overflow-hidden ${isExiting ? 'loading-screen-exit' : ''}`}>
+    <div className={`fixed inset-0 z-[9999] bg-[#0a0a14] flex flex-col items-center justify-center overflow-hidden ${isExiting ? 'loading-screen-exit' : ''}`}>
       {/* 🎨 Анімований фоновий грід */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className="absolute inset-0" style={{
@@ -303,6 +280,18 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           transition: color 1s, text-shadow 1s, opacity 0.5s;
           transform-style: preserve-3d;
           perspective: 300px;
+        }
+
+        @media (max-width: 380px) {
+          .letter-container {
+            font-size: clamp(16px, 3.5vh, 24px);
+          }
+        }
+
+        @media (max-width: 340px) {
+          .letter-container {
+            font-size: clamp(14px, 3vh, 20px);
+          }
         }
 
         .letter-inner {
@@ -388,14 +377,22 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
+
+        .loading-screen-exit {
+          opacity: 0;
+          filter: blur(10px);
+          transform: scale(1.1);
+          transition: all 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+          pointer-events: none;
+        }
       `}</style>
 
       {/* 🎨 Canvas для частинок */}
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-10" />
 
-      {/* 📝 Контейнер з літерами STORKCRYPTO */}
+      {/* 📝 Контейнер з літерами STORKCRYPTO (ВЕРТИКАЛЬНИЙ — як в оригіналі) */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap' }} />
+        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
       </div>
 
       {/* 📊 Прогрес-бар */}
@@ -418,9 +415,9 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
         style={{ opacity: scannerVisible ? 1 : 0 }}
       />
 
-      {/* ⏭ SKIP BUTTON */}
-      <button 
-        onClick={onComplete}
+      {/* ⏭ SKIP / ПРОПУСТИТИ */}
+      <button
+        onClick={handleComplete}
         className={`fixed bottom-12 z-50 text-[10px] font-orbitron font-black tracking-[0.2em] uppercase text-brand-cyan/80 hover:text-white transition-all duration-700 border border-brand-cyan/30 px-6 py-2 rounded-full hover:bg-brand-cyan/10 backdrop-blur-sm group ${showSkip ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
       >
         <span className="group-hover:text-brand-cyan transition-colors">{getTranslation(settings.language, 'loading.skip')}</span> &gt;&gt;

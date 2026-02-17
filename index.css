@@ -2,6 +2,7 @@
 
 @theme {
   --font-orbitron: "Orbitron", sans-serif;
+  --font-rajdhani: "Rajdhani", sans-serif;
   --font-space-mono: "Space Mono", monospace;
   --font-inter: "Inter", "Montserrat", sans-serif;
   --font-montserrat: "Montserrat", sans-serif;
@@ -23,6 +24,11 @@
   --animate-glitch: glitch 1s linear infinite;
   --animate-noise: noise 0.5s steps(1) infinite;
   --animate-ping-slow: ping 3s cubic-bezier(0, 0, 0.2, 1) infinite;
+  --animate-fade-in: fadeIn 0.3s ease-out;
+  --animate-slide-up: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-value-flash-up: valueFlashUp 0.6s ease-out;
+  --animate-value-flash-down: valueFlashDown 0.6s ease-out;
+  --animate-holographic: holographic 3s ease-in-out infinite;
 }
 
 body {
@@ -32,7 +38,7 @@ body {
   overflow-x: hidden;
 }
 
-/* Enhanced cyberpunk background */
+/* Enhanced cyberpunk background with animated gradient */
 body::before {
   content: '';
   position: fixed;
@@ -41,42 +47,113 @@ body::before {
   width: 100%;
   height: 100%;
   background: 
-    radial-gradient(circle at 20% 80%, rgba(0, 240, 255, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.1) 0%, transparent 50%),
-    radial-gradient(circle at 40% 40%, rgba(0, 255, 0, 0.05) 0%, transparent 50%);
+    radial-gradient(circle at 20% 80%, rgba(0, 240, 255, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 40% 40%, rgba(0, 255, 0, 0.03) 0%, transparent 50%);
   pointer-events: none;
   z-index: -1;
+  animation: bgShift 20s ease-in-out infinite alternate;
 }
 
-@keyframes marquee {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(-50%); }
-  }
-  @keyframes scanline {
-    0% { top: -10%; }
-    100% { top: 110%; }
-  }
-  @keyframes glitch {
-    2%, 64% { transform: translate(2px,0) skew(0deg); }
-    4%, 60% { transform: translate(-2px,0) skew(0deg); }
-    62% { transform: translate(0,0) skew(5deg); }
-  }
-  @keyframes noise {
-    0%, 100% { background-position: 0 0; }
-    10% { background-position: -5% -10%; }
-    20% { background-position: -15% 5%; }
-    30% { background-position: 7% -25%; }
-    40% { background-position: 20% 25%; }
-    50% { background-position: -25% 10%; }
-    60% { background-position: 15% 5%; }
-    70% { background-position: 0% 15%; }
-    80% { background-position: 25% 35%; }
-    90% { background-position: -10% 10%; }
-  }
+@keyframes bgShift {
+  0% { opacity: 1; }
+  50% { opacity: 0.7; }
+  100% { opacity: 1; }
+}
 
-/* Custom Utilities */
+/* CRT Vignette Effect — subtle dark edges */
+body::after {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.4) 100%);
+  pointer-events: none;
+  z-index: 9998;
+}
+
+/* ═══════════════ KEYFRAME ANIMATIONS ═══════════════ */
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes scanline {
+  0% { top: -10%; }
+  100% { top: 110%; }
+}
+
+@keyframes glitch {
+  2%, 64% { transform: translate(2px,0) skew(0deg); }
+  4%, 60% { transform: translate(-2px,0) skew(0deg); }
+  62% { transform: translate(0,0) skew(5deg); }
+}
+
+@keyframes noise {
+  0%, 100% { background-position: 0 0; }
+  10% { background-position: -5% -10%; }
+  20% { background-position: -15% 5%; }
+  30% { background-position: 7% -25%; }
+  40% { background-position: 20% 25%; }
+  50% { background-position: -25% 10%; }
+  60% { background-position: 15% 5%; }
+  70% { background-position: 0% 15%; }
+  80% { background-position: 25% 35%; }
+  90% { background-position: -10% 10%; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(100%); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes valueFlashUp {
+  0% { color: inherit; }
+  20% { color: #00FF00; text-shadow: 0 0 8px rgba(0, 255, 0, 0.6); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+@keyframes valueFlashDown {
+  0% { color: inherit; }
+  20% { color: #FF0066; text-shadow: 0 0 8px rgba(255, 0, 102, 0.6); }
+  100% { color: inherit; text-shadow: none; }
+}
+
+@keyframes holographic {
+  0%, 100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: hue-rotate(15deg);
+  }
+}
+
+@keyframes scanSweep {
+  0% { top: -2px; opacity: 0; }
+  10% { opacity: 0.15; }
+  90% { opacity: 0.15; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* ═══════════════ GLASS PANELS ═══════════════ */
+
 .glass-panel {
   @apply bg-brand-card/40 backdrop-blur-xl border border-white/10;
+  transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 .glass-panel-light {
@@ -87,6 +164,8 @@ body::before {
   @apply bg-black/30 backdrop-blur-lg border border-white/5;
 }
 
+/* ═══════════════ TEXT GLOW ═══════════════ */
+
 .text-glow {
   text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
 }
@@ -95,6 +174,8 @@ body::before {
   text-shadow: 0 0 15px currentColor, 0 0 30px currentColor, 0 0 45px currentColor;
 }
 
+/* ═══════════════ BOX GLOW ═══════════════ */
+
 .box-glow {
   box-shadow: 0 0 15px currentColor;
 }
@@ -102,6 +183,8 @@ body::before {
 .box-glow-strong {
   box-shadow: 0 0 25px currentColor, 0 0 50px currentColor;
 }
+
+/* ═══════════════ CYBER BORDERS ═══════════════ */
 
 .cyber-border {
   @apply relative;
@@ -116,6 +199,8 @@ body::before {
   mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
   mask-composite: exclude;
 }
+
+/* ═══════════════ BACKGROUND EFFECTS ═══════════════ */
 
 .bg-cyber-grid {
   background-size: 40px 40px;
@@ -135,7 +220,8 @@ body::before {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
 }
 
-/* Cyberpunk utility classes */
+/* ═══════════════ CYBER GLOW (HOVER) ═══════════════ */
+
 .cyber-glow {
   position: relative;
 }
@@ -149,11 +235,99 @@ body::before {
   opacity: 0;
   transition: opacity 0.3s ease;
   z-index: -1;
+  border-radius: inherit;
 }
 
 .cyber-glow:hover::after {
   opacity: 0.5;
 }
+
+/* ═══════════════ INTERACTIVE CARDS ═══════════════ */
+
+.interactive-card {
+  transition: transform 0.2s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.interactive-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0, 240, 255, 0.1);
+  border-color: rgba(0, 240, 255, 0.2);
+}
+
+.interactive-card:active {
+  transform: translateY(0) scale(0.98);
+}
+
+/* ═══════════════ STANDARDIZED CLOSE BUTTON ═══════════════ */
+
+.close-btn {
+  width: 36px;
+  height: 36px;
+  min-width: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(148, 163, 184, 1);
+  transition: all 0.2s ease;
+  cursor: pointer;
+  padding: 8px;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+.close-btn:active {
+  transform: scale(0.9);
+}
+
+.close-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ═══════════════ VALUE CHANGE ANIMATIONS ═══════════════ */
+
+.value-up {
+  animation: valueFlashUp 0.6s ease-out;
+}
+
+.value-down {
+  animation: valueFlashDown 0.6s ease-out;
+}
+
+/* ═══════════════ HOLOGRAPHIC BADGE ═══════════════ */
+
+.holographic-badge {
+  background: linear-gradient(135deg, #00F0FF, #8b5cf6, #00FF00, #00F0FF);
+  background-size: 300% 300%;
+  animation: holographic 3s ease-in-out infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ═══════════════ SCANLINE OVERLAY ═══════════════ */
+
+.scanline-overlay::before {
+  content: '';
+  position: fixed;
+  top: -2px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(0, 240, 255, 0.4), transparent);
+  animation: scanSweep 8s linear infinite;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+/* ═══════════════ PULSE DOT ═══════════════ */
 
 .pulse-dot {
   animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
@@ -170,3 +344,32 @@ body::before {
   }
 }
 
+/* ═══════════════ BUTTON EFFECTS ═══════════════ */
+
+.btn-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-glow::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(0, 240, 255, 0.2);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+}
+
+.btn-glow:hover::before {
+  width: 300px;
+  height: 300px;
+}
+
+/* ═══════════════ SMOOTH SCROLLBAR ═══════════════ */
+
+.custom-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
