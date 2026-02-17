@@ -97,9 +97,11 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
       lettersWrapper.innerHTML = '';
-      lettersWrapper.style.display = 'flex';
-      lettersWrapper.style.flexDirection = 'column'; // FORCE VERTICAL
-      lettersWrapper.style.alignItems = 'center';
+      // FORCE VERTICAL STACK via Grid (more robust than flex direction column if styles conflict)
+      lettersWrapper.style.display = 'grid';
+      lettersWrapper.style.gridTemplateColumns = '1fr';
+      lettersWrapper.style.gap = '2px';
+      lettersWrapper.style.justifyItems = 'center';
 
       word.split('').forEach((char) => {
         const container = document.createElement('div');
@@ -271,10 +273,15 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           100% { transform: translate(50px, 50px); }
         }
 
+          100% { transform: translate(50px, 50px); }
+        }
+
         .letters-vertical {
-          display: flex;
-          flex-direction: column !important;
-          align-items: center;
+          display: grid !important;
+          grid-template-columns: 1fr !important;
+          justify-items: center !important;
+          gap: 2px !important;
+          flex-direction: column !important; /* Fallback */
         }
 
         .letter-container {
@@ -402,7 +409,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
 
       {/* 📝 Контейнер з літерами STORKCRYPTO (ВЕРТИКАЛЬНИЙ — як в оригіналі) */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} className="letters-vertical" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
+        <div ref={lettersWrapperRef} className="letters-vertical" style={{ display: 'grid', gridTemplateColumns: '1fr', justifyItems: 'center' }} />
       </div>
 
       {/* 📊 Прогрес-бар */}
