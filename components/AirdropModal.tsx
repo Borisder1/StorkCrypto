@@ -228,41 +228,42 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                             </div>
                         ) : (
                             tasks.map(task => (
-                            <div 
-                                key={task.id}
-                                onClick={() => handleTaskClick(task)}
-                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 ${task.isCompleted ? 'bg-brand-green/10 border-brand-green/30 opacity-60' : verifyingTaskId === task.id ? 'bg-brand-cyan/10 border-brand-cyan/50 animate-pulse' : 'bg-white/5 border-white/5 hover:border-brand-purple/40 hover:bg-white/10 active:scale-[0.95] active:bg-brand-purple/20 cursor-pointer'}`}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors duration-300 ${task.isCompleted ? 'border-brand-green bg-brand-green/20 text-brand-green' : verifyingTaskId === task.id ? 'border-brand-cyan bg-brand-cyan/20 text-brand-cyan' : 'border-white/10 bg-black/40 text-slate-400'}`}>
-                                        {verifyingTaskId === task.id ? (
-                                            <ActivityIcon className="w-5 h-5 animate-spin" />
-                                        ) : (
-                                            <>
-                                                {task.icon === 'TELEGRAM' && <TelegramIcon className="w-5 h-5" />}
-                                                {task.icon === 'TWITTER' && <LinkIcon className="w-5 h-5" />}
-                                                {task.icon === 'WALLET' && <ShieldIcon className="w-5 h-5" />}
-                                                {task.icon === 'INVITE' && <GiftIcon className="w-5 h-5" />}
-                                            </>
-                                        )}
+                                <div 
+                                    key={task.id}
+                                    onClick={() => handleTaskClick(task)}
+                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all duration-200 ${task.isCompleted ? 'bg-brand-green/10 border-brand-green/30 opacity-60' : verifyingTaskId === task.id ? 'bg-brand-cyan/10 border-brand-cyan/50 animate-pulse' : 'bg-white/5 border-white/5 hover:border-brand-purple/40 hover:bg-white/10 active:scale-[0.95] active:bg-brand-purple/20 cursor-pointer'}`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-colors duration-300 ${task.isCompleted ? 'border-brand-green bg-brand-green/20 text-brand-green' : verifyingTaskId === task.id ? 'border-brand-cyan bg-brand-cyan/20 text-brand-cyan' : 'border-white/10 bg-black/40 text-slate-400'}`}>
+                                            {verifyingTaskId === task.id ? (
+                                                <ActivityIcon className="w-5 h-5 animate-spin" />
+                                            ) : (
+                                                <>
+                                                    {task.icon === 'TELEGRAM' && <TelegramIcon className="w-5 h-5" />}
+                                                    {task.icon === 'TWITTER' && <LinkIcon className="w-5 h-5" />}
+                                                    {task.icon === 'WALLET' && <ShieldIcon className="w-5 h-5" />}
+                                                    {task.icon === 'INVITE' && <GiftIcon className="w-5 h-5" />}
+                                                </>
+                                            )}
+                                        </div>
+                                        <div>
+                                            <p className={`text-xs font-bold ${task.isCompleted ? 'text-brand-green line-through' : 'text-white'}`}>{task.title}</p>
+                                            <p className="text-[9px] text-brand-purple font-mono font-bold">+{task.reward} $STORK</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className={`text-xs font-bold ${task.isCompleted ? 'text-brand-green line-through' : 'text-white'}`}>{task.title}</p>
-                                        <p className="text-[9px] text-brand-purple font-mono font-bold">+{task.reward} $STORK</p>
-                                    </div>
+                                    {task.isCompleted ? (
+                                        <span className="text-[9px] font-black text-brand-green uppercase bg-brand-green/10 px-2 py-1 rounded">DONE</span>
+                                    ) : (
+                                        <ChevronRightIcon className="w-4 h-4 text-slate-600" />
+                                    )}
                                 </div>
-                                {task.isCompleted ? (
-                                    <span className="text-[9px] font-black text-brand-green uppercase bg-brand-green/10 px-2 py-1 rounded">DONE</span>
-                                ) : (
-                                    <ChevronRightIcon className="w-4 h-4 text-slate-600" />
-                                )}
-                            </div>
-                        ))
+                            ))
                         )}
                     </div>
                 </div>
 
             </div>
+        </div>
         </div>
     );
 };
