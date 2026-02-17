@@ -137,7 +137,7 @@ const App: React.FC = () => {
                     <MarketTicker />
                     <LevelUpOverlay />
 
-                    <main className="flex-grow overflow-y-auto overflow-x-hidden relative z-0 pt-10 pb-24 no-scrollbar">
+                    <main className="flex-grow overflow-y-auto overflow-x-hidden relative z-0 pt-14 pb-32 no-scrollbar">
                         <HomeScreen onNavigate={handleNavigation} />
                     </main>
 

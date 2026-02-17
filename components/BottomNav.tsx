@@ -17,7 +17,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
     };
 
     return (
-        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex justify-center w-full pointer-events-none">
+        <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-40 flex justify-center w-full pointer-events-none pb-[env(safe-area-inset-bottom)]">
             {/* Glass Capsule */}
             <nav className="bg-[#0a0f1e]/60 backdrop-blur-2xl border border-white/10 rounded-full px-6 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.5)] flex items-center gap-6 pointer-events-auto relative overflow-visible transition-all hover:border-white/20">
 
