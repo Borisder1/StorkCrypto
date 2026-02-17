@@ -90,7 +90,7 @@ const App: React.FC = () => {
         return () => clearTimeout(timer);
     }, [syncUserData, settings.themeMode, updateSettings, redeemReferral]);
 
-    if (isLoading) return <LoadingScreen />;
+    if (isLoading) return <LoadingScreen onComplete={() => setIsLoading(false)} />;
     if (maintenanceMode && settings?.isAuthenticated) return <MaintenanceScreen />; 
 
     return (

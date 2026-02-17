@@ -99,7 +99,7 @@ export const PortfolioTools: React.FC = () => {
                     <button 
                         onClick={runSecurityScan}
                         disabled={scanStatus === 'SCANNING'}
-                        className={`w-full py-3 rounded-xl text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-2 ${scanStatus === 'SAFE' ? 'bg-green-500/20 text-green-400 border border-green-500/50' : 'bg-brand-cyan text-black hover:bg-white'}`}
+                        className={`w-full max-w-[90%] mx-auto block py-3 rounded-xl text-[10px] font-bold uppercase transition-all flex items-center justify-center gap-2 ${scanStatus === 'SAFE' ? 'bg-green-500/20 text-green-400 border border-green-500/50' : 'bg-brand-cyan text-black hover:bg-white box-glow'}`}
                     >
                         {scanStatus === 'SAFE' ? 'SYSTEM SECURE' : 'SCAN PERMISSIONS'}
                     </button>

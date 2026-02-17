@@ -153,9 +153,19 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                 <div key={i} className="h-16 rounded-2xl bg-white/5 animate-pulse border border-white/5"></div>
                             ))
                         ) : assets.length === 0 ? (
-                            <div className="py-12 text-center border border-dashed border-white/10 rounded-2xl bg-white/5 opacity-50">
-                                <ActivityIcon className="w-8 h-8 mx-auto mb-2 text-slate-600" />
-                                <p className="text-[9px] font-black font-orbitron uppercase tracking-widest text-slate-500">Vault_Empty</p>
+                            <div className="bg-brand-card/30 border border-brand-border rounded-[2rem] p-6 flex flex-col items-center justify-center min-h-[140px] text-center relative overflow-hidden group">
+                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none"></div>
+                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/50 to-transparent animate-[scanline_4s_linear_infinite]"></div>
+                                
+                                <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center mb-3 relative">
+                                    <ActivityIcon className="w-6 h-6 text-slate-700" />
+                                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-brand-cyan rounded-full animate-ping"></div>
+                                </div>
+                                
+                                <h3 className="text-white font-black text-[10px] font-orbitron uppercase tracking-widest mb-1 text-glow">VAULT_EMPTY</h3>
+                                <p className="text-slate-500 text-[8px] font-mono max-w-[180px]">
+                                    No assets detected in secure storage. Initiate acquisition protocols.
+                                </p>
                             </div>
                         ) : (
                             assets.map((asset) => <AssetEntry key={asset.ticker} asset={asset} totalPortfolioValue={totalValue} />)

@@ -22,15 +22,49 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
         updateSentinelConfig({ 
             whaleThreshold, 
             quietHoursStart: startHour, 
-            quietHoursEnd: endHour 
+            quietHoursEnd: endHour,
+            active: true // Auto-arm system on save
         });
-        showToast('Sentinel Protocol Updated');
-        setTimeout(onClose, 500);
+        showToast('Sentinel Protocol Updated & ARMED');
+        // Close modal after a short delay to allow user to see the success state
+        setTimeout(onClose, 800);
     };
 
     const toggle = (key: keyof typeof config) => {
         triggerHaptic('light');
-        updateSentinelConfig({ [key]: !config[key] });
+        
+        // Handle Master Toggle specifically
+        if (key === 'active') {
+             const newActive = !config.active;
+             updateSentinelConfig({ active: newActive });
+             showToast(newActive ? 'Sentinel System ARMED' : 'Sentinel System DISARMED');
+             return;
+        }
+
+        const newState = !config[key];
+        
+        // Calculate future state of all tracking flags
+        const willTrackWhales = key === 'trackWhales' ? newState : config.trackWhales;
+        const willTrackVol = key === 'trackVolatility' ? newState : config.trackVolatility;
+        const willTrackSent = key === 'trackSentiment' ? newState : config.trackSentiment;
+        
+        // Auto-arm if enabling any directive
+        const shouldArm = newState === true && !config.active;
+        
+        // Auto-disarm if ALL directives are disabled
+        const shouldDisarm = !willTrackWhales && !willTrackVol && !willTrackSent && config.active;
+
+        updateSentinelConfig({ 
+            [key]: newState,
+            ...(shouldArm ? { active: true } : {}),
+            ...(shouldDisarm ? { active: false } : {})
+        });
+        
+        if (shouldArm) {
+            showToast('Sentinel System ARMED');
+        } else if (shouldDisarm) {
+            showToast('Sentinel System DISARMED');
+        }
     };
 
     return (

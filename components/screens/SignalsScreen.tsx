@@ -14,10 +14,15 @@ import UpgradeBanner from '../UpgradeBanner';
 
 const RadarHUD: React.FC<{ score: number, phase: string, loading: boolean }> = ({ score, phase, loading }) => {
     return (
-        <div className="relative h-36 w-full bg-brand-card/60 border border-white/10 rounded-[2.5rem] overflow-hidden mb-6 flex items-center justify-between px-10 shadow-2xl group transition-all hover:border-brand-cyan/40">
+        <div className="relative h-36 w-full bg-brand-card/20 backdrop-blur-md border border-white/10 rounded-[2.5rem] overflow-hidden mb-6 flex items-center justify-between px-10 shadow-2xl group transition-all hover:border-brand-cyan/40 hover:box-glow">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,217,255,0.08),transparent_70%)] opacity-50"></div>
+            {/* Grid overlay */}
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/grid-me.png')] opacity-5 pointer-events-none"></div>
+            {/* Scanline effect */}
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/50 to-transparent animate-[scanline_4s_linear_infinite] opacity-60"></div>
             
             <div className="relative w-24 h-24 flex items-center justify-center">
+                <div className="absolute inset-0 border-2 border-brand-cyan/30 rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]"></div>
                 <div className="absolute inset-0 border-2 border-brand-cyan/30 rounded-full"></div>
                 <div className="absolute inset-4 border border-brand-cyan/10 rounded-full"></div>
                 <div className={`absolute inset-0 border-t-2 border-brand-cyan rounded-full ${loading ? 'animate-spin' : 'animate-[spin_3s_linear_infinite]'}`}>
@@ -27,18 +32,66 @@ const RadarHUD: React.FC<{ score: number, phase: string, loading: boolean }> = (
             </div>
 
             <div className="text-right z-10">
-                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mb-2 font-orbitron">Sentiment_Core</p>
+                <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mb-2 font-orbitron text-glow">Sentiment_Core</p>
                 <div className="flex items-baseline justify-end gap-2">
-                    <span className={`text-5xl font-black font-orbitron tracking-tighter ${score > 60 ? 'text-brand-green' : score < 40 ? 'text-brand-danger' : 'text-brand-cyan'} drop-shadow-lg`}>
-                        {loading ? '--' : score}
+                    <span className={`text-5xl font-black font-orbitron tracking-tighter ${score > 60 ? 'text-brand-green drop-shadow-[0_0_15px_rgba(0,255,0,0.5)]' : score < 40 ? 'text-brand-danger drop-shadow-[0_0_15px_rgba(255,0,102,0.5)]' : 'text-brand-cyan drop-shadow-[0_0_15px_rgba(0,217,255,0.5)]'} text-glow-strong`}>
+                        {loading ? <span className="animate-pulse">--</span> : score}
                     </span>
                     <span className="text-sm font-black text-slate-600">/100</span>
                 </div>
                 <div className="flex items-center justify-end gap-2 mt-2">
-                    <span className="text-[10px] font-mono text-brand-cyan uppercase bg-brand-cyan/10 px-3 py-1 rounded-full border border-brand-cyan/20 shadow-inner">
+                    <span className="w-2 h-2 rounded-full bg-brand-cyan animate-pulse shadow-[0_0_8px_#00d9ff]"></span>
+                    <span className="text-[10px] font-mono text-brand-cyan uppercase bg-brand-cyan/10 px-3 py-1 rounded-full border border-brand-cyan/20 shadow-inner tracking-wider backdrop-blur-sm">
                         {phase || 'SCANNING...'}
                     </span>
                 </div>
+            </div>
+        </div>
+    );
+};
+
+const SystemLog = () => {
+    const [logs, setLogs] = useState<string[]>([]);
+    
+    useEffect(() => {
+        const messages = [
+            "Scanning BTC mempool...",
+            "ETH gas fees stabilizing...",
+            "Whale wallet 0x7a... moved 500 BTC",
+            "Calculating RSI divergence...",
+            "Fibonacci retracement levels updated...",
+            "Sentiment analysis: BULLISH",
+            "Liquidations detected on Binance...",
+            "Order book imbalance: +15% BUY",
+            "Neural network retraining...",
+            "Fetching latest news from CoinDesk...",
+            "MACD bullish crossover detected...",
+            "Volume spike: +300% on SOL",
+            "New whale accumulation phase...",
+            "Funding rates turning positive...",
+            "Technical breakout confirmed..."
+        ];
+
+        const interval = setInterval(() => {
+            const randomMsg = messages[Math.floor(Math.random() * messages.length)];
+            const timestamp = new Date().toLocaleTimeString([], {hour12: false});
+            setLogs(prev => [`[${timestamp}] ${randomMsg}`, ...prev].slice(0, 4));
+        }, 1500);
+
+        return () => clearInterval(interval);
+    }, []);
+
+    return (
+        <div className="mb-6 bg-brand-card/20 backdrop-blur-md border-l-2 border-brand-cyan/50 p-3 font-mono text-[9px] text-brand-cyan/80 h-20 overflow-hidden relative rounded-r-lg">
+            <div className="absolute top-0 right-0 px-1 bg-brand-cyan/20 text-brand-cyan text-[8px] font-black uppercase">LIVE_LOG</div>
+            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/30 to-transparent animate-[scanline_3s_linear_infinite]"></div>
+            <div className="space-y-1">
+                {logs.map((log, i) => (
+                    <div key={i} className={`opacity-80 hover:opacity-100 transition-opacity truncate ${i === 0 ? 'text-brand-cyan' : 'text-brand-cyan/60'}`}>
+                        {i === 0 && <span className="inline-block w-1.5 h-3 bg-brand-cyan mr-1 animate-pulse shadow-[0_0_8px_#00d9ff]"></span>}
+                        {log}
+                    </div>
+                ))}
             </div>
         </div>
     );
@@ -51,10 +104,12 @@ const FilterChip: React.FC<{ label: string, active: boolean, onClick: () => void
         ? 'bg-brand-purple text-white border-brand-purple shadow-[0_0_15px_rgba(139,92,246,0.5)]'
         : 'bg-brand-cyan text-black border-brand-cyan shadow-[0_0_15px_rgba(0,217,255,0.5)]';
 
+    const inactiveClass = 'bg-brand-card/20 backdrop-blur-sm border-white/10 text-slate-500 hover:border-white/40 hover:text-slate-200 hover:bg-brand-card/40';
+
     return (
         <button 
             onClick={onClick}
-            className={`px-5 py-3 rounded-xl text-[10px] font-black font-orbitron uppercase tracking-widest border transition-all duration-300 active:scale-95 whitespace-nowrap ${active ? activeClass : 'bg-black/40 border-white/10 text-slate-500 hover:border-white/40 hover:text-slate-200'}`}
+            className={`px-5 py-3 rounded-xl text-[10px] font-black font-orbitron uppercase tracking-widest border transition-all duration-300 active:scale-95 whitespace-nowrap ${active ? activeClass : inactiveClass} hover:shadow-lg`}
         >
             {label}
         </button>
@@ -73,11 +128,12 @@ const HybridSignalCard = React.memo(({
     const isLong = signal.signal_type === 'LONG';
     const primaryColor = isSniper ? 'text-red-500' : isLong ? 'text-brand-green' : 'text-brand-danger';
     const borderColor = isSniper ? 'border-red-500/50' : isLong ? 'border-green-500/40' : 'border-red-500/40';
+    const glowColor = isSniper ? 'shadow-[0_0_20px_rgba(239,68,68,0.3)]' : isLong ? 'shadow-[0_0_20px_rgba(34,197,94,0.3)]' : 'shadow-[0_0_20px_rgba(239,68,68,0.3)]';
 
     return (
         <div 
             onClick={onClick}
-            className={`relative bg-[#050b14]/90 backdrop-blur-xl border ${borderColor} rounded-[2rem] p-6 overflow-hidden group transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] shadow-2xl mb-4`}
+            className={`relative bg-brand-card/20 backdrop-blur-xl border ${borderColor} rounded-[2rem] p-6 overflow-hidden group transition-all duration-500 hover:scale-[1.02] active:scale-[0.98] shadow-2xl mb-4 hover:${glowColor} hover:bg-brand-card/30`}
         >
             {isSniper && (
                 <div className="absolute inset-0 pointer-events-none z-0">
@@ -86,16 +142,20 @@ const HybridSignalCard = React.memo(({
                 </div>
             )}
             
+            {/* Glassmorphism effects */}
+            <div className="absolute inset-0 bg-gradient-to-br from-brand-cyan/5 via-transparent to-brand-purple/5 pointer-events-none"></div>
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-3 pointer-events-none mix-blend-overlay"></div>
+            
             <div className="relative z-10">
                 <div className="flex justify-between items-start mb-6">
                     <div className="flex items-center gap-5">
-                        <div className="w-14 h-14 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center p-2.5 shadow-inner">
-                            <img src={`https://assets.coincap.io/assets/icons/${signal.asset.toLowerCase()}@2x.png`} className="w-full h-full object-contain" />
+                        <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center p-2.5 shadow-inner group-hover:bg-black/60 transition-all">
+                            <img src={`https://assets.coincap.io/assets/icons/${signal.asset.toLowerCase()}@2x.png`} className="w-full h-full object-contain group-hover:scale-110 transition-transform" />
                         </div>
                         <div>
-                            <h3 className="font-black text-xl text-white font-orbitron tracking-wider">{signal.asset}</h3>
+                            <h3 className="font-black text-xl text-white font-orbitron tracking-wider group-hover:text-brand-cyan transition-colors">{signal.asset}</h3>
                             <div className="flex items-center gap-2 mt-1.5">
-                                <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${borderColor} ${primaryColor} bg-black/40 uppercase tracking-[0.1em]`}>
+                                <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${borderColor} ${primaryColor} bg-black/40 uppercase tracking-[0.1em] group-hover:scale-105 transition-transform`}>
                                     {signal.signal_type}
                                 </span>
                                 <span className="text-[10px] text-slate-500 font-mono font-bold">| {signal.timeframe}</span>
@@ -103,7 +163,7 @@ const HybridSignalCard = React.memo(({
                         </div>
                     </div>
 
-                    <div className="relative w-14 h-14 flex items-center justify-center">
+                    <div className="relative w-14 h-14 flex items-center justify-center group-hover:scale-110 transition-transform">
                         <svg className="w-full h-full transform -rotate-90">
                             <circle cx="28" cy="28" r="24" fill="transparent" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
                             <circle 
@@ -114,37 +174,37 @@ const HybridSignalCard = React.memo(({
                                 strokeDasharray={150} 
                                 strokeDashoffset={150 - (150 * signal.confidence / 100)} 
                                 strokeLinecap="round" 
-                                className="drop-shadow-[0_0_10px_rgba(0,217,255,0.5)] transition-all duration-1000"
+                                className={`${isSniper ? 'drop-shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'drop-shadow-[0_0_10px_rgba(0,217,255,0.5)]'} transition-all duration-1000`}
                             />
                         </svg>
                         <div className="absolute text-center">
-                            <span className="text-xs font-black text-white block font-orbitron">{signal.confidence}%</span>
+                            <span className="text-xs font-black text-white block font-orbitron group-hover:scale-105 transition-transform">{signal.confidence}%</span>
                         </div>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 bg-black/40 rounded-2xl p-4 border border-white/5 mb-4 shadow-inner">
+                <div className="grid grid-cols-3 gap-2 bg-black/40 rounded-2xl p-4 border border-white/5 mb-4 shadow-inner group-hover:bg-black/60 transition-all">
                     <div className="text-center border-r border-white/5">
                         <p className="text-[8px] text-slate-500 uppercase font-black mb-1">Entry</p>
-                        <p className="text-sm font-mono font-bold text-white">${signal.entryPrice}</p>
+                        <p className="text-sm font-mono font-bold text-white group-hover:text-brand-cyan transition-colors">${signal.entryPrice}</p>
                     </div>
                     <div className="text-center border-r border-white/5">
                         <p className="text-[8px] text-slate-500 uppercase font-black mb-1">Target</p>
-                        <p className={`text-sm font-mono font-bold ${isLong ? 'text-green-400' : 'text-red-400'}`}>${signal.takeProfit}</p>
+                        <p className={`text-sm font-mono font-bold ${isLong ? 'text-green-400 group-hover:text-green-300' : 'text-red-400 group-hover:text-red-300'} transition-colors`}>${signal.takeProfit}</p>
                     </div>
                     <div className="text-center">
                         <p className="text-[8px] text-slate-500 uppercase font-black mb-1">Stop</p>
-                        <p className="text-sm font-mono font-bold text-slate-400">${signal.stopLoss}</p>
+                        <p className="text-sm font-mono font-bold text-slate-400 group-hover:text-slate-300 transition-colors">${signal.stopLoss}</p>
                     </div>
                 </div>
 
                 <div className="flex items-center justify-between opacity-60 group-hover:opacity-100 transition-opacity">
                     <div className="flex gap-2">
                         {signal.reasoning_chain?.slice(0, 2).map((r, i) => (
-                             <span key={i} className="text-[8px] font-black font-mono text-slate-500 uppercase bg-white/5 px-2 py-1 rounded">#{r.split(' ')[0]}</span>
+                             <span key={i} className="text-[8px] font-black font-mono text-slate-500 uppercase bg-white/5 px-2 py-1 rounded group-hover:bg-white/10 transition-colors">#{r.split(' ')[0]}</span>
                         ))}
                     </div>
-                    <ChevronRightIcon className={`w-5 h-5 ${isSniper ? 'text-red-500' : 'text-brand-cyan'}`} />
+                    <ChevronRightIcon className={`w-5 h-5 ${isSniper ? 'text-red-500 group-hover:text-red-400' : 'text-brand-cyan group-hover:text-brand-cyan-light'} transition-colors group-hover:translate-x-1`} />
                 </div>
             </div>
         </div>
@@ -269,6 +329,7 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
 
             <div className="px-6 relative z-10 flex-1 overflow-y-auto no-scrollbar pb-32">
                 <RadarHUD score={analysis?.market_sentiment_score || 50} phase={analysis?.market_phase || 'NEURAL_SCAN...'} loading={loading} />
+                <SystemLog />
                 
                 <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 mb-2">
                     {['ALL', 'BTC', 'ETH', 'SOL', 'SCALP', 'SWING'].map(f => (

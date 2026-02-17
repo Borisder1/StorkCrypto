@@ -1,5 +1,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useStore } from '../store';
+import { getTranslation } from '../utils/translations';
 
 // ⚡ Клас для частинок енергії, які летять від літер до прогрес-бару
 class EnergyParticle {
@@ -44,7 +46,7 @@ class EnergyParticle {
   }
 }
 
-export function LoadingScreen() {
+export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lettersWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -54,6 +56,23 @@ export function LoadingScreen() {
   const [progress, setProgress] = useState(0);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [progressVisible, setProgressVisible] = useState(false);
+  const [showSkip, setShowSkip] = useState(false);
+
+  const [isExiting, setIsExiting] = useState(false);
+  const { settings } = useStore();
+
+  const handleComplete = () => {
+    setIsExiting(true);
+    setTimeout(() => {
+        if (onComplete) onComplete();
+    }, 800);
+  };
+
+  useEffect(() => {
+    // Show Skip button after 2.5s
+    const skipTimer = setTimeout(() => setShowSkip(true), 2500);
+    return () => clearTimeout(skipTimer);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -77,6 +96,29 @@ export function LoadingScreen() {
     // 📝 Створюємо літери динамічно
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
+      // Add responsive styles dynamically
+      const style = document.createElement('style');
+      style.textContent = `
+        .letter-container {
+          font-size: clamp(12px, 5vw, 32px) !important;
+          width: 0.8em !important;
+          height: 1.2em !important;
+        }
+        @media (max-width: 380px) {
+          .letter-container {
+            font-size: clamp(10px, 4vw, 24px) !important;
+          }
+        }
+        .loading-screen-exit {
+          opacity: 0;
+          filter: blur(10px);
+          transform: scale(1.1);
+          transition: all 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045);
+          pointer-events: none;
+        }
+      `;
+      document.head.appendChild(style);
+
       lettersWrapper.innerHTML = '';
       word.split('').forEach((char) => {
         const container = document.createElement('div');
@@ -130,7 +172,7 @@ export function LoadingScreen() {
       const wrapperRect = lettersWrapper?.getBoundingClientRect();
       if (!wrapperRect || !scannerLineRef.current) return;
 
-      // ⚡ ФАЗА 1: Сканування літер (2.5 секунди)
+      // ⚡ ФАЗА 1: Сканування літер (1.5 секунди)
       setScannerVisible(true);
       scannerLineRef.current.style.top = `${wrapperRect.top}px`;
 
@@ -138,7 +180,7 @@ export function LoadingScreen() {
       
       function scan(time: number) {
         const elapsed = time - startTime;
-        const scanDuration = 2500;
+        const scanDuration = 1500;
         const progress = Math.min(elapsed / scanDuration, 1);
         const currentY = wrapperRect.top + wrapperRect.height * progress;
         
@@ -229,7 +271,7 @@ export function LoadingScreen() {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#020617] flex flex-col items-center justify-center overflow-hidden">
+    <div className={`fixed inset-0 z-[9999] bg-[#020617] flex flex-col items-center justify-center overflow-hidden ${isExiting ? 'loading-screen-exit' : ''}`}>
       {/* 🎨 Анімований фоновий грід */}
       <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div className="absolute inset-0" style={{
@@ -353,7 +395,7 @@ export function LoadingScreen() {
 
       {/* 📝 Контейнер з літерами STORKCRYPTO */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
+        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', flexWrap: 'nowrap' }} />
       </div>
 
       {/* 📊 Прогрес-бар */}
@@ -375,6 +417,14 @@ export function LoadingScreen() {
         className="scanner-line z-20"
         style={{ opacity: scannerVisible ? 1 : 0 }}
       />
+
+      {/* ⏭ SKIP BUTTON */}
+      <button 
+        onClick={onComplete}
+        className={`fixed bottom-12 z-50 text-[10px] font-orbitron font-black tracking-[0.2em] uppercase text-brand-cyan/80 hover:text-white transition-all duration-700 border border-brand-cyan/30 px-6 py-2 rounded-full hover:bg-brand-cyan/10 backdrop-blur-sm group ${showSkip ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+      >
+        <span className="group-hover:text-brand-cyan transition-colors">{getTranslation(settings.language, 'loading.skip')}</span> &gt;&gt;
+      </button>
     </div>
   );
 }

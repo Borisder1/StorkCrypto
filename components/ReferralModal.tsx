@@ -56,6 +56,33 @@ const ReferralModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     >
                         {t('ref.copy')}
                     </button>
+
+                    {/* Network Placeholder */}
+                    <div className="mt-8 pt-6 border-t border-white/5">
+                        <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                            <ActivityIcon className="w-3 h-3" /> Your Network
+                        </h3>
+                        
+                        <div className="bg-brand-card/20 rounded-xl p-8 text-center border border-brand-purple/20 border-dashed relative overflow-hidden group min-h-[160px] flex flex-col items-center justify-center box-glow">
+                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10 pointer-events-none mix-blend-overlay"></div>
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-purple/50 to-transparent animate-[scanline_3s_linear_infinite] opacity-50"></div>
+                            
+                            <div className="w-16 h-16 rounded-full bg-brand-bg border border-white/10 flex items-center justify-center mb-4 shadow-[0_0_30px_rgba(139,92,246,0.1)] relative">
+                                <div className="absolute inset-0 rounded-full border border-brand-purple/30 animate-ping opacity-20"></div>
+                                <UserIcon className="w-8 h-8 text-slate-600 group-hover:text-brand-purple transition-colors duration-500" />
+                            </div>
+                            
+                            <h4 className="text-white font-bold font-orbitron text-xs tracking-wider mb-1 text-glow">NETWORK_OFFLINE</h4>
+                            <p className="text-[9px] text-slate-500 font-mono mb-4 max-w-[200px] mx-auto">
+                                Visualization node is currently compiling. Invite friends to populate your grid.
+                            </p>
+                            
+                            <div className="inline-flex items-center gap-2 px-3 py-1 bg-brand-purple/10 border border-brand-purple/20 rounded-full">
+                                <div className="w-1.5 h-1.5 rounded-full bg-brand-purple animate-pulse"></div>
+                                <span className="text-[8px] font-black text-brand-purple uppercase tracking-wider">V2 COMING SOON</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

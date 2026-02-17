@@ -207,13 +207,13 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 <UpgradeBanner />
 
                 {/* --- SUBSCRIPTION STATUS DETAIL (Always Visible in Profile) --- */}
-                <div className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden">
-                    <div className="flex justify-between items-center mb-4">
+                <div className="glass-panel rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden">
+                    <div className="flex flex-wrap justify-between items-center mb-4 gap-2">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-orbitron flex items-center gap-2">
                             <ZapIcon className={`w-4 h-4 ${subData.isTrial ? 'text-brand-green' : subData.isPaid ? 'text-brand-purple' : 'text-slate-600'}`} /> 
                             Neural_Link_Status
                         </h3>
-                        <span className={`text-[9px] font-black px-2 py-1 rounded border ${subData.isTrial ? 'bg-green-500/10 border-green-500/30 text-green-400' : subData.isPaid ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
+                        <span className={`text-[9px] font-black px-2 py-1 rounded border whitespace-nowrap ${subData.isTrial ? 'bg-green-500/10 border-green-500/30 text-green-400 text-glow' : subData.isPaid ? 'bg-purple-500/10 border-purple-500/30 text-purple-400 text-glow' : 'bg-slate-800 border-slate-700 text-slate-500'}`}>
                             {subData.isPaid ? 'UNLIMITED' : subData.isTrial ? 'TRIAL_MODE' : 'BASIC'}
                         </span>
                     </div>

@@ -133,6 +133,7 @@ const en: Dictionary = {
     'ticker.syncing': 'SYNCING',
     'ticker.cache': 'CACHE',
     'toast.alert_added': 'Alert Added Successfully',
+    'loading.skip': 'SKIP_SEQUENCE',
 };
 
 const ua: Dictionary = {
@@ -265,6 +266,7 @@ const ua: Dictionary = {
     'ticker.syncing': 'СИНХРОНІЗАЦІЯ',
     'ticker.cache': 'КЕШ',
     'toast.alert_added': 'Сповіщення успішно додано',
+    'loading.skip': 'ПРОПУСТИТИ',
 };
 
 const pl: Dictionary = {
@@ -397,6 +399,7 @@ const pl: Dictionary = {
     'ticker.syncing': 'SYNCHRONIZACJA',
     'ticker.cache': 'PAMIĘĆ',
     'toast.alert_added': 'Alert dodany pomyślnie',
+    'loading.skip': 'POMIŃ_SEKWENCJĘ',
 };
 
 export const getTranslation = (lang: Language, key: string): string => {

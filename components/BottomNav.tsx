@@ -30,7 +30,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                         <button
                             key={item.id}
                             onClick={() => handleTabChange(item.id)}
-                            className="relative flex flex-col items-center justify-center group"
+                            className="relative flex flex-col items-center justify-center group w-12"
                         >
                             {/* Active Light Pillar */}
                             {isActive && (
@@ -39,12 +39,17 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
 
                             <div className={`relative z-10 transition-all duration-300 ${isActive ? 'text-brand-cyan -translate-y-1 scale-110 drop-shadow-[0_0_8px_rgba(0,217,255,0.8)]' : 'text-slate-500 hover:text-slate-200 hover:scale-105'}`}>
                                 {React.cloneElement(item.icon, { 
-                                    className: `w-6 h-6 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}` 
+                                    className: `w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}` 
                                 })}
                             </div>
                             
+                            {/* Label */}
+                            <span className={`text-[8px] font-orbitron mt-1 transition-all duration-300 whitespace-nowrap ${isActive ? 'text-brand-cyan opacity-100 translate-y-0' : 'text-slate-500 opacity-60 scale-90'}`}>
+                                {item.label}
+                            </span>
+                            
                             {/* Dot Indicator */}
-                            <div className={`absolute -bottom-1 w-1 h-1 rounded-full transition-all duration-300 ${isActive ? 'bg-brand-cyan scale-100 shadow-[0_0_5px_#00d9ff]' : 'bg-transparent scale-0'}`}></div>
+                            <div className={`absolute -bottom-2 w-1 h-1 rounded-full transition-all duration-300 ${isActive ? 'bg-brand-cyan scale-100 shadow-[0_0_5px_#00d9ff]' : 'bg-transparent scale-0'}`}></div>
                         </button>
                     );
                 })}

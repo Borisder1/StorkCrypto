@@ -162,7 +162,25 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
         chart.timeScale().fitContent();
         chartInstance.current = chart;
 
-        return () => { if (chartInstance.current) { chartInstance.current.remove(); chartInstance.current = null; } };
+        // Resize Observer
+        const handleResize = () => {
+            if (chartContainerRef.current && chartInstance.current) {
+                chartInstance.current.applyOptions({ width: chartContainerRef.current.clientWidth });
+            }
+        };
+
+        const resizeObserver = new ResizeObserver(handleResize);
+        resizeObserver.observe(chartContainerRef.current);
+        window.addEventListener('resize', handleResize);
+
+        return () => { 
+            resizeObserver.disconnect();
+            window.removeEventListener('resize', handleResize);
+            if (chartInstance.current) { 
+                chartInstance.current.remove(); 
+                chartInstance.current = null; 
+            } 
+        };
     }, [candleData, chartType, activeTab]);
 
     const handleAddAlert = () => {
