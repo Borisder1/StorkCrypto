@@ -96,11 +96,11 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
       lettersWrapper.innerHTML = '';
-      // FORCE VERTICAL STACK via Grid (more robust than flex direction column if styles conflict)
-      lettersWrapper.style.display = 'grid';
-      lettersWrapper.style.gridTemplateColumns = '1fr';
+      // FORCE VERTICAL STACK matching Loading.txt exactly
+      lettersWrapper.style.display = 'flex';
+      lettersWrapper.style.flexDirection = 'column';
+      lettersWrapper.style.alignItems = 'center';
       lettersWrapper.style.gap = '2px';
-      lettersWrapper.style.justifyItems = 'center';
 
       word.split('').forEach((char) => {
         const container = document.createElement('div');
@@ -157,6 +157,8 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
       // ⚡ ФАЗА 1: Сканування літер (2.5 секунди)
       setScannerVisible(true);
       scannerLineRef.current.style.top = `${wrapperRect.top}px`;
+      // Ensure scanner is wide enough for the letters but not too wide
+      scannerLineRef.current.style.width = '150px';
 
       let startTime = performance.now();
 
@@ -276,11 +278,10 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
         }
 
         .letters-vertical {
-          display: grid !important;
-          grid-template-columns: 1fr !important;
-          justify-items: center !important;
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: center !important;
           gap: 2px !important;
-          flex-direction: column !important; /* Fallback */
         }
 
         .letter-container {
@@ -362,7 +363,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           top: 0;
           left: 50%;
           transform: translateX(-50%);
-          width: 300px;
+          width: 150px;
           height: 3px;
           background: linear-gradient(90deg, transparent, #00d9ff 20%, #ffffff 50%, #00d9ff 80%, transparent);
           box-shadow: 0 0 20px #00d9ff, 0 0 40px #00d9ff, 0 0 60px #00d9ff;
@@ -406,9 +407,9 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
       {/* 🎨 Canvas для частинок */}
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-10" />
 
-      {/* 📝 Контейнер з літерами STORKCRYPTO (ВЕРТИКАЛЬНИЙ — як в оригіналі) */}
+      {/* 📝 Контейнер з літерами STORKCRYPTO (ВЕРТИКАЛЬНИЙ) */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} className="letters-vertical" style={{ display: 'grid', gridTemplateColumns: '1fr', justifyItems: 'center' }} />
+        <div ref={lettersWrapperRef} className="letters-vertical" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
       </div>
 
       {/* 📊 Прогрес-бар */}
