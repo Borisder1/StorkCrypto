@@ -101,10 +101,10 @@ const HomeScreen: React.FC<{ onNavigate: (tab: string) => void }> = ({ onNavigat
                 <div className="flex justify-between items-center mb-6 py-2 border-b border-white/5 backdrop-blur-sm bg-black/20 rounded-2xl px-4">
                     <div className="flex items-center gap-3" onClick={() => navigateTo('profile')}>
                         <div className="relative group cursor-pointer">
-                            <div className="w-10 h-10 rounded-lg bg-brand-cyan/5 border border-brand-cyan/20 flex items-center justify-center overflow-hidden">
-                                <StorkIcon className="w-6 h-6 text-brand-cyan" />
+                            <div className="w-14 h-14 rounded-xl bg-brand-cyan/5 border border-brand-cyan/20 flex items-center justify-center overflow-hidden shadow-[0_0_15px_rgba(0,217,255,0.1)] transition-all group-hover:shadow-[0_0_25px_rgba(0,217,255,0.3)]">
+                                <img src="/logo.jpg" alt="Stork Logo" className="w-12 h-12 object-cover rounded-lg" />
                             </div>
-                            <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-brand-green rounded-full shadow-[0_0_5px_#22c55e] border-2 border-[#020617] animate-pulse"></div>
+                            <div className="absolute -top-1 -right-1 w-3 h-3 bg-brand-green rounded-full shadow-[0_0_5px_#22c55e] border-2 border-[#020617] animate-pulse"></div>
                         </div>
                         <div>
                             <h1 className="font-orbitron font-bold text-sm tracking-widest text-white leading-none">STORK<span className="text-brand-cyan">CRYPTO</span></h1>

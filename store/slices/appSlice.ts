@@ -5,12 +5,12 @@ import { getDeviceId, supabase } from '../../services/supabaseClient';
 export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, get) => ({
     settings: {
         language: 'en', theme: 'cyan', themeMode: 'twilight', riskLevel: 'CONSERVATIVE',
-        isAuthenticated: false, 
-        soundEnabled: false, 
+        isAuthenticated: false,
+        soundEnabled: false,
         adsEnabled: true, dataSaver: false,
-        onboardingComplete: false, marketOverride: 'NORMAL', 
+        onboardingComplete: false, marketOverride: 'NORMAL',
         adminTreasuryWallet: 'UQAz12...88nxP',
-        xpToProRate: 500, 
+        xpToProRate: 500,
         pendingSubRequests: [],
         subscriptionPlans: [
             { id: 'PRO', name: 'PRO', price: 9.99, features: ['Unlimited Signals', 'No Ads'] },
@@ -28,7 +28,7 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     setShowReferral: (show) => set({ showReferral: show }),
     showAirdrop: false,
     setShowAirdrop: (show) => set({ showAirdrop: show }),
-    
+
     claimMining: async () => {
         const state = get();
         const userId = state.userStats.id;
@@ -52,7 +52,7 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
 
         if (userId && userId !== 'INIT' && !userId.startsWith('GUEST')) {
             try {
-                await supabase.from('profiles').update({ 
+                await supabase.from('profiles').update({
                     stork_balance: newBalance,
                     last_claim_time: newTime
                 }).eq('id', userId);
@@ -60,6 +60,31 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
                 console.error("Failed to sync mining claim to DB");
             }
         }
+    },
+
+    upgradeMining: (type) => {
+        const state = get();
+        const cost = type === 'RATE' ? 500 : 300; // 500 STORK for Rate, 300 for Storage
+
+        if (state.userStats.storkBalance < cost) {
+            get().showToast('Insufficient STORK for Upgrade');
+            return;
+        }
+
+        const newMining = { ...state.userStats.mining };
+        if (type === 'RATE') newMining.miningRate += 0.01;
+        if (type === 'STORAGE') newMining.storageCapacity += 4;
+
+        set(s => ({
+            userStats: {
+                ...s.userStats,
+                storkBalance: s.userStats.storkBalance - cost,
+                mining: newMining
+            }
+        }));
+
+        get().showToast(`Mining ${type === 'RATE' ? 'Speed' : 'Storage'} Upgraded!`);
+        get().grantXp(50, 'Upgrade_Module');
     },
 
     completeAirdropTask: async (taskId) => {
@@ -106,11 +131,11 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     maintenanceMode: false,
     toggleMaintenance: (val) => set({ maintenanceMode: val }),
 
-    userStats: { 
-        id: 'INIT', username: 'GUEST', firstName: 'OPERATOR', 
-        storkBalance: 0, signalsGenerated: 0, subscriptionTier: 'FREE', 
-        trialActive: true, 
-        trialEndsAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(), 
+    userStats: {
+        id: 'INIT', username: 'GUEST', firstName: 'OPERATOR',
+        storkBalance: 0, signalsGenerated: 0, subscriptionTier: 'FREE',
+        trialActive: true,
+        trialEndsAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString(),
         xp: 0, level: 1, referralCount: 0, demoBalance: 10000,
         shadowHistory: [], role: 'USER',
         mining: { isActive: true, miningRate: 0.01, lastClaimTime: new Date().toISOString(), storageCapacity: 8 },
@@ -120,10 +145,10 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
         ],
         sentinel: { active: false, whaleThreshold: 500000, trackWhales: true, trackVolatility: true, trackSentiment: false, quietHoursStart: '23:00', quietHoursEnd: '07:00' }
     },
-    
+
     checkTrialStatus: () => set(state => ({ userStats: { ...state.userStats, trialActive: new Date() < new Date(state.userStats.trialEndsAt) } })),
     hasProAccess: () => get().userStats.subscriptionTier !== 'FREE' || get().userStats.trialActive,
-    
+
     whaleHistory: [],
     addWhaleTransaction: (tx) => set(state => ({ whaleHistory: [tx, ...state.whaleHistory].slice(0, 50) })),
     getWhaleStats: () => ({ buyVolume1h: 0, sellVolume1h: 0, netFlow1h: 0, sentimentBias: 'NEUTRAL' }),
@@ -155,52 +180,52 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     addAlert: (a) => set(state => ({ alerts: [...state.alerts, a] })),
     removeAlert: (id) => set(state => ({ alerts: state.alerts.filter(a => a.id !== id) })),
     quests: [],
-    claimQuestReward: (id) => {},
-    updateQuestProgress: (type, amount) => {}, 
+    claimQuestReward: (id) => { },
+    updateQuestProgress: (type, amount) => { },
     copiedTraders: [],
-    copyTrader: (trader, config) => {},
-    stopCopying: (id) => {},
-    updateCopiedTraderPnL: (id, change, isProfit) => {},
+    copyTrader: (trader, config) => { },
+    stopCopying: (id) => { },
+    updateCopiedTraderPnL: (id, change, isProfit) => { },
     socialFeed: [],
     following: [],
-    followUser: (id) => {},
-    unfollowUser: (id) => {},
+    followUser: (id) => { },
+    unfollowUser: (id) => { },
     isPublicProfile: true,
-    togglePublicProfile: () => {},
+    togglePublicProfile: () => { },
     watchlist: ['BTC', 'ETH'],
     focusedAcademyId: null,
     adRequests: [],
-    submitAdRequest: (req) => {},
-    updateAdRequestStatus: (id, status) => {},
-    fetchAdRequests: () => {},
-    updateSubscriptionPrice: (tier, price) => {},
-    requestSubscriptionAction: (userId, planId, method, txHash) => {},
-    processSubscriptionRequest: (requestId, approve) => {},
+    submitAdRequest: (req) => { },
+    updateAdRequestStatus: (id, status) => { },
+    fetchAdRequests: () => { },
+    updateSubscriptionPrice: (tier, price) => { },
+    requestSubscriptionAction: (userId, planId, method, txHash) => { },
+    processSubscriptionRequest: (requestId, approve) => { },
     telegramBotConnected: false,
     connectTelegramBot: () => set({ telegramBotConnected: true }),
 
     syncUserData: async (tgUser) => {
         let id = getDeviceId();
         if (tgUser?.id) id = `tg_${tgUser.id}`;
-        
+
         try {
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
 
             if (profile) {
-                set(state => ({ 
-                    userStats: { 
-                        ...state.userStats, 
+                set(state => ({
+                    userStats: {
+                        ...state.userStats,
                         id: profile.id,
                         firstName: profile.first_name || state.userStats.firstName,
                         xp: Number(profile.xp) || 0,
                         storkBalance: Number(profile.stork_balance) || 0,
                         subscriptionTier: (profile.subscription_tier as any) || 'FREE'
-                    } 
+                    }
                 }));
-                
+
                 // Update existing profile with latest TG info
                 if (tgUser) {
-                    await supabase.from('profiles').update({ 
+                    await supabase.from('profiles').update({
                         first_name: tgUser.first_name || 'OPERATOR',
                         username: tgUser.username || '',
                         last_active: new Date().toISOString()
@@ -208,16 +233,16 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
                 }
             } else {
                 // Use upsert to prevent 409 Conflict if record was created between select and insert
-                const { error: insErr } = await supabase.from('profiles').upsert({ 
+                const { error: insErr } = await supabase.from('profiles').upsert({
                     id,
                     first_name: tgUser?.first_name || 'OPERATOR',
                     username: tgUser?.username || '',
-                    telegram_chat_id: tgUser?.telegram_chat_id || null, 
+                    telegram_chat_id: tgUser?.telegram_chat_id || null,
                     trial_ends_at: get().userStats.trialEndsAt,
                     subscription_tier: get().userStats.subscriptionTier,
                     last_active: new Date().toISOString()
                 }); // Removed { onConflict: 'id' } as it causes 400 in PostgREST without explicit column
-                
+
                 if (insErr) console.warn("Profile Upsert Warning:", insErr.message);
             }
         } catch (e) {
@@ -226,13 +251,13 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
             set(state => ({ userStats: { ...state.userStats, id } }));
         }
     },
-    
-    redeemReferral: async (referrerId) => {},
-    exportData: () => {},
-    importData: (data) => {},
+
+    redeemReferral: async (referrerId) => { },
+    exportData: () => { },
+    importData: (data) => { },
     showAdInquiry: false,
     setShowAdInquiry: (show) => set({ showAdInquiry: show }),
-    fetchPendingSubscriptions: async () => {},
+    fetchPendingSubscriptions: async () => { },
     adminBroadcast: null,
     sendBroadcast: (message, type) => { set({ adminBroadcast: { message, type, id: Date.now().toString() } }); }
 });

@@ -8,6 +8,7 @@ import OfflineIndicator from './components/OfflineIndicator';
 import ModalManager from './components/ModalManager';
 import MaintenanceScreen from './components/MaintenanceScreen';
 import SimulationManager from './components/SimulationManager';
+import SentinelSystem from './components/SentinelSystem';
 import WalletListener from './components/WalletListener';
 import { LoadingScreen } from './components/LoadingScreen';
 import { HomeIcon, NewspaperIcon, ActivityIcon, RadarIcon, PieChartIcon, BookIcon, BotIcon } from './components/icons';
@@ -109,6 +110,7 @@ const App: React.FC = () => {
         <div className="h-[100dvh] w-screen bg-brand-bg text-white overflow-hidden flex flex-col font-sans relative">
             <OfflineIndicator />
             <SimulationManager />
+            <SentinelSystem />
             <WalletListener />
 
             {/* Navigation Loading Overlay */}

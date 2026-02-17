@@ -84,13 +84,13 @@ export interface SentinelConfig {
 
 export interface UserStats {
     id: string;
-    username?: string; 
-    firstName?: string; 
+    username?: string;
+    firstName?: string;
     storkBalance: number;
     signalsGenerated: number;
     subscriptionTier: 'FREE' | 'PRO' | 'WHALE';
-    trialActive: boolean; 
-    trialEndsAt: string;  
+    trialActive: boolean;
+    trialEndsAt: string;
     xp: number;
     level: number;
     referralCount: number; // PHASE 2
@@ -196,9 +196,9 @@ export interface CopiedTrader {
     id: string;
     name: string;
     roi: number;
-    tvl: number; 
+    tvl: number;
     winRate: number;
-    riskScore: number; 
+    riskScore: number;
     activeVault?: CopyVaultConfig;
 }
 
@@ -258,7 +258,7 @@ export interface AgentAnalysis {
 
 export interface TradingSignal {
     signal_type: 'LONG' | 'SHORT';
-    strategy_type: 'SCALP' | 'SWING' | 'BREAKOUT' | 'REVERSAL'; 
+    strategy_type: 'SCALP' | 'SWING' | 'BREAKOUT' | 'REVERSAL';
     asset: string;
     entry_zone: string;
     confidence: number;
@@ -268,7 +268,7 @@ export interface TradingSignal {
     entryPrice: number;
     takeProfit: number;
     stopLoss: number;
-    valid_until?: number; 
+    valid_until?: number;
 }
 
 export interface AssetReport {
@@ -331,7 +331,7 @@ export interface AppSettings {
     onboardingComplete: boolean;
     marketOverride: MarketOverride;
     adminTreasuryWallet: string;
-    xpToProRate: number; 
+    xpToProRate: number;
     pendingSubRequests: SubscriptionRequest[];
     subscriptionPlans: SubscriptionPlan[];
 }
@@ -344,6 +344,8 @@ export interface AuthSlice {
 
 export interface TradeSlice {
     assets: Asset[];
+    marketPrices: MarketPriceMap; // NEW: Shared prices
+    updateMarketPrices: (prices: MarketPriceMap) => void;
     addAsset: (asset: Asset) => void;
     updateAssetPrice: (ticker: string, price: number, change: number) => void;
     positions: Position[];
@@ -380,12 +382,13 @@ export interface AppSlice {
     setShowCalendar: (show: boolean) => void;
     showReferral: boolean;
     setShowReferral: (show: boolean) => void;
-    
+
     showAirdrop: boolean;
     setShowAirdrop: (show: boolean) => void;
     claimMining: () => void;
+    upgradeMining: (type: 'RATE' | 'STORAGE') => void; // NEW
     completeAirdropTask: (taskId: string) => void;
-    
+
     // NEW: Partner Tasks & Banners
     partnerTasks: AirdropTask[];
     addPartnerTask: (task: AirdropTask) => void;
@@ -393,7 +396,7 @@ export interface AppSlice {
     activeBanners: BannerConfig[];
     addBanner: (banner: BannerConfig) => void;
     removeBanner: (id: string) => void;
-    
+
     // NEW: Sentinel Config Management
     showSentinel: boolean;
     setShowSentinel: (show: boolean) => void;
@@ -410,9 +413,9 @@ export interface AppSlice {
     userStats: UserStats;
     grantXp: (amount: number, reason: string) => void;
     upgradeUserTier: (tier: string, days?: number) => void;
-    redeemXpForPro: (days: number) => void; 
-    checkTrialStatus: () => void; 
-    hasProAccess: () => boolean; 
+    redeemXpForPro: (days: number) => void;
+    checkTrialStatus: () => void;
+    hasProAccess: () => boolean;
     getRankName: () => string;
     levelUpState: { visible: boolean; level: number; rewards: string[] };
     closeLevelUp: () => void;
@@ -430,7 +433,7 @@ export interface AppSlice {
     removeAlert: (id: string) => void;
     quests: Quest[];
     claimQuestReward: (id: string) => void;
-    updateQuestProgress: (type: 'TRADE' | 'SCAN' | 'SOCIAL', amount: number) => void; 
+    updateQuestProgress: (type: 'TRADE' | 'SCAN' | 'SOCIAL', amount: number) => void;
     copiedTraders: CopiedTrader[];
     copyTrader: (trader: CopiedTrader, config: CopyVaultConfig) => void;
     stopCopying: (id: string) => void;
@@ -452,14 +455,14 @@ export interface AppSlice {
     processSubscriptionRequest: (requestId: string, approve: boolean) => void;
     telegramBotConnected: boolean;
     connectTelegramBot: () => void;
-    syncUserData: (tgUser?: any) => void; 
+    syncUserData: (tgUser?: any) => void;
     redeemReferral: (referrerId: string) => void;
     exportData: () => void;
     importData: (data: string) => void;
     showAdInquiry: boolean;
     setShowAdInquiry: (show: boolean) => void;
     fetchPendingSubscriptions: () => Promise<void>;
-    
+
     adminBroadcast: { message: string; type: 'INFO' | 'ALERT' | 'SUCCESS'; id: string } | null;
     sendBroadcast: (message: string, type: 'INFO' | 'ALERT' | 'SUCCESS') => void;
 }
