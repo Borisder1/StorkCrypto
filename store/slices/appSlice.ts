@@ -238,7 +238,6 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
                     first_name: tgUser?.first_name || 'OPERATOR',
                     username: tgUser?.username || '',
                     telegram_chat_id: tgUser?.telegram_chat_id || null,
-                    trial_ends_at: get().userStats.trialEndsAt,
                     subscription_tier: get().userStats.subscriptionTier,
                     last_active: new Date().toISOString()
                 }); // Removed { onConflict: 'id' } as it causes 400 in PostgREST without explicit column

@@ -1,0 +1,4 @@
+Fix: Move manifest/service-worker to public, fix Supabase upsert error
+
+- Moved manifest.json, tonconnect-manifest.json, service-worker.js to public/ to ensure they are served correctly in production.
+- Removed trial_ends_at from Supabase upsert query to fix 400 Bad Request (schema mismatch).
