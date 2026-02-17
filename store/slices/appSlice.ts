@@ -232,17 +232,32 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
                     }).eq('id', id);
                 }
             } else {
-                // Use upsert to prevent 409 Conflict if record was created between select and insert
-                const { error: insErr } = await supabase.from('profiles').upsert({
-                    id,
-                    first_name: tgUser?.first_name || 'OPERATOR',
-                    username: tgUser?.username || '',
-                    telegram_chat_id: tgUser?.telegram_chat_id || null,
-                    subscription_tier: get().userStats.subscriptionTier,
-                    last_active: new Date().toISOString()
-                }); // Removed { onConflict: 'id' } as it causes 400 in PostgREST without explicit column
-
-                if (insErr) console.warn("Profile Upsert Warning:", insErr.message);
+                // Handle new user creation via Anonymous Auth if needed
+                if (id.startsWith('tg_')) {
+                    // We cannot upsert directly into profiles if ID is not in auth.users
+                    // Try anonymous sign-in
+                    const { data: authData, error: authError } = await supabase.auth.signInAnonymously();
+                    
+                    if (authData?.user) {
+                        id = authData.user.id; // Use real UUID
+                        // Now we can insert into profiles
+                        const { error: insErr } = await supabase.from('profiles').insert({
+                            id,
+                            first_name: tgUser?.first_name || 'OPERATOR',
+                            username: tgUser?.username || '',
+                            telegram_chat_id: tgUser?.id || null, // Use correct field for TG ID
+                            subscription_tier: get().userStats.subscriptionTier,
+                            last_active: new Date().toISOString()
+                        });
+                        if (insErr) console.warn("Profile Insert Error:", insErr.message);
+                    } else {
+                        console.warn("Anonymous Auth Failed, using local-only mode", authError);
+                        // Fallback: Do NOT insert into profiles, just run locally
+                    }
+                } else {
+                     // Existing ID logic (e.g. device ID), likely won't work with RLS either without auth
+                     console.warn("Skipping profile sync for non-auth user");
+                }
             }
         } catch (e) {
             console.warn("DB_UPLINK_OFFLINE");

@@ -77,12 +77,15 @@ const App: React.FC = () => {
                 tg.expand();
                 const bgColor = THEME_BG_MODES[settings.themeMode as keyof typeof THEME_BG_MODES] || '#0f172a';
 
-                // Перевірка підтримки методів перед викликом (для версій < 6.1)
-                if (tg.setHeaderColor) {
-                    try { tg.setHeaderColor(bgColor); } catch (e) { }
-                }
-                if (tg.setBackgroundColor) {
-                    try { tg.setBackgroundColor(bgColor); } catch (e) { }
+                // Check version before calling color methods (require >= 6.1)
+                const version = parseFloat(tg.version || '0');
+                if (version >= 6.1) {
+                    if (tg.setHeaderColor) {
+                        try { tg.setHeaderColor(bgColor); } catch (e) { }
+                    }
+                    if (tg.setBackgroundColor) {
+                        try { tg.setBackgroundColor(bgColor); } catch (e) { }
+                    }
                 }
             } catch (e) { }
         } else {

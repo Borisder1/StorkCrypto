@@ -5,9 +5,12 @@ import { supabase } from './supabaseClient';
 const USE_EDGE_FUNCTION = true; 
 
 const getAI = () => {
-    const key = process.env.API_KEY || process.env.GEMINI_API_KEY;
+    // In Vite, use import.meta.env for client-side keys (VITE_ prefix required)
+    // Also support process.env if polyfilled
+    const key = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : '');
+    
     if (!key) {
-        console.warn("[AI] GEMINI_API_KEY not found in process.env");
+        console.warn("[AI] VITE_GEMINI_API_KEY not found in env");
     }
     return new GoogleGenAI({ apiKey: key || 'EMPTY_KEY' });
 };

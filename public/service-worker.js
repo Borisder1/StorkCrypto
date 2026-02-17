@@ -3,8 +3,7 @@ const CACHE_NAME = 'stork-neural-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/index.tsx',
-  'https://cdn.tailwindcss.com',
+  '/manifest.json',
   'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap'
 ];
 
