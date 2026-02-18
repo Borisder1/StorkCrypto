@@ -139,7 +139,8 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                     <div className="flex items-center gap-3" onClick={() => navigateTo('profile')}>
                         <div className="relative group cursor-pointer">
                             <div className="w-10 h-10 rounded-xl bg-brand-cyan/5 border border-brand-cyan/20 flex items-center justify-center overflow-hidden transition-all group-hover:border-brand-cyan/50">
-                                <StorkIcon className="w-6 h-6 text-brand-cyan" />
+                                <img src="/logo.jpg" alt="StorkCrypto" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
+                                <StorkIcon className="w-6 h-6 text-brand-cyan hidden" />
                             </div>
                             <div className="absolute -top-1 -right-1 w-3 h-3 bg-brand-green rounded-full shadow-[0_0_8px_#22c55e] border-2 border-[#020617] animate-pulse"></div>
                         </div>
