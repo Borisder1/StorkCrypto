@@ -90,10 +90,11 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden animate-fade-in">
-            <TacticalBackground />
-            
-            <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
+        <div className="fixed inset-0 z-[110] bg-black/80 flex justify-center overflow-hidden animate-fade-in">
+            <div className="w-full max-w-md h-full bg-brand-bg flex flex-col relative shadow-2xl">
+                <TacticalBackground />
+                
+                <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose?.(); }}
@@ -167,6 +168,7 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             </div>
 
             {isAddModalOpen && <AddAssetModal onClose={() => setIsAddModalOpen(false)} onAdd={(t, n, a) => addAsset({ name: n, ticker: t, icon: t.toLowerCase(), amount: a, value: 0, change: 0 })} />}
+            </div>
         </div>
     );
 };

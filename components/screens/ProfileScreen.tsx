@@ -114,10 +114,11 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     }, [userStats]);
 
     return (
-        <div className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden animate-fade-in transition-colors duration-500">
-            <TacticalBackground />
+        <div className="fixed inset-0 z-[110] bg-black/80 flex justify-center overflow-hidden animate-fade-in transition-colors duration-500">
+            <div className="w-full max-w-md h-full bg-brand-bg flex flex-col relative shadow-2xl">
+                <TacticalBackground />
 
-            <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
+                <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => { triggerHaptic('light'); onClose?.(); }}
@@ -362,6 +363,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             {showSubscription && <SubscriptionModal onClose={() => setShowSubscription(false)} />}
             {showAdInquiry && <AdInquiryModal onClose={() => setShowAdInquiry(false)} />}
             {showAvatarModal && <AvatarSelectionModal onClose={() => setShowAvatarModal(false)} onSelect={handleAvatarUpdate} />}
+            </div>
         </div>
     );
 };

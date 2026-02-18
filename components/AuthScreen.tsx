@@ -47,7 +47,7 @@ const AuthScreen: React.FC = () => {
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar w-full flex flex-col items-center justify-center p-6 relative z-10">
-                <div className="w-full max-w-sm flex flex-col items-center my-auto animate-fade-in">
+                <div className="w-full max-w-md flex flex-col items-center my-auto animate-fade-in">
 
                     {/* Brand Logo Container with Holographic Effect */}
                     <div className="relative mb-12 group">

@@ -30,7 +30,8 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }, [settings.language]);
 
     return (
-        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden">
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/80 backdrop-blur-sm animate-fade-in">
+            <div className="w-full h-full sm:h-[90vh] sm:max-w-md bg-brand-bg relative flex flex-col overflow-hidden sm:rounded-3xl shadow-2xl border-x border-white/5">
             <TacticalBackground />
             
             {/* Standardized Header */}
@@ -76,6 +77,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         </div>
                     </div>
                 ))}
+            </div>
             </div>
         </div>
     );

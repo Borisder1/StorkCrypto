@@ -18,7 +18,8 @@ export const SyndicateScreen: React.FC<{ onClose: () => void }> = ({ onClose }) 
     const [selectedTrader, setSelectedTrader] = useState<CopiedTrader | null>(null);
 
     return (
-        <div className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden animate-fade-in">
+        <div className="fixed inset-0 z-[110] bg-black/80 flex justify-center overflow-hidden animate-fade-in">
+            <div className="w-full max-w-md h-full bg-brand-bg flex flex-col relative shadow-2xl">
             <TacticalBackground />
             
             <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
@@ -119,6 +120,7 @@ export const SyndicateScreen: React.FC<{ onClose: () => void }> = ({ onClose }) 
             </div>
 
             {selectedTrader && <CopyStrategyModal trader={selectedTrader} onClose={() => setSelectedTrader(null)} />}
+            </div>
         </div>
     );
 };

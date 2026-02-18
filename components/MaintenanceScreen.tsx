@@ -7,7 +7,7 @@ const MaintenanceScreen: React.FC = () => {
         <div className="fixed inset-0 z-[9999] bg-[#020617] flex flex-col items-center justify-center p-6 text-center">
             <div className="absolute inset-0 bg-cyber-grid opacity-20 pointer-events-none"></div>
             
-            <div className="relative z-10 animate-pulse">
+            <div className="relative z-10 w-full max-w-md animate-pulse">
                 <div className="w-20 h-20 bg-yellow-500/10 rounded-full flex items-center justify-center border-2 border-yellow-500 mx-auto mb-6 shadow-[0_0_40px_rgba(234,179,8,0.3)]">
                     <ShieldIcon className="w-10 h-10 text-yellow-500" />
                 </div>

@@ -165,6 +165,7 @@ const LeaderboardScreen: React.FC = () => {
                     })
                 )}
             </div>
+            </div>
         </div>
     );
 };

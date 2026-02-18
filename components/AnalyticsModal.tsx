@@ -35,11 +35,12 @@ const AnalyticsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }, [assets]);
 
     return (
-        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden">
-            <TacticalBackground />
-            
-            {/* Standardized Header */}
-            <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
+        <div className="fixed inset-0 z-[120] bg-black/80 flex justify-center animate-fade-in overflow-hidden">
+            <div className="w-full max-w-md h-full bg-brand-bg flex flex-col relative shadow-2xl">
+                <TacticalBackground />
+                
+                {/* Standardized Header */}
+                <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose(); }}
@@ -98,11 +99,11 @@ const AnalyticsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
 
             {showInfo && <InfoModal 
-                title="Matrix Analytics" 
-                description="Visualizing deep asset dependencies and risk vectors." 
-                features={["Correlation Audit", "Heatmap Projection", "Health Score Index"]} 
+                title={t('analytics.health')} 
+                content="Portfolio Health Score is calculated based on asset volatility, diversification, and risk exposure. Maintain >70 for optimal safety." 
                 onClose={() => setShowInfo(false)} 
             />}
+            </div>
         </div>
     );
 };

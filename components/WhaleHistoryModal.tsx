@@ -18,7 +18,7 @@ const WhaleHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     return (
         <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/95 backdrop-blur-xl" onClick={onClose}>
-            <div className="bg-brand-bg border-t sm:border border-white/10 rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-lg h-[90vh] overflow-hidden flex flex-col shadow-[0_0_80px_rgba(0,217,255,0.1)]" onClick={e => e.stopPropagation()}>
+            <div className="bg-brand-bg border-t sm:border border-white/10 rounded-t-[3rem] sm:rounded-[3rem] w-full sm:max-w-md h-[90vh] overflow-hidden flex flex-col shadow-[0_0_80px_rgba(0,217,255,0.1)]" onClick={e => e.stopPropagation()}>
                 
                 <div className="p-6 border-b border-white/5 bg-brand-card/50 shrink-0">
                     <div className="flex justify-between items-center mb-6">

@@ -61,7 +61,7 @@ const LevelUpOverlay: React.FC = () => {
         <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl animate-fade-in">
             <canvas ref={canvasRef} className="absolute inset-0 pointer-events-none"></canvas>
             
-            <div className="relative z-10 flex flex-col items-center text-center p-8 animate-fade-in-up">
+            <div className="relative z-10 w-full max-w-md flex flex-col items-center text-center p-8 animate-fade-in-up">
                 <div className="w-32 h-32 relative mb-6">
                     <div className="absolute inset-0 bg-brand-cyan blur-[60px] animate-pulse-slow"></div>
                     <div className="w-full h-full bg-gradient-to-br from-brand-cyan to-brand-purple rounded-3xl flex items-center justify-center border-2 border-white shadow-[0_0_40px_rgba(0,240,255,0.5)] relative z-10 rotate-3">

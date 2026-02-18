@@ -289,17 +289,18 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
     }, [analysis, activeFilters, searchTerm, isSniperMode]);
 
     return (
-        <div className={`fixed inset-0 z-[110] flex flex-col overflow-hidden transition-all duration-700 ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}>
-            <TacticalBackground />
-            
-            {isSniperMode && (
-                <div className="absolute inset-0 pointer-events-none z-0">
-                    <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,transparent_0%,rgba(239,68,68,0.15)_100%)]"></div>
-                    <div className="absolute inset-0 border-[30px] border-red-500/5 animate-pulse"></div>
-                </div>
-            )}
+        <div className="fixed inset-0 z-[110] bg-black/80 flex justify-center overflow-hidden animate-fade-in">
+            <div className={`w-full max-w-md h-full flex flex-col relative shadow-2xl transition-all duration-700 ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}>
+                <TacticalBackground />
+                
+                {isSniperMode && (
+                    <div className="absolute inset-0 pointer-events-none z-0">
+                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,transparent_0%,rgba(239,68,68,0.15)_100%)]"></div>
+                        <div className="absolute inset-0 border-[30px] border-red-500/5 animate-pulse"></div>
+                    </div>
+                )}
 
-            <div className="flex items-center justify-between px-6 pt-8 mb-6 relative z-20 shrink-0">
+                <div className="flex items-center justify-between px-6 pt-8 mb-6 relative z-20 shrink-0">
                 <div>
                     <h1 className={`font-orbitron text-3xl font-black tracking-tighter uppercase italic flex items-center gap-3 ${isSniperMode ? 'text-red-500' : 'text-white'}`}>
                         {isSniperMode ? 'SNIPER_MODE' : t('signals.title')}
@@ -372,6 +373,7 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
             </div>
 
             {selectedSignalAsset && <AssetDetailModal asset={selectedSignalAsset} signal={selectedSignal} onClose={() => { setSelectedSignalAsset(null); setSelectedSignal(null); }} />}
+            </div>
         </div>
     );
 };
