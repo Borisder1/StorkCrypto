@@ -386,9 +386,9 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
       {/* 🎨 Canvas для частинок */}
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-10" />
 
-      {/* 📝 Контейнер з літерами STORKCRYPTO (ГОРИЗОНТАЛЬНИЙ) */}
+      {/* 📝 Контейнер з літерами STORKCRYPTO (ВЕРТИКАЛЬНИЙ) */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px' }} />
+        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }} />
       </div>
 
       {/* 📊 Прогрес-бар */}
