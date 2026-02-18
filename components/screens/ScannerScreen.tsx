@@ -153,12 +153,12 @@ const ScannerScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         />
                     ) : (
                         <div className="relative" style={{ height: `${totalHeight}px` }}>
-                            {visibleItems?.map((coin, idx) => (
-                                <ScannerListItem 
-                                    key={coin.ticker} 
+                            {(Array.isArray(visibleItems) ? visibleItems : []).map((coin, idx) => (
+                                <ScannerListItem
+                                    key={coin.ticker}
                                     isAlpha={activeTab === 'ALPHA'}
-                                    coin={coin} 
-                                    style={{ transform: `translateY(${(startIndex + idx) * itemHeight}px)` }} 
+                                    coin={coin}
+                                    style={{ transform: `translateY(${(startIndex + idx) * itemHeight}px)` }}
                                     onAssetClick={(c) => { triggerHaptic('light'); setSelectedAssetForDetail({ name: c.ticker, ticker: c.ticker, icon: c.ticker, amount: 0, value: c.price, change: c.change }); }}
                                 />
                             ))}

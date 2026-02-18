@@ -161,7 +161,7 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                     icon={<ActivityIcon className="w-6 h-6 text-slate-700" />}
                                 />
                             ) : (
-                                assets?.map((asset) => <AssetEntry key={asset.ticker} asset={asset} totalPortfolioValue={totalValue} />)
+                                {(Array.isArray(assets) ? assets : []).map((asset) => <AssetEntry key={asset.ticker} asset={asset} totalPortfolioValue={totalValue} />)}
                             )}
                         </div>
                     </div>

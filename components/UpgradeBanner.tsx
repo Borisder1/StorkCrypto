@@ -3,11 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
 import { ShieldIcon, StorkIcon, ZapIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
+import { getTranslation } from '../utils/translations';
 
 const UpgradeBanner: React.FC = () => {
-    const { userStats, setSubscriptionOpen } = useStore();
+    const { userStats, setSubscriptionOpen, settings } = useStore();
     const [timeLeftLabel, setTimeLeftLabel] = useState('');
     const [isUrgent, setIsUrgent] = useState(false);
+    const t = (key: string) => getTranslation(settings.language, key);
 
     // LOGIC:
     // 1. FREE Tier: Always Show.
@@ -81,7 +83,7 @@ const UpgradeBanner: React.FC = () => {
                     </div>
                     <div className="flex-1 min-w-0 mr-2 flex flex-col justify-center">
                         <h3 className={`text-[11px] sm:text-sm font-bold font-orbitron tracking-wide flex flex-wrap items-center gap-2 ${isPaidExpiring ? 'text-red-400' : 'text-white'}`}>
-                            <span className="truncate leading-none">{isPaidExpiring ? 'RENEWAL IMMINENT' : (isFree ? 'TRIAL ACCESS' : 'UPGRADE TO PRO')}</span>
+                            <span className="truncate leading-none">{isPaidExpiring ? t('upgrade.renewal') : (isFree ? t('upgrade.trial') : t('upgrade.pro'))}</span>
                             {!isPaidExpiring && <span className="text-[8px] bg-brand-green text-black px-1.5 rounded font-black animate-pulse self-center">ACTIVE</span>}
                         </h3>
                         <p className="text-[10px] text-slate-300 font-mono truncate mt-0.5">

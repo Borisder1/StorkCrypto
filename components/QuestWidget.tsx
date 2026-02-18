@@ -12,9 +12,9 @@ const QuestWidget: React.FC = () => {
     const visibleQuests = quests.filter(q => !q.isClaimed || q.progress >= q.target).slice(0, 2);
 
     if (visibleQuests.length === 0) return (
-        <EmptyState 
-            message={t('missions.offline') || 'MISSIONS_OFFLINE'} 
-            subMessage={t('whale.awaiting') || 'System upgrading to V2 protocol. New objectives will be broadcasted shortly.'}
+        <EmptyState
+            message={t('missions.offline') || 'MISSIONS_OFFLINE'}
+            subMessage={t('module.calibrating') || 'System upgrading to V2 protocol. New objectives will be broadcasted shortly.'}
             icon={<ShieldIcon className="w-6 h-6 text-slate-700" />}
         />
     );
