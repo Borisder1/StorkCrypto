@@ -118,7 +118,7 @@ export const WhaleTrackerWidget: React.FC = () => {
                             icon={<RadarIcon className="w-6 h-6 text-brand-cyan/50 animate-spin" />}
                         />
                     ) : (
-                        {(Array.isArray(recentTxs) ? recentTxs : []).map(tx => (
+                        (Array.isArray(recentTxs) ? recentTxs : []).map(tx => (
                             <div key={tx.id} className="flex items-center justify-between p-2.5 hover:bg-white/5 backdrop-blur-sm transition-all border-l-2 border-transparent hover:border-brand-cyan pl-3 group/item rounded-r-lg relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-r from-brand-cyan/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity"></div>
                                 <div className="flex items-center gap-3 relative z-10">
