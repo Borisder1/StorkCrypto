@@ -16,17 +16,20 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       nodePolyfills({
-        include: ['crypto'],
+        include: ['crypto', 'stream', 'util', 'buffer'],
       }),
     ],
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'Buffer': '{}',
     },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
         crypto: 'crypto-browserify',
+        stream: 'stream-browserify',
+        util: 'util',
       },
       dedupe: ['react', 'react-dom'],
     }
