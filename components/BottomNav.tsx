@@ -19,7 +19,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
     return (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 flex justify-center w-full max-w-md px-4 pointer-events-none">
             {/* Glass Capsule - High Contrast Update */}
-            <nav className="bg-[#050b14]/90 backdrop-blur-2xl border border-white/10 rounded-3xl px-2 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex items-end justify-between w-full pointer-events-auto relative overflow-visible transition-all hover:border-brand-cyan/20">
+            <nav className="bg-[#050b14]/90 backdrop-blur-2xl border border-white/10 rounded-3xl px-2 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex items-end justify-center gap-1 w-full pointer-events-auto relative overflow-visible transition-all hover:border-brand-cyan/20">
 
                 {/* Glow behind capsule - enhanced */}
                 <div className="absolute inset-0 rounded-3xl bg-brand-cyan/5 blur-xl -z-10"></div>

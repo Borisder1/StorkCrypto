@@ -10,6 +10,7 @@ import ModalManager from './components/ModalManager';
 import MaintenanceScreen from './components/MaintenanceScreen';
 import SimulationManager from './components/SimulationManager';
 import WalletListener from './components/WalletListener';
+import { LoadingScreen } from './components/LoadingScreen';
 import { HomeIcon, NewspaperIcon, ActivityIcon, RadarIcon, PieChartIcon, BookIcon, BotIcon } from './components/icons';
 import { useStore } from './store';
 import { getTranslation } from './utils/translations';
@@ -23,7 +24,8 @@ const THEME_BG_MODES = {
 };
 
 const App: React.FC = () => {
-    // ⚡ INSTANT LOAD: Removed LoadingScreen state and timer
+    const [isLoading, setIsLoading] = useState(true);
+
     const {
         settings = {} as any,
         activeTab = 'home',
@@ -49,7 +51,6 @@ const App: React.FC = () => {
 
     // Android Back Button Handler
     useEffect(() => {
-        // Safe check for Telegram WebApp
         // @ts-ignore
         const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
         if (tg) {
@@ -105,6 +106,20 @@ const App: React.FC = () => {
             syncUserData();
         }
     }, [syncUserData, settings.themeMode, updateSettings, redeemReferral]);
+
+    // Auto-skip loading after 6.5 seconds
+    useEffect(() => {
+        if (isLoading) {
+            const timer = setTimeout(() => {
+                setIsLoading(false);
+            }, 6500);
+            return () => clearTimeout(timer);
+        }
+    }, [isLoading]);
+
+    if (isLoading) {
+        return <LoadingScreen onSkip={() => setIsLoading(false)} />;
+    }
 
     if (maintenanceMode && settings?.isAuthenticated) return <MaintenanceScreen />;
 

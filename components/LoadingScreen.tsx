@@ -1,7 +1,4 @@
-
 import React, { useEffect, useRef, useState } from 'react';
-import { useStore } from '../store';
-import { getTranslation } from '../utils/translations';
 
 // ⚡ Клас для частинок енергії, які летять від літер до прогрес-бару
 class EnergyParticle {
@@ -46,7 +43,11 @@ class EnergyParticle {
   }
 }
 
-export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
+interface LoadingScreenProps {
+  onSkip?: () => void;
+}
+
+export function LoadingScreen({ onSkip }: LoadingScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lettersWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -56,21 +57,6 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   const [progress, setProgress] = useState(0);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [progressVisible, setProgressVisible] = useState(false);
-  const [showSkip, setShowSkip] = useState(false);
-
-  const [isExiting, setIsExiting] = useState(false);
-  const { settings } = useStore();
-
-  const handleComplete = () => {
-    setIsExiting(true);
-    // Instant transition as requested
-    if (onComplete) onComplete();
-  };
-
-  useEffect(() => {
-    // Show Skip button immediately
-    setShowSkip(true);
-  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -94,6 +80,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     // 📝 Створюємо літери динамічно
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
+      // Clear previous content
       lettersWrapper.innerHTML = '';
 
       word.split('').forEach((char) => {
@@ -151,9 +138,6 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
       // ⚡ ФАЗА 1: Сканування літер (2.5 секунди)
       setScannerVisible(true);
       scannerLineRef.current.style.top = `${wrapperRect.top}px`;
-      // Ensure scanner is wide enough for the letters but not too wide
-      const scannerWidth = Math.max(wrapperRect.width * 3, 150);
-      scannerLineRef.current.style.width = `${scannerWidth}px`;
 
       let startTime = performance.now();
 
@@ -228,21 +212,18 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     }
 
     const handleResize = () => {
-      if (canvasRef.current) {
-        canvasRef.current.width = window.innerWidth;
-        canvasRef.current.height = window.innerHeight;
-      }
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
     };
 
     window.addEventListener('resize', handleResize);
 
-    const timer = setTimeout(() => {
+    setTimeout(() => {
       startLoadingSequence();
     }, 100);
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      clearTimeout(timer);
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
@@ -250,9 +231,9 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   }, []);
 
   return (
-    <div className={`fixed inset-0 z-[9999] bg-[#0a0a14] flex flex-col items-center justify-center overflow-hidden ${isExiting ? 'loading-screen-exit' : ''}`}>
+    <div className="fixed inset-0 z-50 bg-[#0a0a14] flex flex-col items-center justify-center overflow-hidden">
       {/* 🎨 Анімований фоновий грід */}
-      <div className="absolute inset-0 opacity-20 pointer-events-none">
+      <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0" style={{
           backgroundImage: `
             linear-gradient(90deg, #00d9ff 1px, transparent 1px),
@@ -277,18 +258,12 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           font-weight: 900;
           width: 1.2em;
           height: 1.5em;
-          display: flex;
-          justify-content: center;
-          align-items: center;
           color: #00d9ff;
           text-shadow: 0 0 20px rgba(0, 217, 255, 0.8), 0 0 40px rgba(0, 217, 255, 0.4);
           transition: color 1s, text-shadow 1s, opacity 0.5s;
           transform-style: preserve-3d;
           perspective: 300px;
         }
-
-
-
 
         .letter-inner {
           position: relative;
@@ -373,22 +348,14 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
-
-        .loading-screen-exit {
-          opacity: 0;
-          filter: blur(10px);
-          transform: scale(1.1);
-          transition: all 0.8s cubic-bezier(0.6, -0.28, 0.735, 0.045);
-          pointer-events: none;
-        }
       `}</style>
 
       {/* 🎨 Canvas для частинок */}
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-10" />
 
-      {/* 📝 Контейнер з літерами STORKCRYPTO (ВЕРТИКАЛЬНИЙ) */}
+      {/* 📝 Контейнер з літерами STORKCRYPTO */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }} />
+        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
       </div>
 
       {/* 📊 Прогрес-бар */}
@@ -411,13 +378,15 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
         style={{ opacity: scannerVisible ? 1 : 0 }}
       />
 
-      {/* ⏭ SKIP / ПРОПУСТИТИ */}
-      <button
-        onClick={handleComplete}
-        className={`fixed bottom-12 z-50 text-[10px] font-orbitron font-black tracking-[0.2em] uppercase text-brand-cyan/80 hover:text-white transition-all duration-700 border border-brand-cyan/30 px-6 py-2 rounded-full hover:bg-brand-cyan/10 backdrop-blur-sm group ${showSkip ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
-      >
-        <span className="group-hover:text-brand-cyan transition-colors">{getTranslation(settings.language, 'loading.skip')}</span> &gt;&gt;
-      </button>
+      {/* Skip Button */}
+      {onSkip && (
+        <button
+          onClick={onSkip}
+          className="absolute bottom-8 right-8 z-30 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white hover:border-brand-cyan/50 transition-all"
+        >
+          SKIP_SEQUENCE
+        </button>
+      )}
     </div>
   );
 }
