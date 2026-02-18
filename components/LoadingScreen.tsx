@@ -96,17 +96,20 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
       lettersWrapper.innerHTML = '';
-      // RESPONSIVE HORIZONTAL LAYOUT
+      // VERTICAL LAYOUT
       lettersWrapper.style.display = 'flex';
-      lettersWrapper.style.flexDirection = 'row';
-      lettersWrapper.style.flexWrap = 'nowrap';
-      lettersWrapper.style.justifyContent = 'center';
+      lettersWrapper.style.flexDirection = 'column';
       lettersWrapper.style.alignItems = 'center';
-      lettersWrapper.style.gap = 'clamp(1px, 0.5vw, 4px)';
+      lettersWrapper.style.justifyContent = 'center';
+      lettersWrapper.style.gap = '1vh';
 
       word.split('').forEach((char) => {
         const container = document.createElement('div');
         container.className = 'letter-container';
+        // Make letters responsive but large enough vertically
+        container.style.fontSize = 'min(6vh, 8vw)';
+        container.style.lineHeight = '1';
+        container.style.fontWeight = '900';
 
         const inner = document.createElement('div');
         inner.className = 'letter-inner';
@@ -281,24 +284,26 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
 
         .letters-vertical {
           display: flex !important;
-          flex-direction: row !important;
+          flex-direction: column !important; /* Changed to column */
           flex-wrap: nowrap !important;
           justify-content: center !important;
           align-items: center !important;
           width: 100%;
-          max-width: 100vw;
+          height: 100%; /* Ensure full height */
+          max-height: 80vh;
           overflow: hidden;
         }
 
         .letter-container {
           position: relative;
-          margin: 0 1px;
+          margin: 1px 0; /* Vertical margin */
           font-family: 'Orbitron', monospace;
-          /* Scale font to fit width: 11 chars * 8vw approx 88vw */
-          font-size: clamp(18px, 6vw, 64px);
+          /* Scale font to fit height */
+          font-size: min(6vh, 8vw); 
           font-weight: 900;
-          width: 0.8em;
-          height: 1.2em;
+          line-height: 1;
+          width: auto;
+          height: auto;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -309,17 +314,8 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           perspective: 300px;
         }
 
-        @media (max-width: 380px) {
-          .letter-container {
-            font-size: clamp(14px, 5vw, 24px);
-          }
-        }
 
-        @media (max-width: 340px) {
-          .letter-container {
-            font-size: clamp(12px, 4.5vw, 20px);
-          }
-        }
+
 
         .letter-inner {
           position: relative;
