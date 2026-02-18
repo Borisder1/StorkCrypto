@@ -101,13 +101,13 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
       lettersWrapper.style.flexDirection = 'column';
       lettersWrapper.style.alignItems = 'center';
       lettersWrapper.style.justifyContent = 'center';
-      lettersWrapper.style.gap = '1vh';
+      lettersWrapper.style.gap = '0.5vh';
 
       word.split('').forEach((char) => {
         const container = document.createElement('div');
         container.className = 'letter-container';
         // Make letters responsive but large enough vertically
-        container.style.fontSize = 'min(6vh, 8vw)';
+        container.style.fontSize = 'min(4.5vh, 8vw)';
         container.style.lineHeight = '1';
         container.style.fontWeight = '900';
 
