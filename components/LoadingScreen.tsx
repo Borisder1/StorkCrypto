@@ -96,21 +96,10 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
       lettersWrapper.innerHTML = '';
-      // VERTICAL LAYOUT
-      lettersWrapper.style.display = 'flex';
-      lettersWrapper.style.flexDirection = 'column';
-      lettersWrapper.style.alignItems = 'center';
-      lettersWrapper.style.justifyContent = 'center';
-      lettersWrapper.style.gap = '1vh';
 
       word.split('').forEach((char) => {
         const container = document.createElement('div');
         container.className = 'letter-container';
-        // Responsive font size that fills height nicely without overflowing
-        // Increased from 4.5vh to 5.5vh, and 8vw to 12vw for better mobile visibility
-        container.style.fontSize = 'min(5.5vh, 12vw)';
-        container.style.lineHeight = '1';
-        container.style.fontWeight = '900';
 
         const inner = document.createElement('div');
         inner.className = 'letter-inner';
@@ -283,14 +272,12 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
 
         .letter-container {
           position: relative;
-          /* Removed vertical margin, using gap in flex container instead */
-          margin: 0;
+          margin: clamp(0px, 0.1vh, 2px) 0;
           font-family: 'Orbitron', monospace;
-          /* Use clamp for better responsiveness on extreme screens */
-          font-size: clamp(24px, 5.5vh, 60px);
+          font-size: clamp(20px, 4.5vh, 32px);
           font-weight: 900;
-          width: 1.5em;
-          height: 1.2em;
+          width: 1.2em;
+          height: 1.5em;
           display: flex;
           justify-content: center;
           align-items: center;
