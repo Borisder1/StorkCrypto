@@ -11,6 +11,7 @@ import SubscriptionModal from '../SubscriptionModal';
 import AdInquiryModal from '../AdInquiryModal';
 import AvatarSelectionModal from '../AvatarSelectionModal';
 import AboutModal from '../AboutModal';
+import { MFASetup } from '../MFASetup';
 import { triggerHaptic } from '../../utils/haptics';
 import { TacticalBackground } from '../TacticalBackground';
 import UpgradeBanner from '../UpgradeBanner';
@@ -34,6 +35,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const [showSubscription, setShowSubscription] = useState(false);
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showAbout, setShowAbout] = useState(false);
+    const [showMFASetup, setShowMFASetup] = useState(false);
 
     const t = (key: string) => getTranslation(settings.language, key);
     const deviceId = userStats.id;
@@ -350,6 +352,9 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </div>
 
                     <div className="grid grid-cols-1 gap-3">
+                        <button onClick={() => setShowMFASetup(true)} className="w-full py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-white hover:bg-white/10 transition-all flex items-center justify-center gap-3 tracking-[0.2em] group shadow-xl">
+                            <ShieldIcon className="w-4 h-4 text-slate-500 group-hover:text-white" /> НАЛАШТУВАТИ_2FA
+                        </button>
                         <button onClick={() => setShowAbout(true)} className="w-full py-5 bg-brand-cyan/10 border border-brand-cyan/30 rounded-2xl text-[10px] font-black uppercase text-brand-cyan hover:bg-brand-cyan/20 transition-all flex items-center justify-center gap-3 tracking-[0.2em] group shadow-xl">
                             <UserIcon className="w-4 h-4" /> {t('about.title') || 'ПРО_НАС'}
                         </button>
@@ -369,6 +374,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 {showAdInquiry && <AdInquiryModal onClose={() => setShowAdInquiry(false)} />}
                 {showAvatarModal && <AvatarSelectionModal onClose={() => setShowAvatarModal(false)} onSelect={handleAvatarUpdate} />}
                 {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}
+                {showMFASetup && <MFASetup userId={userStats.id} />}
             </div>
         </div>
     );
