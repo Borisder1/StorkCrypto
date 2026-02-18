@@ -378,13 +378,13 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         style={{ opacity: scannerVisible ? 1 : 0 }}
       />
 
-      {/* Skip Button */}
+      {/* Skip Button - Always visible from start */}
       {onSkip && (
         <button
           onClick={onSkip}
-          className="absolute bottom-8 right-8 z-30 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-mono text-slate-400 hover:text-white hover:border-brand-cyan/50 transition-all"
+          className="absolute bottom-8 right-8 z-50 px-6 py-3 bg-brand-cyan/20 border border-brand-cyan/50 rounded-xl text-sm font-orbitron font-bold text-brand-cyan hover:bg-brand-cyan/30 hover:border-brand-cyan hover:shadow-[0_0_20px_rgba(0,217,255,0.5)] transition-all cursor-pointer"
         >
-          SKIP_SEQUENCE
+          SKIP_SEQUENCE ▶
         </button>
       )}
     </div>
