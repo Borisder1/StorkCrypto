@@ -163,7 +163,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
       setScannerVisible(true);
       scannerLineRef.current.style.top = `${wrapperRect.top}px`;
       // Ensure scanner is wide enough for the letters but not too wide
-      scannerLineRef.current.style.width = '150px';
+      scannerLineRef.current.style.width = '300px';
 
       let startTime = performance.now();
 
@@ -279,31 +279,14 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           100% { transform: translate(50px, 50px); }
         }
 
-          100% { transform: translate(50px, 50px); }
-        }
-
-        .letters-vertical {
-          display: flex !important;
-          flex-direction: column !important; /* Changed to column */
-          flex-wrap: nowrap !important;
-          justify-content: center !important;
-          align-items: center !important;
-          width: 100%;
-          height: 100%; /* Ensure full height */
-          max-height: 80vh;
-          overflow: hidden;
-        }
-
         .letter-container {
           position: relative;
-          margin: 1px 0; /* Vertical margin */
+          margin: clamp(0px, 0.1vh, 2px) 0;
           font-family: 'Orbitron', monospace;
-          /* Scale font to fit height */
-          font-size: min(6vh, 8vw); 
+          font-size: clamp(20px, 4.5vh, 32px);
           font-weight: 900;
-          line-height: 1;
-          width: auto;
-          height: auto;
+          width: 1.2em;
+          height: 1.5em;
           display: flex;
           justify-content: center;
           align-items: center;
@@ -369,7 +352,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
           top: 0;
           left: 50%;
           transform: translateX(-50%);
-          width: 150px;
+          width: 300px;
           height: 3px;
           background: linear-gradient(90deg, transparent, #00d9ff 20%, #ffffff 50%, #00d9ff 80%, transparent);
           box-shadow: 0 0 20px #00d9ff, 0 0 40px #00d9ff, 0 0 60px #00d9ff;
@@ -415,7 +398,7 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
 
       {/* 📝 Контейнер з літерами STORKCRYPTO (ВЕРТИКАЛЬНИЙ) */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} className="letters-vertical" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
+        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
       </div>
 
       {/* 📊 Прогрес-бар */}
