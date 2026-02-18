@@ -3,6 +3,8 @@ import { AssetMetrics, MarketPriceMap } from '../types';
 
 const BINANCE_API_URL = 'https://api.binance.com/api/v3';
 const COINCAP_API_URL = 'https://api.coincap.io/v2';
+// Free Fear & Greed API
+const FEAR_GREED_API_URL = 'https://api.alternative.me/fng/?limit=1';
 
 export interface OHLCData {
     time: number;
@@ -15,6 +17,7 @@ export interface OHLCData {
 
 const CACHE = {
     PRICES: { data: {} as MarketPriceMap, timestamp: 0, ttl: 15000 },
+    SENTIMENT: { data: null as any, timestamp: 0, ttl: 3600000 } // 1 hour TTL
 };
 
 export const MASTER_ASSET_LIST = [
@@ -240,4 +243,32 @@ export const scanMarket = async (): Promise<AssetMetrics[]> => {
             category: asset.category
         };
     });
+};
+
+// Fear & Greed Index from Alternative.me
+export const getFearGreedIndex = async () => {
+    const now = Date.now();
+    // Cache for 1 hour to respect API limits
+    if (CACHE.SENTIMENT.data && (now - CACHE.SENTIMENT.timestamp < CACHE.SENTIMENT.ttl)) {
+        return CACHE.SENTIMENT.data;
+    }
+
+    try {
+        const res = await fetch(FEAR_GREED_API_URL).catch(() => null);
+        if (!res || !res.ok) throw new Error("API Failed");
+        const json = await res.json();
+        const data = json.data[0];
+
+        const result = {
+            value: parseInt(data.value),
+            classification: data.value_classification
+        };
+
+        CACHE.SENTIMENT.data = result;
+        CACHE.SENTIMENT.timestamp = now;
+        return result;
+    } catch (e) {
+        // Fallback if API fails
+        return { value: 50, classification: 'Neutral' };
+    }
 };
