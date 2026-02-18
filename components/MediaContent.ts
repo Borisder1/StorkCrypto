@@ -1,5 +1,5 @@
 
-import { AcademyTerm, Language } from '../../types';
+import { AcademyTerm, Language } from '../types';
 
 export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
     en: [
