@@ -7,13 +7,13 @@
   --font-inter: "Inter", "Montserrat", sans-serif;
   --font-montserrat: "Montserrat", sans-serif;
 
-  --color-brand-bg: #0A0A2A;
-  --color-brand-bg-alt: #0F0F1A;
+  --color-brand-bg: #020617;
+  --color-brand-bg-alt: #0A0A2A;
   --color-brand-card: rgba(15, 23, 42, 0.6);
   --color-brand-cyan: #00F0FF;
-  --color-brand-green: #00FF00;
-  --color-brand-purple: #8b5cf6;
-  --color-brand-danger: #FF0066;
+  --color-brand-green: #00FF9D;
+  --color-brand-purple: #BD00FF;
+  --color-brand-danger: #FF0055;
   --color-brand-border: rgba(255, 255, 255, 0.1);
   --color-brand-glow: rgba(0, 240, 255, 0.3);
 
@@ -29,6 +29,7 @@
   --animate-value-flash-up: valueFlashUp 0.6s ease-out;
   --animate-value-flash-down: valueFlashDown 0.6s ease-out;
   --animate-holographic: holographic 3s ease-in-out infinite;
+  --animate-grid-fly: gridFly 2s linear infinite;
 }
 
 body {
@@ -267,6 +268,16 @@ html::after {
   }
 }
 
+@keyframes gridFly {
+  0% {
+    transform: perspective(500px) rotateX(60deg) translateY(0);
+  }
+
+  100% {
+    transform: perspective(500px) rotateX(60deg) translateY(50px);
+  }
+}
+
 /* ═══════════════ GLASS PANELS ═══════════════ */
 
 .glass-panel {
@@ -315,12 +326,13 @@ html::after {
 }
 
 .btn-interactive:hover {
-  @apply shadow-[0_0_15px_rgba(0,240,255,0.3)] border-brand-cyan/50;
+  box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+  border-color: rgba(0, 240, 255, 0.5);
   transform: translateY(-1px);
 }
 
 .btn-interactive:active {
-  @apply shadow-[0_0_5px_rgba(0,240,255,0.2)];
+  box-shadow: 0 0 5px rgba(0, 240, 255, 0.2);
   transform: translateY(1px);
 }
 
