@@ -148,7 +148,7 @@ const App: React.FC = () => {
 
                     <button
                         onClick={() => { triggerHaptic('medium'); setIsAIChatOpen(!isAIChatOpen); }}
-                        className={`fixed bottom-24 right-4 z-50 w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 border border-brand-cyan/50 shadow-[0_0_20px_rgba(0,217,255,0.3)] ${isAIChatOpen ? 'scale-0' : 'bg-brand-cyan text-black'}`}
+                        className={`fixed bottom-24 right-4 z-50 w-14 h-14 rounded-2xl flex items-center justify-center btn-interactive border border-brand-cyan/50 shadow-[0_0_20px_rgba(0,217,255,0.3)] ${isAIChatOpen ? 'scale-0' : 'bg-brand-cyan text-black'}`}
                         style={{ backgroundColor: isAIChatOpen ? 'transparent' : 'var(--primary-color)' }}
                     >
                         <BotIcon className="w-8 h-8" />

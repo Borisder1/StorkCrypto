@@ -9,6 +9,7 @@ import { triggerHaptic } from '../../utils/haptics';
 import { TacticalBackground } from '../TacticalBackground';
 import { getTranslation } from '../../utils/translations';
 import UpgradeBanner from '../UpgradeBanner';
+import EmptyState from '../EmptyState';
 
 // --- VISUAL COMPONENTS ---
 
@@ -345,10 +346,10 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
                     ))}
                 </div>
 
-                <div className="space-y-2">
+                <div className="space-y-2 pb-32">
                     {loading && !analysis ? (
                         Array.from({length: 3}).map((_, i) => <div key={i} className="h-44 w-full bg-brand-card/40 border border-white/5 rounded-[2rem] animate-pulse mb-4"></div>)
-                    ) : (
+                    ) : filteredSignals.length > 0 ? (
                         filteredSignals.map((signal, idx) => (
                             <HybridSignalCard 
                                 key={idx} 
@@ -361,6 +362,11 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
                                 }}
                             />
                         ))
+                    ) : (
+                        <EmptyState 
+                            message="NO_SIGNALS_FOUND" 
+                            subMessage="Adjust your filters or wait for the next market scan cycle."
+                        />
                     )}
                 </div>
             </div>

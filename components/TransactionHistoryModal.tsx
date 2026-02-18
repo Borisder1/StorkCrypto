@@ -4,6 +4,8 @@ import { useStore } from '../store';
 import { ShieldIcon, ActivityIcon, ArrowUpRightIcon, ArrowDownLeftIcon, FileTextIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 
+import EmptyState from './EmptyState';
+
 const TransactionHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { wallet } = useStore();
     const history = wallet?.txHistory || [];
@@ -36,20 +38,11 @@ const TransactionHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose })
                     {!wallet?.isConnected ? (
                         <div className="py-20 text-center text-slate-500 font-inter text-sm uppercase opacity-50 italic">Wallet_Not_Linked</div>
                     ) : history.length === 0 ? (
-                        <div className="bg-brand-card/30 border border-brand-border rounded-[2rem] p-6 flex flex-col items-center justify-center min-h-[200px] text-center relative overflow-hidden group my-10">
-                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none"></div>
-                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-purple/50 to-transparent animate-[scanline_4s_linear_infinite]"></div>
-                            
-                            <div className="w-16 h-16 rounded-full bg-black/40 border border-white/10 flex items-center justify-center mb-4 relative">
-                                <FileTextIcon className="w-8 h-8 text-slate-700" />
-                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-brand-purple rounded-full animate-ping"></div>
-                            </div>
-                            
-                            <h3 className="text-white font-black text-xs font-orbitron uppercase tracking-widest mb-1 text-glow">ARCHIVE_EMPTY</h3>
-                            <p className="text-slate-500 text-[9px] font-mono max-w-[200px]">
-                                No transaction signatures found in the ledger. Execute operations to populate log.
-                            </p>
-                        </div>
+                        <EmptyState 
+                            message="ARCHIVE_EMPTY" 
+                            subMessage="No transaction signatures found in the ledger. Execute operations to populate log."
+                            icon={<FileTextIcon className="w-6 h-6 text-slate-700" />}
+                        />
                     ) : (
                         history.map((tx, i) => (
                             <div key={tx.id} className="bg-white/5 border border-white/5 rounded-2xl p-4 hover:border-brand-cyan/30 hover:bg-white/10 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${i * 50}ms` }}>

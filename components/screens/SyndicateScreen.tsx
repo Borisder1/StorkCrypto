@@ -5,6 +5,7 @@ import { triggerHaptic } from '../../utils/haptics';
 import { CopiedTrader } from '../../types';
 import { TacticalBackground } from '../TacticalBackground';
 import CopyStrategyModal from '../CopyStrategyModal';
+import EmptyState from '../EmptyState';
 
 const TRADERS: CopiedTrader[] = [
     { id: 't1', name: 'Alpha_Centauri', roi: 124.5, tvl: 850000, winRate: 78, riskScore: 4 },
@@ -50,12 +51,21 @@ export const SyndicateScreen: React.FC<{ onClose: () => void }> = ({ onClose }) 
 
                 <h3 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 ml-1">MASTER_PILOTS</h3>
                 
-                <div className="space-y-4">
-                    {TRADERS.map(trader => {
-                        const isCopying = copiedTraders.some(t => t.id === trader.id);
-                        return (
-                            <div key={trader.id} className={`bg-brand-card/60 border rounded-3xl p-5 transition-all duration-300 ${isCopying ? 'border-brand-green bg-brand-green/5' : 'border-white/5 hover:border-brand-purple/30'}`}>
-                                <div className="flex justify-between items-start mb-6">
+                {TRADERS.length === 0 ? (
+                    <div className="py-10">
+                        <EmptyState 
+                            message="NO_PILOTS_FOUND" 
+                            subMessage="Syndicate network is currently offline. Check back later for new signals."
+                            icon={<UserIcon className="w-6 h-6 text-slate-600 opacity-50" />}
+                        />
+                    </div>
+                ) : (
+                    <div className="space-y-4">
+                        {TRADERS.map(trader => {
+                            const isCopying = copiedTraders.some(t => t.id === trader.id);
+                            return (
+                                <div key={trader.id} className={`bg-brand-card/60 border rounded-3xl p-5 transition-all duration-300 ${isCopying ? 'border-brand-green bg-brand-green/5' : 'border-white/5 hover:border-brand-purple/30'}`}>
+                                    <div className="flex justify-between items-start mb-6">
                                     <div className="flex items-center gap-4">
                                         <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center font-black text-brand-purple text-xl shadow-inner">
                                             {trader.name[0]}
@@ -105,6 +115,7 @@ export const SyndicateScreen: React.FC<{ onClose: () => void }> = ({ onClose }) 
                         );
                     })}
                 </div>
+                )}
             </div>
 
             {selectedTrader && <CopyStrategyModal trader={selectedTrader} onClose={() => setSelectedTrader(null)} />}

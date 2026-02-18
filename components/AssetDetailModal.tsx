@@ -226,17 +226,17 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
 
                     {activeTab === 'CHART' && (
                         <div className="space-y-6 animate-fade-in">
-                            <div className="bg-black/30 rounded-[2.5rem] border border-white/5 p-2 min-h-[350px] relative">
-                                <div className="flex justify-between p-4 absolute top-0 left-0 w-full z-20">
-                                    <div className="flex gap-2">
+                            <div className="bg-black/30 rounded-[2.5rem] border border-white/5 p-2 min-h-[350px] relative overflow-hidden">
+                                <div className="flex justify-between p-4 absolute top-0 left-0 w-full z-20 pointer-events-none">
+                                    <div className="flex gap-2 pointer-events-auto">
                                         <button onClick={() => setChartType('CANDLE')} className={`p-2 rounded-lg border ${chartType === 'CANDLE' ? 'border-brand-cyan text-brand-cyan' : 'border-white/5 text-slate-500'}`}><BarChartIcon className="w-4 h-4"/></button>
                                         <button onClick={() => setChartType('LINE')} className={`p-2 rounded-lg border ${chartType === 'LINE' ? 'border-brand-cyan text-brand-cyan' : 'border-white/5 text-slate-500'}`}><ActivityIcon className="w-4 h-4"/></button>
                                     </div>
-                                    <div className="flex bg-black/60 rounded-xl p-1 border border-white/5">
+                                    <div className="flex bg-black/60 rounded-xl p-1 border border-white/5 pointer-events-auto">
                                         {TIMEFRAMES.map(tf => <button key={tf.label} onClick={() => setTimeframe(tf.days)} className={`text-[8px] font-black px-3 py-1.5 rounded-lg ${timeframe === tf.days ? 'bg-brand-cyan/20 text-brand-cyan' : 'text-slate-500'}`}>{tf.label}</button>)}
                                     </div>
                                 </div>
-                                <div ref={chartContainerRef} className="w-full h-[320px] mt-10" />
+                                <div ref={chartContainerRef} className="w-full max-w-full h-[320px] mt-10 overflow-hidden" />
                             </div>
 
                             {/* Stage 5 Quant Panel */}

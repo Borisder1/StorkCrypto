@@ -6,6 +6,7 @@ import { triggerHaptic } from '../utils/haptics';
 import { binanceWS } from '../services/websocketService';
 import { useStore } from '../store';
 import WhaleHistoryModal from './WhaleHistoryModal';
+import EmptyState from './EmptyState';
 
 const WHALE_THRESHOLD_USD = 100000; 
 
@@ -111,20 +112,11 @@ export const WhaleTrackerWidget: React.FC = () => {
 
                 <div className="space-y-1 relative z-10 min-h-[120px]">
                     {recentTxs.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-8 border border-dashed border-brand-cyan/20 bg-black/10 backdrop-blur-sm rounded-lg relative overflow-hidden group/empty">
-                            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none"></div>
-                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/40 to-transparent animate-[scanline_3s_linear_infinite]"></div>
-                            
-                            <div className="flex gap-1 mb-3">
-                                <span className="w-1 h-4 bg-brand-cyan/60 animate-[pulse_1s_ease-in-out_infinite] shadow-[0_0_5px_#00d9ff]"></span>
-                                <span className="w-1 h-6 bg-brand-cyan/60 animate-[pulse_1.5s_ease-in-out_infinite] shadow-[0_0_5px_#00d9ff]"></span>
-                                <span className="w-1 h-3 bg-brand-cyan/60 animate-[pulse_1.2s_ease-in-out_infinite] shadow-[0_0_5px_#00d9ff]"></span>
-                            </div>
-                            <p className="text-[10px] font-mono text-brand-cyan/80 uppercase tracking-widest animate-pulse text-glow group-hover/empty:text-brand-cyan transition-colors">Scanning_Mempool...</p>
-                            <div className="mt-2 px-2 py-1 rounded bg-brand-cyan/10 border border-brand-cyan/20 text-[8px] font-mono text-brand-cyan/70 uppercase tracking-wider">
-                                Awaiting Whale Activity
-                            </div>
-                        </div>
+                        <EmptyState 
+                            message="SCANNING_MEMPOOL" 
+                            subMessage="Awaiting Whale Activity..."
+                            icon={<RadarIcon className="w-6 h-6 text-brand-cyan/50 animate-spin" />}
+                        />
                     ) : (
                         recentTxs.map(tx => (
                             <div key={tx.id} className="flex items-center justify-between p-2.5 hover:bg-white/5 backdrop-blur-sm transition-all border-l-2 border-transparent hover:border-brand-cyan pl-3 group/item rounded-r-lg relative overflow-hidden">

@@ -3,6 +3,7 @@ import { useStore } from '../store';
 import { ShieldIcon, TrendingUpIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
+import EmptyState from './EmptyState';
 
 const QuestWidget: React.FC = () => {
     const { quests, claimQuestReward, settings } = useStore();
@@ -11,25 +12,11 @@ const QuestWidget: React.FC = () => {
     const visibleQuests = quests.filter(q => !q.isClaimed || q.progress >= q.target).slice(0, 2);
 
     if (visibleQuests.length === 0) return (
-        <div className="bg-brand-card/30 border border-brand-border rounded-[2rem] p-6 flex flex-col items-center justify-center min-h-[140px] text-center relative overflow-hidden group">
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none"></div>
-            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-purple/50 to-transparent animate-[scanline_4s_linear_infinite]"></div>
-
-            <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center mb-3 relative">
-                <ShieldIcon className="w-6 h-6 text-slate-700" />
-                <div className="absolute -top-1 -right-1 w-2 h-2 bg-brand-purple rounded-full animate-ping"></div>
-            </div>
-
-            <h3 className="text-white font-black text-[10px] font-orbitron uppercase tracking-widest mb-1 text-glow">{t('missions.offline') || 'MISSIONS_OFFLINE'}</h3>
-            <p className="text-slate-500 text-[8px] font-mono max-w-[180px]">
-                {t('whale.awaiting') || 'System upgrading to V2 protocol. New objectives will be broadcasted shortly.'}
-            </p>
-
-            <div className="mt-3 px-3 py-1 rounded bg-brand-purple/10 border border-brand-purple/20 text-[7px] font-mono text-brand-purple flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-brand-purple animate-pulse"></div>
-                V2 COMING SOON
-            </div>
-        </div>
+        <EmptyState 
+            message={t('missions.offline') || 'MISSIONS_OFFLINE'} 
+            subMessage={t('whale.awaiting') || 'System upgrading to V2 protocol. New objectives will be broadcasted shortly.'}
+            icon={<ShieldIcon className="w-6 h-6 text-slate-700" />}
+        />
     );
 
     return (

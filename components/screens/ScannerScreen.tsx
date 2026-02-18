@@ -10,6 +10,7 @@ import { triggerHaptic } from '../../utils/haptics';
 import { TacticalBackground } from '../TacticalBackground';
 import UpgradeBanner from '../UpgradeBanner'; 
 import HolographicGlobe from '../HolographicGlobe';
+import EmptyState from '../EmptyState';
 
 const ScannerListItem = React.memo(({ coin, onAssetClick, style, isAlpha }: { 
     coin: AssetMetrics, onAssetClick: (c: AssetMetrics) => void, style?: React.CSSProperties, isAlpha?: boolean
@@ -145,7 +146,11 @@ const ScannerScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             ) : (
                 <div ref={containerRef} onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 pt-2">
                     {processedData.length === 0 && !scanning ? (
-                        <div className="py-20 text-center opacity-30 uppercase text-[10px] font-black tracking-widest">{t('scanner.no_data')}</div>
+                        <EmptyState 
+                            message={t('scanner.no_data')} 
+                            subMessage="Market scan returned zero results matching current parameters."
+                            icon={<SearchIcon className="w-6 h-6 text-slate-500 opacity-50" />}
+                        />
                     ) : (
                         <div className="relative" style={{ height: `${totalHeight}px` }}>
                             {visibleItems.map((coin, idx) => (

@@ -8,6 +8,7 @@ import QuizModal from '../QuizModal';
 import UpgradeBanner from '../UpgradeBanner';
 import { TacticalBackground } from '../TacticalBackground';
 import { ACADEMY_DATABASE } from '../MediaContent';
+import EmptyState from '../EmptyState';
 
 const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const { settings } = useStore();
@@ -67,37 +68,44 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 </div>
 
                 <div className="space-y-4">
-                    {filteredItems.map((item) => (
-                        <div 
-                            key={item.id} 
-                            className={`bg-brand-card/60 border rounded-3xl overflow-hidden transition-all duration-300 ${expandedId === item.id ? 'border-brand-cyan shadow-[0_0_20px_rgba(0,217,255,0.1)]' : 'border-white/5 hover:border-brand-cyan/20'}`}
-                            onClick={() => { triggerHaptic('selection'); setExpandedId(expandedId === item.id ? null : item.id); }}
-                        >
-                            <div className="p-5 flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${expandedId === item.id ? 'bg-brand-cyan/20 border-brand-cyan text-brand-cyan' : 'bg-white/5 border-white/10 text-slate-600'}`}>
-                                        <ChevronRightIcon className={`w-5 h-5 transition-transform duration-300 ${expandedId === item.id ? 'rotate-90' : ''}`} />
+                    {filteredItems.length > 0 ? (
+                        filteredItems.map((item) => (
+                            <div 
+                                key={item.id} 
+                                className={`bg-brand-card/60 border rounded-3xl overflow-hidden transition-all duration-300 ${expandedId === item.id ? 'border-brand-cyan shadow-[0_0_20px_rgba(0,217,255,0.1)]' : 'border-white/5 hover:border-brand-cyan/20'}`}
+                                onClick={() => { triggerHaptic('selection'); setExpandedId(expandedId === item.id ? null : item.id); }}
+                            >
+                                <div className="p-5 flex items-center justify-between">
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${expandedId === item.id ? 'bg-brand-cyan/20 border-brand-cyan text-brand-cyan' : 'bg-white/5 border-white/10 text-slate-600'}`}>
+                                            <ChevronRightIcon className={`w-5 h-5 transition-transform duration-300 ${expandedId === item.id ? 'rotate-90' : ''}`} />
+                                        </div>
+                                        <h4 className={`font-bold text-sm ${expandedId === item.id ? 'text-brand-cyan' : 'text-white'}`}>{item.term}</h4>
                                     </div>
-                                    <h4 className={`font-bold text-sm ${expandedId === item.id ? 'text-brand-cyan' : 'text-white'}`}>{item.term}</h4>
+                                    <span className="text-[9px] font-black text-brand-purple bg-brand-purple/10 px-2 py-1 rounded border border-brand-purple/20">+50 XP</span>
                                 </div>
-                                <span className="text-[9px] font-black text-brand-purple bg-brand-purple/10 px-2 py-1 rounded border border-brand-purple/20">+50 XP</span>
-                            </div>
 
-                            {expandedId === item.id && (
-                                <div className="px-5 pb-6 animate-fade-in bg-black/20">
-                                    <div className="h-[1px] w-full bg-white/5 mb-5"></div>
-                                    {item.visualType && <div className="mb-6 rounded-2xl overflow-hidden border border-white/5"><ChartPattern type={item.visualType} /></div>}
-                                    <p className="text-sm text-slate-300 font-space-mono leading-relaxed mb-6">{item.definition}</p>
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); setActiveQuizTerm(item); }}
-                                        className="w-full py-4 bg-white text-black font-black font-orbitron rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs uppercase"
-                                    >
-                                        <ShieldIcon className="w-4 h-4" /> Start Drill
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                                {expandedId === item.id && (
+                                    <div className="px-5 pb-6 animate-fade-in bg-black/20">
+                                        <div className="h-[1px] w-full bg-white/5 mb-5"></div>
+                                        {item.visualType && <div className="mb-6 rounded-2xl overflow-hidden border border-white/5"><ChartPattern type={item.visualType} /></div>}
+                                        <p className="text-sm text-slate-300 font-space-mono leading-relaxed mb-6">{item.definition}</p>
+                                        <button 
+                                            onClick={(e) => { e.stopPropagation(); setActiveQuizTerm(item); }}
+                                            className="w-full py-4 bg-white text-black font-black font-orbitron rounded-2xl shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2 text-xs uppercase"
+                                        >
+                                            <ShieldIcon className="w-4 h-4" /> Start Drill
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        ))
+                    ) : (
+                        <EmptyState 
+                            message="INTEL_NOT_FOUND" 
+                            subMessage="No matches in Academy database. Adjust your search parameters."
+                        />
+                    )}
                 </div>
             </div>
 

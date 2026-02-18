@@ -79,18 +79,18 @@ const UpgradeBanner: React.FC = () => {
                     <div className={`w-10 h-10 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.4)] ${isPaidExpiring ? 'from-red-900 to-black' : 'from-brand-green to-brand-cyan'}`}>
                         {icon}
                     </div>
-                    <div className="flex-1 min-w-0 mr-2">
-                        <h3 className={`text-sm font-bold font-orbitron tracking-wide flex flex-wrap items-center gap-2 ${isPaidExpiring ? 'text-red-400' : 'text-white'}`}>
-                            <span className="whitespace-nowrap leading-none">{isPaidExpiring ? 'RENEWAL IMMINENT' : (isFree ? 'TRIAL ACCESS' : 'UPGRADE TO PRO')}</span>
+                    <div className="flex-1 min-w-0 mr-2 flex flex-col justify-center">
+                        <h3 className={`text-[11px] sm:text-sm font-bold font-orbitron tracking-wide flex flex-wrap items-center gap-2 ${isPaidExpiring ? 'text-red-400' : 'text-white'}`}>
+                            <span className="truncate leading-none">{isPaidExpiring ? 'RENEWAL IMMINENT' : (isFree ? 'TRIAL ACCESS' : 'UPGRADE TO PRO')}</span>
                             {!isPaidExpiring && <span className="text-[8px] bg-brand-green text-black px-1.5 rounded font-black animate-pulse self-center">ACTIVE</span>}
                         </h3>
-                        <p className="text-[10px] text-slate-300 font-mono truncate">
+                        <p className="text-[10px] text-slate-300 font-mono truncate mt-0.5">
                             {isPaidExpiring ? `System locking in: ${timeLeftLabel}` : `Expires in: ${timeLeftLabel || 'Calculating...'}`}
                         </p>
                     </div>
                 </div>
 
-                <button className={`font-bold text-[10px] px-4 py-2 rounded-xl shadow-lg hover:scale-105 transition-transform flex-shrink-0 flex items-center gap-1 ${btnColor}`}>
+                <button className={`font-bold text-[10px] px-4 py-2 rounded-xl shadow-lg flex-shrink-0 flex items-center gap-1 whitespace-nowrap btn-interactive ${btnColor}`}>
                     <ShieldIcon className="w-3 h-3" />
                     {isPaidExpiring ? 'RENEW' : 'EXTEND'}
                 </button>

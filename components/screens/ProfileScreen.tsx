@@ -137,17 +137,17 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 )}
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-8 pb-32 relative z-10">
+            <div className="flex-1 overflow-y-auto custom-scrollbar px-4 sm:px-6 pt-6 sm:pt-8 pb-32 relative z-10">
 
                 {/* --- PUMPED UP HERO SECTION --- */}
-                <div className="relative mb-8">
+                <div className="relative mb-6 sm:mb-8">
                     {/* Holographic Card Background */}
-                    <div className="absolute inset-0 bg-brand-card/60 backdrop-blur-xl border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden">
+                    <div className="absolute inset-0 bg-brand-card/60 backdrop-blur-xl border border-white/10 rounded-[2rem] sm:rounded-[3rem] shadow-2xl overflow-hidden">
                         <div className="absolute top-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/30 to-transparent"></div>
                         <div className="absolute bottom-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-purple/30 to-transparent"></div>
                     </div>
 
-                    <div className="relative z-10 p-6 flex flex-col items-center">
+                    <div className="relative z-10 p-4 sm:p-6 flex flex-col items-center">
                         {/* Avatar */}
                         <div className="relative mb-4 group cursor-pointer active:scale-95 transition-transform" onClick={() => setShowAvatarModal(true)}>
                             <div className={`absolute -inset-3 blur-xl opacity-40 rounded-full transition-colors ${subData.isPaid ? 'bg-brand-purple' : subData.isTrial ? 'bg-brand-green' : 'bg-slate-500'}`}></div>
@@ -250,22 +250,22 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         {/* Theme Mode (Density) */}
                         <div>
                             <p className="text-[9px] text-slate-500 font-bold uppercase mb-2 ml-1">{t('profile.density')}</p>
-                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
-                                <button onClick={() => { updateSettings({ themeMode: 'midnight' }); triggerHaptic('selection'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'midnight' ? 'bg-slate-900 text-white border border-slate-700' : 'text-slate-500'}`}>Midnight</button>
-                                <button onClick={() => { updateSettings({ themeMode: 'twilight' }); triggerHaptic('selection'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'twilight' ? 'bg-slate-800 text-white border border-slate-600' : 'text-slate-500'}`}>Twilight</button>
-                                <button onClick={() => { updateSettings({ themeMode: 'concrete' }); triggerHaptic('selection'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'concrete' ? 'bg-zinc-800 text-white border border-zinc-600' : 'text-slate-500'}`}>Graphite</button>
+                            <div className="flex flex-wrap bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
+                                <button onClick={() => { updateSettings({ themeMode: 'midnight' }); triggerHaptic('selection'); }} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'midnight' ? 'bg-slate-900 text-white border border-slate-700' : 'text-slate-500'}`}>Midnight</button>
+                                <button onClick={() => { updateSettings({ themeMode: 'twilight' }); triggerHaptic('selection'); }} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'twilight' ? 'bg-slate-800 text-white border border-slate-600' : 'text-slate-500'}`}>Twilight</button>
+                                <button onClick={() => { updateSettings({ themeMode: 'concrete' }); triggerHaptic('selection'); }} className={`flex-1 min-w-[80px] py-2 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'concrete' ? 'bg-zinc-800 text-white border border-zinc-600' : 'text-slate-500'}`}>Graphite</button>
                             </div>
                         </div>
 
                         {/* Theme Color */}
                         <div>
                             <p className="text-[9px] text-slate-500 font-bold uppercase mb-2 ml-1">{t('profile.theme')}</p>
-                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                            <div className="flex flex-wrap bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
                                 {['cyan', 'purple', 'green'].map(theme => (
                                     <button
                                         key={theme}
                                         onClick={() => { updateSettings({ theme: theme as any }); triggerHaptic('selection'); }}
-                                        className={`flex-1 py-2 rounded-lg text-[10px] font-black font-orbitron transition-all uppercase ${settings.theme === theme ? (theme === 'cyan' ? 'bg-brand-cyan text-black' : theme === 'purple' ? 'bg-brand-purple text-white' : 'bg-brand-green text-black') : 'text-slate-500 hover:text-white'}`}
+                                        className={`flex-1 min-w-[60px] py-2 rounded-lg text-[10px] font-black font-orbitron transition-all uppercase ${settings.theme === theme ? (theme === 'cyan' ? 'bg-brand-cyan text-black' : theme === 'purple' ? 'bg-brand-purple text-white' : 'bg-brand-green text-black') : 'text-slate-500 hover:text-white'}`}
                                     >
                                         {theme}
                                     </button>
@@ -276,12 +276,12 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         {/* Language */}
                         <div>
                             <p className="text-[9px] text-slate-500 font-bold uppercase mb-2 ml-1">{t('profile.language')}</p>
-                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
+                            <div className="flex flex-wrap bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
                                 {['en', 'ua', 'pl'].map(lang => (
                                     <button
                                         key={lang}
                                         onClick={() => { updateSettings({ language: lang as any }); triggerHaptic('selection'); }}
-                                        className={`flex-1 py-2 rounded-lg text-[10px] font-black font-orbitron transition-all uppercase ${settings.language === lang ? 'bg-brand-purple text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
+                                        className={`flex-1 min-w-[40px] py-2 rounded-lg text-[10px] font-black font-orbitron transition-all uppercase ${settings.language === lang ? 'bg-brand-purple text-white shadow-lg' : 'text-slate-500 hover:text-white'}`}
                                     >
                                         {lang}
                                     </button>
@@ -292,9 +292,9 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         {/* Risk */}
                         <div>
                             <p className="text-[9px] text-slate-500 font-bold uppercase mb-2 ml-1">{t('profile.risk')}</p>
-                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
-                                <button onClick={() => { updateSettings({ riskLevel: 'CONSERVATIVE' }); triggerHaptic('selection'); }} className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${settings.riskLevel === 'CONSERVATIVE' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'text-slate-500'}`}>Conservative</button>
-                                <button onClick={() => { updateSettings({ riskLevel: 'AGGRESSIVE' }); triggerHaptic('selection'); }} className={`flex-1 py-2 rounded-lg text-[10px] font-black uppercase transition-all ${settings.riskLevel === 'AGGRESSIVE' ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'text-slate-500'}`}>Aggressive</button>
+                            <div className="flex flex-wrap bg-black/40 p-1 rounded-xl border border-white/5 gap-1">
+                                <button onClick={() => { updateSettings({ riskLevel: 'CONSERVATIVE' }); triggerHaptic('selection'); }} className={`flex-1 min-w-[100px] py-2 rounded-lg text-[10px] font-black uppercase transition-all ${settings.riskLevel === 'CONSERVATIVE' ? 'bg-blue-500/20 text-blue-400 border border-blue-500/50' : 'text-slate-500'}`}>Conservative</button>
+                                <button onClick={() => { updateSettings({ riskLevel: 'AGGRESSIVE' }); triggerHaptic('selection'); }} className={`flex-1 min-w-[100px] py-2 rounded-lg text-[10px] font-black uppercase transition-all ${settings.riskLevel === 'AGGRESSIVE' ? 'bg-red-500/20 text-red-400 border border-red-500/50' : 'text-slate-500'}`}>Aggressive</button>
                             </div>
                         </div>
                     </div>

@@ -5,6 +5,7 @@ import { supabase } from '../../services/supabaseClient';
 import { ShieldIcon, ActivityIcon, GlobeIcon, ZapIcon, UserIcon } from '../icons';
 import { triggerHaptic } from '../../utils/haptics';
 import UpgradeBanner from '../UpgradeBanner'; 
+import EmptyState from '../EmptyState';
 
 const RankPodium: React.FC<{ user: any, rank: number }> = ({ user, rank }) => {
     if (!user) return <div className="w-1/3 h-full"></div>;
@@ -124,9 +125,11 @@ const LeaderboardScreen: React.FC = () => {
                         <p className="text-[10px] text-slate-500 font-mono">Syncing Neural Grid...</p>
                     </div>
                 ) : globalUsers.length === 0 ? (
-                    <div className="text-center py-10 text-slate-500 text-xs border border-dashed border-white/10 rounded-xl">
-                        No pilots found in sector.
-                    </div>
+                    <EmptyState 
+                        message="NO_PILOTS_FOUND" 
+                        subMessage="No pilots found in sector. Be the first to claim the rank."
+                        icon={<GlobeIcon className="w-6 h-6 text-slate-500 opacity-50" />}
+                    />
                 ) : (
                     restList.map((u, idx) => {
                         const isMe = u.id === userStats.id;

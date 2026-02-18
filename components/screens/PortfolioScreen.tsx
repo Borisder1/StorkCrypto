@@ -11,6 +11,7 @@ import { TacticalBackground } from '../TacticalBackground';
 import { PortfolioTools } from '../PortfolioTools';
 import UpgradeBanner from '../UpgradeBanner';
 import Skeleton from '../Skeleton';
+import EmptyState from '../EmptyState';
 
 // OPTIMIZATION: Memoized component to prevent re-renders on parent state changes
 const AssetEntry = React.memo(({ asset, totalPortfolioValue }: { asset: Asset, totalPortfolioValue: number }) => {
@@ -18,31 +19,31 @@ const AssetEntry = React.memo(({ asset, totalPortfolioValue }: { asset: Asset, t
     
     return (
         <div className="relative overflow-hidden rounded-2xl bg-[#0f172a]/60 border border-white/5 mb-2 group hover:border-brand-cyan/30 transition-all active:scale-[0.99]">
-            <div className="flex items-center justify-between p-4 relative z-10">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center p-1.5">
-                        <img 
-                            src={asset.icon?.startsWith('http') ? asset.icon : `https://assets.coincap.io/assets/icons/${asset.ticker.toLowerCase()}@2x.png`} 
-                            className="w-full h-full object-contain rounded-full" 
-                            onError={(e) => { e.currentTarget.src = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${asset.ticker.toLowerCase()}.png`; }}
-                        />
-                    </div>
-                    <div>
-                        <div className="flex items-center gap-2">
-                            <h3 className="text-white font-bold text-sm font-orbitron tracking-wide">{asset.ticker}</h3>
-                            {allocation > 20 && <span className="text-[7px] font-black bg-white/10 text-slate-300 px-1 rounded">MAJOR</span>}
+            <div className="flex items-center justify-between p-4 relative z-10 gap-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                        <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center p-1.5 shrink-0">
+                            <img 
+                                src={asset.icon?.startsWith('http') ? asset.icon : `https://assets.coincap.io/assets/icons/${asset.ticker.toLowerCase()}@2x.png`} 
+                                className="w-full h-full object-contain rounded-full" 
+                                onError={(e) => { e.currentTarget.src = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${asset.ticker.toLowerCase()}.png`; }}
+                            />
                         </div>
-                        <p className="text-[10px] text-slate-500 font-mono mt-0.5">{asset.amount.toLocaleString()} units</p>
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2">
+                                <h3 className="text-white font-bold text-sm font-orbitron tracking-wide truncate">{asset.ticker}</h3>
+                                {allocation > 20 && <span className="text-[7px] font-black bg-white/10 text-slate-300 px-1 rounded shrink-0">MAJOR</span>}
+                            </div>
+                            <p className="text-[10px] text-slate-500 font-mono mt-0.5 truncate">{asset.amount.toLocaleString()} units</p>
+                        </div>
+                    </div>
+                    
+                    <div className="text-right shrink-0">
+                        <p className="text-white font-bold font-mono text-sm whitespace-nowrap">${asset.value.toLocaleString(undefined, {maximumFractionDigits: 2})}</p>
+                        <span className={`text-[9px] font-bold ${asset.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
+                            {asset.change > 0 ? '+' : ''}{Math.abs(asset.change).toFixed(2)}%
+                        </span>
                     </div>
                 </div>
-                
-                <div className="text-right">
-                    <p className="text-white font-bold font-mono text-sm">${asset.value.toLocaleString(undefined, {maximumFractionDigits: 2})}</p>
-                    <span className={`text-[9px] font-bold ${asset.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
-                        {asset.change > 0 ? '+' : ''}{Math.abs(asset.change).toFixed(2)}%
-                    </span>
-                </div>
-            </div>
             
             {/* Allocation Line */}
             <div className="absolute bottom-0 left-0 h-[2px] bg-brand-cyan/50" style={{ width: `${allocation}%` }}></div>
@@ -131,7 +132,7 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em] font-orbitron mb-2 flex items-center justify-center gap-2">
                         <PieChartIcon className="w-3 h-3 text-brand-cyan" /> NET_WORTH
                     </p>
-                    <div className="text-white font-black text-4xl tracking-tighter font-orbitron drop-shadow-md">
+                    <div className="text-white font-black text-3xl sm:text-4xl tracking-tighter font-orbitron drop-shadow-md break-all">
                         {isSyncing ? (
                             <Skeleton className="w-32 h-10 mx-auto rounded-lg" />
                         ) : (
@@ -153,20 +154,11 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                 <div key={i} className="h-16 rounded-2xl bg-white/5 animate-pulse border border-white/5"></div>
                             ))
                         ) : assets.length === 0 ? (
-                            <div className="bg-brand-card/30 border border-brand-border rounded-[2rem] p-6 flex flex-col items-center justify-center min-h-[140px] text-center relative overflow-hidden group">
-                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none"></div>
-                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/50 to-transparent animate-[scanline_4s_linear_infinite]"></div>
-                                
-                                <div className="w-12 h-12 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center mb-3 relative">
-                                    <ActivityIcon className="w-6 h-6 text-slate-700" />
-                                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-brand-cyan rounded-full animate-ping"></div>
-                                </div>
-                                
-                                <h3 className="text-white font-black text-[10px] font-orbitron uppercase tracking-widest mb-1 text-glow">VAULT_EMPTY</h3>
-                                <p className="text-slate-500 text-[8px] font-mono max-w-[180px]">
-                                    No assets detected in secure storage. Initiate acquisition protocols.
-                                </p>
-                            </div>
+                            <EmptyState 
+                                message="VAULT_EMPTY" 
+                                subMessage="No assets detected in secure storage. Initiate acquisition protocols."
+                                icon={<ActivityIcon className="w-6 h-6 text-slate-700" />}
+                            />
                         ) : (
                             assets.map((asset) => <AssetEntry key={asset.ticker} asset={asset} totalPortfolioValue={totalValue} />)
                         )}

@@ -4,6 +4,8 @@ import { useStore } from '../store';
 import { ShieldIcon, ActivityIcon, ArrowUpRightIcon, ArrowDownLeftIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 
+import EmptyState from './EmptyState';
+
 const WhaleHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     // ПАРТНЕР: Дефолтний пустий масив для whaleHistory
     const { whaleHistory = [], getWhaleStats } = useStore();
@@ -52,7 +54,11 @@ const WhaleHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-3 pb-24 overscroll-contain">
                     {(!whaleHistory || whaleHistory.length === 0) ? (
-                        <div className="py-20 text-center text-slate-600 font-mono text-xs uppercase opacity-30">Awaiting Data Streams...</div>
+                        <EmptyState 
+                            message="NO_WHALE_ACTIVITY" 
+                            subMessage="Deep sea sensors are quiet. Awaiting large capital movements."
+                            icon={<ShieldIcon className="w-6 h-6 text-slate-600 opacity-50" />}
+                        />
                     ) : (
                         whaleHistory.map((tx, i) => (
                             <div key={i} className="bg-brand-card/40 border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-colors animate-fade-in-up" style={{ animationDelay: `${i * 30}ms` }}>

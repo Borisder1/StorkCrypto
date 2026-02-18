@@ -96,11 +96,13 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
       lettersWrapper.innerHTML = '';
-      // FORCE VERTICAL STACK matching Loading.txt exactly
+      // RESPONSIVE HORIZONTAL LAYOUT
       lettersWrapper.style.display = 'flex';
-      lettersWrapper.style.flexDirection = 'column';
+      lettersWrapper.style.flexDirection = 'row';
+      lettersWrapper.style.flexWrap = 'nowrap';
+      lettersWrapper.style.justifyContent = 'center';
       lettersWrapper.style.alignItems = 'center';
-      lettersWrapper.style.gap = '2px';
+      lettersWrapper.style.gap = 'clamp(1px, 0.5vw, 4px)';
 
       word.split('').forEach((char) => {
         const container = document.createElement('div');
@@ -279,19 +281,27 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
 
         .letters-vertical {
           display: flex !important;
-          flex-direction: column !important;
+          flex-direction: row !important;
+          flex-wrap: nowrap !important;
+          justify-content: center !important;
           align-items: center !important;
-          gap: 2px !important;
+          width: 100%;
+          max-width: 100vw;
+          overflow: hidden;
         }
 
         .letter-container {
           position: relative;
-          margin: clamp(0px, 0.1vh, 2px) 0;
+          margin: 0 1px;
           font-family: 'Orbitron', monospace;
-          font-size: clamp(20px, 4.5vh, 32px);
+          /* Scale font to fit width: 11 chars * 8vw approx 88vw */
+          font-size: clamp(18px, 6vw, 64px);
           font-weight: 900;
-          width: 1.2em;
-          height: 1.5em;
+          width: 0.8em;
+          height: 1.2em;
+          display: flex;
+          justify-content: center;
+          align-items: center;
           color: #00d9ff;
           text-shadow: 0 0 20px rgba(0, 217, 255, 0.8), 0 0 40px rgba(0, 217, 255, 0.4);
           transition: color 1s, text-shadow 1s, opacity 0.5s;
@@ -301,13 +311,13 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
 
         @media (max-width: 380px) {
           .letter-container {
-            font-size: clamp(16px, 3.5vh, 24px);
+            font-size: clamp(14px, 5vw, 24px);
           }
         }
 
         @media (max-width: 340px) {
           .letter-container {
-            font-size: clamp(14px, 3vh, 20px);
+            font-size: clamp(12px, 4.5vw, 20px);
           }
         }
 
