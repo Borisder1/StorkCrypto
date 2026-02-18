@@ -143,6 +143,11 @@ const en: Dictionary = {
     'system.home': 'BACK TO HOME',
     'whale.awaiting': 'Awaiting Whale Activity',
     'missions.offline': 'Missions Offline',
+    'trial.access': 'Trial Access',
+    'initialize.neural': 'Initialize Neural Link',
+    'intelligence.feed': 'Intelligence Feed',
+    'whale.radar': 'Whale Radar',
+    'scanning.mempool': 'Scanning Mempool',
 };
 
 const ua: Dictionary = {
@@ -285,6 +290,11 @@ const ua: Dictionary = {
     'system.home': 'НА ГОЛОВНУ',
     'whale.awaiting': 'Очікування активності китів',
     'missions.offline': 'Місії Офлайн',
+    'trial.access': 'Пробний Доступ',
+    'initialize.neural': 'Ініціалізувати Нейрозв\'язок',
+    'intelligence.feed': 'Стрічка Розвідки',
+    'whale.radar': 'Радар Китів',
+    'scanning.mempool': 'Сканування Мемпулу',
 };
 
 const pl: Dictionary = {

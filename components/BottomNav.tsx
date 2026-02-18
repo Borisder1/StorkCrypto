@@ -43,7 +43,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                                     : 'bg-white/5 group-hover:bg-white/10'
                                     }`}>
                                     {React.cloneElement(item.icon, {
-                                        className: `w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`
+                                        className: `w-6 h-6 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`
                                     })}
                                 </div>
                             </div>

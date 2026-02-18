@@ -1,15 +1,15 @@
 
 import React, { useState, useEffect } from 'react';
-import { type NewsArticle, type InfluencerPost } from '../../types';
-import { getLatestCryptoNews, playAudio } from '../../services/geminiService';
-import { LinkIcon, PlayIcon, InfoIcon, ActivityIcon, RadarIcon, GlobeIcon, FileTextIcon, UserIcon, ShieldIcon } from '../icons';
-import Skeleton from '../Skeleton';
-import { useStore } from '../../store';
-import { getTranslation } from '../../utils/translations';
-import InfoModal from '../InfoModal';
-import { triggerHaptic } from '../../utils/haptics';
-import { TacticalBackground } from '../TacticalBackground';
-import UpgradeBanner from '../UpgradeBanner';
+import { type NewsArticle, type InfluencerPost } from '../types';
+import { getLatestCryptoNews, playAudio } from '../services/geminiService';
+import { LinkIcon, PlayIcon, InfoIcon, ActivityIcon, RadarIcon, GlobeIcon, FileTextIcon, UserIcon, ShieldIcon } from './icons';
+import Skeleton from './Skeleton';
+import { useStore } from '../store';
+import { getTranslation } from '../utils/translations';
+import InfoModal from './InfoModal';
+import { triggerHaptic } from '../utils/haptics';
+import { TacticalBackground } from './TacticalBackground';
+import UpgradeBanner from './UpgradeBanner';
 
 const CATEGORIES = ['ALL', 'BTC', 'ETH', 'DEFI', 'MACRO'];
 
@@ -108,10 +108,10 @@ const NewsScreen: React.FC = () => {
             {/* Header Area */}
             <div className="flex items-start justify-between mb-8 pt-6 relative z-10 shrink-0">
                 <div>
-                    <h1 className="font-orbitron text-4xl font-black text-white italic tracking-tighter uppercase">INTEL_GRID</h1>
+                    <h1 className="font-orbitron text-4xl font-black text-white italic tracking-tighter uppercase">{t('intelligence.feed') || 'СТРІЧКА_РОЗВІДКИ'}</h1>
                     <div className="flex items-center gap-3 mt-2">
                         <div className="w-1.5 h-1.5 bg-brand-cyan rounded-full animate-ping"></div>
-                        <p className="text-[9px] text-slate-500 font-mono uppercase tracking-[0.2em] font-black">Intercepting_Global_Feeds</p>
+                        <p className="text-[9px] text-slate-500 font-mono uppercase tracking-[0.2em] font-black">Перехоплення_Глобальних_Потоків</p>
                     </div>
                 </div>
                 <SentimentRadar />
@@ -125,7 +125,7 @@ const NewsScreen: React.FC = () => {
                     {[1, 2, 3].map(i => (
                         <div key={i} className="flex items-center gap-2">
                             <span className="text-brand-cyan text-xs">⚡</span>
-                            <span className="text-[10px] font-mono text-brand-cyan uppercase">WHALE ALERT: 500 BTC moved to Binance</span>
+                            <span className="text-[10px] font-mono text-brand-cyan uppercase">СПОВІЩЕННЯ КИТІВ: 500 BTC переміщено на Binance</span>
                         </div>
                     ))}
                 </div>
@@ -149,7 +149,7 @@ const NewsScreen: React.FC = () => {
 
                 <div className="space-y-3">
                     {(loading && news.length === 0) ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="w-full h-24 rounded-[1.5rem]" />) :
-                        news.map((article: any, index) => (
+                        news?.map((article: any, index) => (
                             <div key={index} className="p-5 bg-brand-card/40 backdrop-blur-md border border-white/5 rounded-[1.5rem] hover:border-brand-purple/30 transition-all group animate-fade-in-up relative overflow-hidden" style={{ animationDelay: `${index * 50}ms` }}>
                                 <div className="absolute top-0 right-0 w-8 h-8 bg-white/5 rounded-bl-2xl -mr-4 -mt-4 transform rotate-45 group-hover:bg-brand-purple/20 transition-colors"></div>
                                 <div className="flex justify-between items-start gap-4">

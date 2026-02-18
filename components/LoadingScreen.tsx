@@ -68,8 +68,8 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   };
 
   useEffect(() => {
-    // Show Skip button after 2s
-    const skipTimer = setTimeout(() => setShowSkip(true), 2000);
+    // Show Skip button after 1s
+    const skipTimer = setTimeout(() => setShowSkip(true), 1000);
     return () => clearTimeout(skipTimer);
   }, []);
 

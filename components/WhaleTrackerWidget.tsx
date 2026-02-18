@@ -8,14 +8,14 @@ import { useStore } from '../store';
 import WhaleHistoryModal from './WhaleHistoryModal';
 import EmptyState from './EmptyState';
 
-const WHALE_THRESHOLD_USD = 100000; 
+const WHALE_THRESHOLD_USD = 100000;
 
 export const WhaleTrackerWidget: React.FC = () => {
     const { addWhaleTransaction, getWhaleStats, userStats, setSubscriptionOpen } = useStore();
     const [recentTxs, setRecentTxs] = useState<WhaleTransaction[]>([]);
     const [showHistory, setShowHistory] = useState(false);
     const lastSoundRef = useRef(0);
-    
+
     const stats = getWhaleStats();
     const isPro = userStats.subscriptionTier !== 'FREE';
     const canAccessHistory = userStats.level >= 15 || isPro;
@@ -25,12 +25,12 @@ export const WhaleTrackerWidget: React.FC = () => {
             const price = parseFloat(trade.p);
             const quantity = parseFloat(trade.q);
             const valueUsd = price * quantity;
-            const isBuyerMaker = trade.m; 
-            
+            const isBuyerMaker = trade.m;
+
             if (valueUsd >= WHALE_THRESHOLD_USD) {
                 const asset = trade.s.replace('USDT', '');
                 const type = isBuyerMaker ? 'EXCHANGE_INFLOW' : 'WHALE_ACCUMULATION';
-                
+
                 const newTx: WhaleTransaction = {
                     id: trade.a.toString(),
                     asset,
@@ -39,7 +39,7 @@ export const WhaleTrackerWidget: React.FC = () => {
                     from: isBuyerMaker ? 'Whale_Wallet' : 'Exchange_Hot_Wallet',
                     to: isBuyerMaker ? 'Exchange' : 'Whale_Cold_Storage',
                     type,
-                    timestamp: new Date(trade.T).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' }),
+                    timestamp: new Date(trade.T).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' }),
                     aiComment: valueUsd > 500000 ? 'INSTITUTIONAL_MEGA_BLOCK' : (isBuyerMaker ? 'Retail Distribution' : 'Heavy Accumulation')
                 };
 
@@ -77,13 +77,13 @@ export const WhaleTrackerWidget: React.FC = () => {
                 {/* Glassmorphism Background Effects */}
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-cyan/10 via-transparent to-brand-purple/5 pointer-events-none"></div>
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 pointer-events-none mix-blend-overlay"></div>
-                
+
                 {/* Enhanced Scanning Radar Effect */}
                 <div className="absolute right-[-20px] top-[-20px] w-40 h-40 bg-[radial-gradient(circle,rgba(0,217,255,0.2)_0%,transparent_70%)] animate-[pulse_3s_ease-in-out_infinite] pointer-events-none blur-xl"></div>
-                
+
                 {/* Scanline Animation */}
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/50 to-transparent animate-[scanline_4s_linear_infinite] opacity-60"></div>
-                
+
                 <div className="flex justify-between items-center mb-4 relative z-10">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 flex items-center justify-center rounded-xl bg-black/30 border border-brand-cyan/40 backdrop-blur-sm relative overflow-hidden group/icon">
@@ -101,7 +101,7 @@ export const WhaleTrackerWidget: React.FC = () => {
                             </p>
                         </div>
                     </div>
-                    <button 
+                    <button
                         onClick={handleHistoryClick}
                         className="text-[9px] font-black font-orbitron text-slate-400 hover:text-white uppercase border border-white/10 hover:border-brand-cyan/50 bg-black/20 hover:bg-brand-cyan/10 px-3 py-1.5 rounded transition-all hover:text-glow hover:box-glow backdrop-blur-sm relative overflow-hidden group/button"
                     >
@@ -111,14 +111,14 @@ export const WhaleTrackerWidget: React.FC = () => {
                 </div>
 
                 <div className="space-y-1 relative z-10 min-h-[120px]">
-                    {recentTxs.length === 0 ? (
-                        <EmptyState 
-                            message="SCANNING_MEMPOOL" 
-                            subMessage="Awaiting Whale Activity..."
+                    {(recentTxs?.length === 0 || !recentTxs) ? (
+                        <EmptyState
+                            message="СКАНУВАННЯ_МЕМПУЛУ"
+                            subMessage="Очікування активності китів..."
                             icon={<RadarIcon className="w-6 h-6 text-brand-cyan/50 animate-spin" />}
                         />
                     ) : (
-                        recentTxs.map(tx => (
+                        recentTxs?.map(tx => (
                             <div key={tx.id} className="flex items-center justify-between p-2.5 hover:bg-white/5 backdrop-blur-sm transition-all border-l-2 border-transparent hover:border-brand-cyan pl-3 group/item rounded-r-lg relative overflow-hidden">
                                 <div className="absolute inset-0 bg-gradient-to-r from-brand-cyan/5 to-transparent opacity-0 group-hover/item:opacity-100 transition-opacity"></div>
                                 <div className="flex items-center gap-3 relative z-10">

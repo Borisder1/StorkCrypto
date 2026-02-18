@@ -34,11 +34,26 @@ const MarketTicker: React.FC = React.memo(() => {
         };
     }, []);
 
+    // Реалістичні статичні ціни як fallback
+    const STATIC_PRICES: Record<string, { price: number, change: number }> = {
+        'BTC': { price: 90000, change: 2.5 },
+        'ETH': { price: 2500, change: 1.8 },
+        'BNB': { price: 320, change: -0.5 },
+        'SOL': { price: 95, change: 4.2 },
+        'XRP': { price: 0.52, change: -1.2 },
+        'ADA': { price: 0.38, change: 0.8 },
+        'DOGE': { price: 0.08, change: 3.5 },
+        'MATIC': { price: 0.75, change: -0.3 },
+        'DOT': { price: 5.2, change: 1.1 },
+        'AVAX': { price: 18, change: 2.0 }
+    };
+
     const manipulatedData = useMemo(() => {
         return MASTER_ASSET_LIST.map(asset => {
             const data = prices[asset.id];
-            let price = data?.usd || 0;
-            let change = data?.usd_24h_change || 0;
+            const staticData = STATIC_PRICES[asset.ticker] || { price: 1, change: 0 };
+            let price = data?.usd || staticData.price;
+            let change = data?.usd_24h_change || staticData.change;
 
             if (settings.marketOverride === 'PUMP') change = Math.abs(change) + 5;
             if (settings.marketOverride === 'DUMP') change = -(Math.abs(change) + 5);
