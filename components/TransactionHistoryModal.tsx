@@ -18,7 +18,7 @@ const TransactionHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose })
     return (
         <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/60 backdrop-blur-md" onClick={onClose}>
             <div className="glass-panel border-t sm:border border-white/10 rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-md h-[80vh] overflow-hidden flex flex-col shadow-2xl box-glow" onClick={e => e.stopPropagation()}>
-                
+
                 <div className="p-6 border-b border-white/5 bg-white/5 shrink-0">
                     <div className="flex justify-between items-center">
                         <div className="flex items-center gap-3">
@@ -37,14 +37,14 @@ const TransactionHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose })
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-3 pb-24 overscroll-contain">
                     {!wallet?.isConnected ? (
                         <div className="py-20 text-center text-slate-500 font-inter text-sm uppercase opacity-50 italic">Wallet_Not_Linked</div>
-                    ) : history.length === 0 ? (
-                        <EmptyState 
-                            message="ARCHIVE_EMPTY" 
-                            subMessage="No transaction signatures found in the ledger. Execute operations to populate log."
+                    ) : (history?.length === 0 || !history) ? (
+                        <EmptyState
+                            message="АРХІВ_ПОРОЖНІЙ"
+                            subMessage="Транзакції не знайдені в журналі. Виконайте операції для заповнення логу."
                             icon={<FileTextIcon className="w-6 h-6 text-slate-700" />}
                         />
                     ) : (
-                        history.map((tx, i) => (
+                        (Array.isArray(history) ? history : []).map((tx, i) => (
                             <div key={tx.id} className="bg-white/5 border border-white/5 rounded-2xl p-4 hover:border-brand-cyan/30 hover:bg-white/10 transition-all duration-300 animate-fade-in-up group" style={{ animationDelay: `${i * 50}ms` }}>
                                 <div className="flex justify-between items-start">
                                     <div className="flex items-center gap-3">

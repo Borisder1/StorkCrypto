@@ -68,9 +68,8 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
   };
 
   useEffect(() => {
-    // Show Skip button after 1s
-    const skipTimer = setTimeout(() => setShowSkip(true), 1000);
-    return () => clearTimeout(skipTimer);
+    // Show Skip button immediately
+    setShowSkip(true);
   }, []);
 
   useEffect(() => {
@@ -387,9 +386,9 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
       {/* 🎨 Canvas для частинок */}
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-10" />
 
-      {/* 📝 Контейнер з літерами STORKCRYPTO (ВЕРТИКАЛЬНИЙ) */}
+      {/* 📝 Контейнер з літерами STORKCRYPTO (ГОРИЗОНТАЛЬНИЙ) */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
+        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '4px' }} />
       </div>
 
       {/* 📊 Прогрес-бар */}

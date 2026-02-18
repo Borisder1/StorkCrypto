@@ -43,11 +43,11 @@ class ErrorBoundary extends Component<Props, State> {
     public render(): ReactNode {
         if (this.state.hasError) {
             return (
-                <div className="fixed inset-0 z-[999] flex flex-col items-center justify-center p-6 text-center bg-[#020617] text-white overflow-hidden">
+                <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-6 text-center bg-[#020617] text-white overflow-hidden backdrop-blur-[15px]">
                     {/* Background Grid */}
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(239,68,68,0.05)_1px,transparent_1px)] bg-[length:40px_40px] pointer-events-none"></div>
 
-                    <div className="relative z-10 w-full max-w-sm bg-black/70 backdrop-blur-[12px] border border-red-500/10 rounded-[2rem] p-8 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
+                    <div className="relative z-10 w-full max-w-sm bg-black/80 backdrop-blur-[15px] border border-red-500/10 rounded-[2rem] p-8 shadow-[0_0_30px_rgba(239,68,68,0.1)]">
                         <div className="w-20 h-20 bg-red-950/20 rounded-full flex items-center justify-center mb-6 border border-red-500/30 mx-auto shadow-[0_0_20px_rgba(239,68,68,0.2)]">
                             <ActivityIcon className="w-10 h-10 text-red-500" />
                         </div>

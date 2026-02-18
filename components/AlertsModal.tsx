@@ -25,12 +25,12 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ onClose }) => {
     const handleAdd = () => {
         if (!asset || !price) return;
         triggerHaptic('success');
-        
+
         const newAlert: PriceAlert = {
             id: Date.now().toString(),
             asset: asset.toUpperCase(),
             targetPrice: parseFloat(price),
-            condition: 'ABOVE', 
+            condition: 'ABOVE',
             active: true,
             createdAt: new Date().toISOString()
         };
@@ -43,7 +43,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ onClose }) => {
         // Generate deep link with user ID to link bot chat to web app user
         const userId = userStats.id.replace('tg_', '') || 'guest';
         const deepLink = `https://t.me/StorkCryptoBot?start=${userId}`;
-        
+
         triggerHaptic('selection');
         window.open(deepLink, '_blank');
         connectTelegramBot(); // Optimistic update
@@ -53,7 +53,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ onClose }) => {
     return (
         <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden overscroll-none touch-none">
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in touch-none" onClick={onClose}></div>
-            
+
             <div className="relative z-10 w-full max-w-sm bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[85dvh] animate-zoom-in">
                 <div className="p-5 border-b border-brand-border bg-brand-card flex justify-between items-center z-10 shrink-0 touch-none">
                     <div className="flex items-center gap-3">
@@ -62,9 +62,9 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ onClose }) => {
                     </div>
                     <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">✕</button>
                 </div>
-                
+
                 <div className="p-5 flex-1 overflow-y-auto custom-scrollbar overscroll-contain">
-                    
+
                     {/* SMART ALERTS INTEGRATION */}
                     <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#0088cc]/20 to-transparent border border-[#0088cc]/30 relative overflow-hidden">
                         <div className="flex justify-between items-start mb-2 relative z-10">
@@ -82,7 +82,7 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ onClose }) => {
                             Отримуйте сповіщення про рух цін та сигнали в Telegram, навіть коли додаток закритий.
                         </p>
                         {!telegramBotConnected && (
-                            <button 
+                            <button
                                 onClick={handleConnectBot}
                                 className="w-full py-2 bg-[#0088cc] hover:bg-[#0088cc]/80 text-white font-bold text-xs rounded-xl shadow-lg relative z-10 transition-colors"
                             >
@@ -96,13 +96,13 @@ const AlertsModal: React.FC<AlertsModalProps> = ({ onClose }) => {
                     <div className="bg-white/5 rounded-2xl p-4 border border-white/10 mb-6">
                         <h3 className="text-xs font-bold text-white uppercase mb-3">{t('alerts.add')}</h3>
                         <div className="grid grid-cols-3 gap-2 mb-3">
-                            <input type="text" value={asset} onChange={(e) => setAsset(e.target.value)} className="col-span-1 bg-black/30 border border-white/10 rounded-xl p-3 text-white font-bold text-center uppercase focus:border-brand-cyan outline-none" placeholder="BTC"/>
-                            <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="col-span-2 bg-black/30 border border-white/10 rounded-xl p-3 text-white font-mono focus:border-brand-cyan outline-none" placeholder={t('alerts.target')}/>
+                            <input type="text" value={asset} onChange={(e) => setAsset(e.target.value)} className="col-span-1 bg-black/30 border border-white/10 rounded-xl p-3 text-white font-bold text-center uppercase focus:border-brand-cyan outline-none" placeholder="BTC" />
+                            <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} className="col-span-2 bg-black/30 border border-white/10 rounded-xl p-3 text-white font-mono focus:border-brand-cyan outline-none" placeholder={t('alerts.target')} />
                         </div>
                         <button onClick={handleAdd} className="w-full py-3 rounded-xl bg-brand-cyan text-black font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity"><PlusIcon className="w-4 h-4" /> {t('alerts.add')}</button>
                     </div>
                     <div className="space-y-3">
-                        {alerts.length > 0 ? alerts.map((alert) => (
+                        {(alerts?.length > 0) ? (Array.isArray(alerts) ? alerts : []).map((alert) => (
                             <div key={alert.id} className="bg-brand-card border border-brand-border rounded-xl p-3 flex items-center justify-between animate-fade-in">
                                 <div className="flex items-center gap-3">
                                     <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center font-bold text-[10px]">{alert.asset[0]}</div>

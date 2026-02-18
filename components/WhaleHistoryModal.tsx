@@ -19,7 +19,7 @@ const WhaleHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     return (
         <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/95 backdrop-blur-xl" onClick={onClose}>
             <div className="bg-brand-bg border-t sm:border border-white/10 rounded-t-[3rem] sm:rounded-[3rem] w-full sm:max-w-md h-[90vh] overflow-hidden flex flex-col shadow-[0_0_80px_rgba(0,217,255,0.1)]" onClick={e => e.stopPropagation()}>
-                
+
                 <div className="p-6 border-b border-white/5 bg-brand-card/50 shrink-0">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-3">
@@ -54,13 +54,13 @@ const WhaleHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-3 pb-24 overscroll-contain">
                     {(!whaleHistory || whaleHistory.length === 0) ? (
-                        <EmptyState 
-                            message="NO_WHALE_ACTIVITY" 
-                            subMessage="Deep sea sensors are quiet. Awaiting large capital movements."
+                        <EmptyState
+                            message="НЕМАЄ_АКТИВНОСТІ_КИТІВ"
+                            subMessage="Сенсори глибоководні тихі. Очікування великих рухів капіталу."
                             icon={<ShieldIcon className="w-6 h-6 text-slate-600 opacity-50" />}
                         />
                     ) : (
-                        whaleHistory.map((tx, i) => (
+                        (Array.isArray(whaleHistory) ? whaleHistory : []).map((tx, i) => (
                             <div key={i} className="bg-brand-card/40 border border-white/5 rounded-2xl p-4 hover:border-white/10 transition-colors animate-fade-in-up" style={{ animationDelay: `${i * 30}ms` }}>
                                 <div className="flex justify-between items-start mb-3">
                                     <div className="flex items-center gap-3">

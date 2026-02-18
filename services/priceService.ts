@@ -133,16 +133,35 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
     // 4. Останній шанс: Повертаємо кеш, навіть якщо він старий
     if (Object.keys(CACHE.PRICES.data).length > 0) return CACHE.PRICES.data;
 
-    // 5. Повертаємо статичні дані (Baselines) з рандомізацією, щоб показати, що Scanner працює
-    // Це вирішує проблему "всі квадрати червоні", якщо API не працює.
-    return MASTER_ASSET_LIST.reduce((acc, asset, index) => {
-        // Генеруємо фейкову зміну від -15% до +15%
-        const randomChange = (Math.random() * 30) - 15;
-        const randomPrice = Math.random() * 1000 + 10;
+    // 5. Повертаємо реалістичні статичні дані (Baselines)
+    const REALISTIC_PRICES: Record<string, { price: number, change: number }> = {
+        'bitcoin': { price: 95000, change: 2.5 },
+        'ethereum': { price: 2700, change: 1.8 },
+        'solana': { price: 190, change: 4.2 },
+        'binance-coin': { price: 320, change: -0.5 },
+        'xrp': { price: 0.52, change: -1.2 },
+        'cardano': { price: 0.38, change: 0.8 },
+        'avalanche-2': { price: 18, change: 2.0 },
+        'polkadot': { price: 5.2, change: 1.1 },
+        'the-open-network': { price: 2.8, change: 3.5 },
+        'pepe': { price: 0.000008, change: 12.5 },
+        'dogecoin': { price: 0.08, change: 3.5 },
+        'shiba-inu': { price: 0.000012, change: 5.2 },
+        'dogwifhat': { price: 1.2, change: 8.5 },
+        'fetch-ai': { price: 0.85, change: 2.1 },
+        'near': { price: 3.5, change: 1.5 },
+        'chainlink': { price: 15, change: 0.8 },
+        'sui': { price: 1.1, change: 6.5 },
+        'aptos': { price: 8.5, change: 3.2 },
+        'arbitrum': { price: 1.2, change: 1.8 },
+        'optimism': { price: 2.5, change: 2.2 }
+    };
 
+    return MASTER_ASSET_LIST.reduce((acc, asset) => {
+        const staticData = REALISTIC_PRICES[asset.id] || { price: 1, change: 0 };
         acc[asset.id] = {
-            usd: randomPrice,
-            usd_24h_change: randomChange,
+            usd: staticData.price,
+            usd_24h_change: staticData.change,
             lastUpdate: now,
             source: 'CACHE'
         };
