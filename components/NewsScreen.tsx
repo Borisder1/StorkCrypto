@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { type NewsArticle, type InfluencerPost } from '../types';
-import { getLatestCryptoNews, playAudio } from '../services/geminiService';
+import { getLatestCryptoNews } from '../services/newsService';
+import { playAudio } from '../services/geminiService';
 import { LinkIcon, PlayIcon, InfoIcon, ActivityIcon, RadarIcon, GlobeIcon, FileTextIcon, UserIcon, ShieldIcon } from './icons';
 import Skeleton from './Skeleton';
 import { useStore } from '../store';
