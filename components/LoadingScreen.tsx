@@ -163,7 +163,8 @@ export function LoadingScreen({ onComplete }: { onComplete?: () => void }) {
       setScannerVisible(true);
       scannerLineRef.current.style.top = `${wrapperRect.top}px`;
       // Ensure scanner is wide enough for the letters but not too wide
-      scannerLineRef.current.style.width = '300px';
+      const scannerWidth = Math.max(wrapperRect.width * 3, 150);
+      scannerLineRef.current.style.width = `${scannerWidth}px`;
 
       let startTime = performance.now();
 
