@@ -1,0 +1,10 @@
+name = "storkcrypto"
+compatibility_date = "2026-02-13"
+pages_build_output_dir = "./dist"
+
+[build]
+command = "npm run build"
+cwd = "."
+
+[build.upload]
+format = "service-worker"
