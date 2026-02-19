@@ -88,6 +88,9 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
     const totalBalance = (assets ?? []).reduce((a, c) => a + (c.value || 0), 0);
 
+    // Get Telegram user display name
+    const userDisplayName = userStats?.firstName || 'OPERATOR';
+
     const [wsStatus, setWsStatus] = useState<'CONNECTING' | 'LIVE' | 'OFFLINE'>('CONNECTING');
 
     // Help Modal State
@@ -136,8 +139,8 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
 
             <div className="px-5 pt-4 safe-area-pt relative z-20 max-w-md mx-auto">
                 <div className="flex justify-between items-center mb-6 py-3 border-b border-white/5 backdrop-blur-sm bg-black/20 rounded-2xl px-5">
-                    <div className="flex items-center gap-3" onClick={() => navigateTo('profile')}>
-                        <div className="relative group cursor-pointer">
+                    <div className="flex items-center gap-3 cursor-pointer" onClick={() => { triggerHaptic('light'); navigateTo('profile'); }}>
+                        <div className="relative group">
                             <div className="w-10 h-10 rounded-xl bg-brand-cyan/5 border border-brand-cyan/20 flex items-center justify-center overflow-hidden transition-all group-hover:border-brand-cyan/50">
                                 <img src="/logo.jpg" alt="StorkCrypto" className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; e.currentTarget.nextElementSibling?.classList.remove('hidden'); }} />
                                 <StorkIcon className="w-6 h-6 text-brand-cyan hidden" />
@@ -145,7 +148,7 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                             <div className="absolute -top-1 -right-1 w-3 h-3 bg-brand-green rounded-full shadow-[0_0_8px_#22c55e] border-2 border-[#020617] animate-pulse"></div>
                         </div>
                         <div>
-                            <h1 className="font-orbitron font-black text-sm tracking-[0.15em] text-white leading-none">STORK<span className="text-brand-cyan">CRYPTO</span></h1>
+                            <h1 className="font-orbitron font-black text-sm tracking-[0.15em] text-white leading-none">{userDisplayName}</h1>
                             <p className="text-[9px] text-slate-500 font-mono mt-0.5 uppercase tracking-wide">Kernel_v12.2 // {userStats?.subscriptionTier}</p>
                         </div>
                     </div>

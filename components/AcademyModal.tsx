@@ -24,6 +24,10 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
         { id: 'wedgebull', term: 'Falling Wedge', category: 'PATTERNS', definition: 'Bullish pattern. Price lowers in narrowing range.', visualType: 'CHART_WEDGE_BULL', example: 'Reversal likely upwards.' },
         { id: 'wedgebear', term: 'Rising Wedge', category: 'PATTERNS', definition: 'Bearish pattern. Price rises in narrowing range.', visualType: 'CHART_WEDGE_BEAR', example: 'Reversal likely downwards.' },
         { id: 'doji', term: 'Doji Candle', category: 'PATTERNS', definition: 'Candle where Open ≈ Close. Indecision.', visualType: 'CANDLE_DOJI', example: 'Doji at top indicates potential reversal.' },
+        { id: 'hammer', term: 'Hammer Candle', category: 'PATTERNS', definition: 'Bullish reversal candle with small body and long lower wick. Found at bottom of downtrend.', visualType: 'CANDLE_HAMMER', example: 'Hammer at support = potential bounce.' },
+        { id: 'shootingstar', term: 'Shooting Star', category: 'PATTERNS', definition: 'Bearish reversal candle with small body and long upper wick. Found at top of uptrend.', visualType: 'CANDLE_SHOOTING_STAR', example: 'Shooting star at resistance = potential drop.' },
+        { id: 'engulfing', term: 'Engulfing Pattern', category: 'PATTERNS', definition: 'Two-candle pattern where second candle completely engulfs the first. Strong reversal signal.', visualType: 'CANDLE_ENGULFING', example: 'Bullish engulfing after downtrend = reversal.' },
+        { id: 'morningstar', term: 'Morning Star', category: 'PATTERNS', definition: 'Three-candle bullish reversal: large bearish, small doji, large bullish. Very reliable.', visualType: 'CANDLE_MORNING_STAR', example: 'Morning star at support = strong buy signal.' },
         { id: 'fomo', term: 'FOMO', category: 'PSYCHOLOGY', definition: 'Fear Of Missing Out. Emotional buying at tops.', example: 'Don\'t buy green candles on FOMO.' },
         { id: 'fud', term: 'FUD', category: 'PSYCHOLOGY', definition: 'Fear, Uncertainty, Doubt. News manipulation.', example: 'China ban is just FUD.' },
         { id: 'seedphrase', term: 'Seed Phrase', category: 'SECURITY', definition: '12-24 words key to your wallet. Never share.', example: 'Keep offline on paper.' },
@@ -42,6 +46,10 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
         { id: 'wedgebull', term: 'Падаючий Клин', category: 'PATTERNS', definition: 'Бичачий сигнал. Ціна звужується, рухаючись вниз.', visualType: 'CHART_WEDGE_BULL', example: 'Ймовірний прорив вгору.' },
         { id: 'wedgebear', term: 'Зростаючий Клин', category: 'PATTERNS', definition: 'Ведмежий сигнал. Ціна звужується, рухаючись вгору.', visualType: 'CHART_WEDGE_BEAR', example: 'Ймовірний прорив вниз.' },
         { id: 'doji', term: 'Свічка Доджі', category: 'PATTERNS', definition: 'Свічка, де Відкриття ≈ Закриття. Знак невизначеності.', visualType: 'CANDLE_DOJI', example: 'Доджі на вершині - можливий розворот.' },
+        { id: 'hammer', term: 'Свічка Молот', category: 'PATTERNS', definition: 'Бичача свічка розвороту з малим тілом та довгою нижньою тінню. Знаходиться на дні тренду.', visualType: 'CANDLE_HAMMER', example: 'Молот на підтримці = можливий відскік.' },
+        { id: 'shootingstar', term: 'Падаюча Зірка', category: 'PATTERNS', definition: 'Ведмежа свічка розвороту з малим тілом та довгою верхньою тінню. На вершині тренду.', visualType: 'CANDLE_SHOOTING_STAR', example: 'Падаюча зірка на опорі = можливе падіння.' },
+        { id: 'engulfing', term: 'Патерн Поглинання', category: 'PATTERNS', definition: 'Двох-свічковий патерн, де друга свічка повністю поглинає першу. Сильний сигнал розвороту.', visualType: 'CANDLE_ENGULFING', example: 'Бичаче поглинання після падіння = розворот.' },
+        { id: 'morningstar', term: 'Ранкова Зірка', category: 'PATTERNS', definition: 'Три-свічковий бичачий розворот: велика ведмежа, мала доджі, велика бичача. Дуже надійний.', visualType: 'CANDLE_MORNING_STAR', example: 'Ранкова зірка на підтримці = сильний сигнал покупки.' },
         { id: 'fomo', term: 'FOMO (ФОМО)', category: 'PSYCHOLOGY', definition: 'Страх втраченої вигоди. Емоційні покупки на хаях.', example: 'Не купуй зелені свічки через FOMO.' },
         { id: 'fud', term: 'FUD (ФАД)', category: 'PSYCHOLOGY', definition: 'Страх, Невизначеність, Сумнів. Маніпуляція новинами.', example: 'Новини про заборону - це просто FUD.' },
         { id: 'seedphrase', term: 'Сід-фраза', category: 'SECURITY', definition: '12-24 слова для доступу до гаманця. Нікому не давай.', example: 'Зберігай на папері в сейфі.' },
@@ -60,6 +68,10 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
         { id: 'wedgebull', term: 'Klin Zniżkujący', category: 'PATTERNS', definition: 'Sygnał byka. Cena spada w zwężającym się zakresie.', visualType: 'CHART_WEDGE_BULL', example: 'Prawdopodobne wybicie w górę.' },
         { id: 'wedgebear', term: 'Klin Zwyżkujący', category: 'PATTERNS', definition: 'Sygnał niedźwiedzia. Cena rośnie w zwężającym się zakresie.', visualType: 'CHART_WEDGE_BEAR', example: 'Prawdopodobne wybicie w dół.' },
         { id: 'doji', term: 'Świeca Doji', category: 'PATTERNS', definition: 'Świeca gdzie Otwarcie ≈ Zamknięcie. Niepewność.', visualType: 'CANDLE_DOJI', example: 'Doji na szczycie - możliwe odwrócenie.' },
+        { id: 'hammer', term: 'Świeca Młot', category: 'PATTERNS', definition: 'Bycza świeca odwrócenia z małym korpusem i długim dolnym cieniem. Na dole trendu spadkowego.', visualType: 'CANDLE_HAMMER', example: 'Młot na wsparciu = potencjalne odbicie.' },
+        { id: 'shootingstar', term: 'Gwiazda Spadająca', category: 'PATTERNS', definition: 'Niedźwiedzia świeca odwrócenia z małym korpusem i długim górnym cieniem. Na szczycie trendu.', visualType: 'CANDLE_SHOOTING_STAR', example: 'Gwiazda na oporze = potencjalny spadek.' },
+        { id: 'engulfing', term: 'Formacja Objęcia', category: 'PATTERNS', definition: 'Dwu-świecowa formacja gdzie druga świeca całkowicie obejmuje pierwszą. Silny sygnał odwrócenia.', visualType: 'CANDLE_ENGULFING', example: 'Bycze objęcie po spadku = odwrócenie.' },
+        { id: 'morningstar', term: 'Gwiazda Poranna', category: 'PATTERNS', definition: 'Trzy-świecowa bycza formacja: duża niedźwiedzia, mała doji, duża bycza. Bardzo niezawodna.', visualType: 'CANDLE_MORNING_STAR', example: 'Gwiazda poranna na wsparciu = silny sygnał kupna.' },
         { id: 'fomo', term: 'FOMO', category: 'PSYCHOLOGY', definition: 'Strach przed pominięciem. Emocjonalne zakupy na szczycie.', example: 'Nie kupuj zielonych świec przez FOMO.' },
         { id: 'fud', term: 'FUD', category: 'PSYCHOLOGY', definition: 'Strach, Niepewność, Wątpliwość. Manipulacja newsami.', example: 'Newsy o banach to często FUD.' },
         { id: 'seedphrase', term: 'Fraza Seed', category: 'SECURITY', definition: '12-24 słowa klucza do portfela. Nikomu nie podawaj.', example: 'Trzymaj offline na papierze.' },
@@ -74,7 +86,7 @@ const ChartPattern: React.FC<{ type: AcademyTerm['visualType'] }> = ({ type }) =
     return (
         <div className="h-32 w-full bg-black/40 rounded-lg border border-white/5 mb-3 flex items-center justify-center relative overflow-hidden">
             {/* Grid Background */}
-            <div className="absolute inset-0" style={{backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
+            <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
 
             {type === 'CHART_HEAD_SHOULDERS' && (
                 <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-cyan fill-none stroke-2">
@@ -83,7 +95,7 @@ const ChartPattern: React.FC<{ type: AcademyTerm['visualType'] }> = ({ type }) =
                     <text x="80" y="15" fill="white" stroke="none" fontSize="8">HEAD</text>
                 </svg>
             )}
-            
+
             {type === 'CHART_DOUBLE_TOP' && (
                 <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-danger fill-none stroke-2">
                     <path d="M20,80 L50,20 L80,70 L110,20 L140,80" />
@@ -100,8 +112,8 @@ const ChartPattern: React.FC<{ type: AcademyTerm['visualType'] }> = ({ type }) =
 
             {type === 'CHART_BULL_FLAG' && (
                 <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-success fill-none stroke-2">
-                    <path d="M20,90 L20,30" strokeWidth="3" /> 
-                    <path d="M20,30 L60,40 L60,60 L20,50" fill="rgba(34, 197, 94, 0.1)" /> 
+                    <path d="M20,90 L20,30" strokeWidth="3" />
+                    <path d="M20,30 L60,40 L60,60 L20,50" fill="rgba(34, 197, 94, 0.1)" />
                     <path d="M20,30 L60,40" />
                     <path d="M20,50 L60,60" />
                     <path d="M60,50 L90,20" strokeDasharray="4" stroke="white" />
@@ -155,6 +167,56 @@ const ChartPattern: React.FC<{ type: AcademyTerm['visualType'] }> = ({ type }) =
                     <text x="65" y="52" fill="#aaa" fontSize="10" stroke="none">OPEN ≈ CLOSE</text>
                 </svg>
             )}
+
+            {/* Japanese Candlestick Patterns */}
+            {type === 'CANDLE_HAMMER' && (
+                <svg viewBox="0 0 100 100" className="w-full h-full p-4">
+                    <line x1="50" y1="20" x2="50" y2="30" stroke="white" strokeWidth="2" />
+                    <rect x="40" y="30" width="20" height="10" fill="#22c55e" stroke="#22c55e" />
+                    <line x1="50" y1="40" x2="50" y2="90" stroke="white" strokeWidth="2" />
+                    <text x="65" y="50" fill="#22c55e" fontSize="8" stroke="none">HAMMER</text>
+                    <text x="65" y="60" fill="#aaa" fontSize="6" stroke="none">Bullish Reversal</text>
+                </svg>
+            )}
+
+            {type === 'CANDLE_SHOOTING_STAR' && (
+                <svg viewBox="0 0 100 100" className="w-full h-full p-4">
+                    <line x1="50" y1="10" x2="50" y2="60" stroke="white" strokeWidth="2" />
+                    <rect x="40" y="60" width="20" height="10" fill="#ef4444" stroke="#ef4444" />
+                    <line x1="50" y1="70" x2="50" y2="80" stroke="white" strokeWidth="2" />
+                    <text x="65" y="65" fill="#ef4444" fontSize="8" stroke="none">SHOOTING STAR</text>
+                    <text x="65" y="75" fill="#aaa" fontSize="6" stroke="none">Bearish Reversal</text>
+                </svg>
+            )}
+
+            {type === 'CANDLE_ENGULFING' && (
+                <svg viewBox="0 0 100 100" className="w-full h-full p-4">
+                    {/* Bearish candle (smaller) */}
+                    <line x1="35" y1="30" x2="35" y2="70" stroke="white" strokeWidth="1" />
+                    <rect x="30" y="35" width="10" height="25" fill="#ef4444" stroke="#ef4444" opacity="0.5" />
+                    {/* Bullish candle (engulfing) */}
+                    <line x1="55" y1="20" x2="55" y2="80" stroke="white" strokeWidth="2" />
+                    <rect x="45" y="25" width="20" height="50" fill="#22c55e" stroke="#22c55e" />
+                    <text x="70" y="50" fill="#22c55e" fontSize="8" stroke="none">BULLISH</text>
+                    <text x="70" y="60" fill="#aaa" fontSize="6" stroke="none">ENGULFING</text>
+                </svg>
+            )}
+
+            {type === 'CANDLE_MORNING_STAR' && (
+                <svg viewBox="0 0 120 100" className="w-full h-full p-4">
+                    {/* Bearish candle */}
+                    <line x1="25" y1="25" x2="25" y2="75" stroke="white" strokeWidth="1" />
+                    <rect x="20" y="30" width="10" height="35" fill="#ef4444" stroke="#ef4444" />
+                    {/* Doji/Small body */}
+                    <line x1="50" y1="45" x2="50" y2="55" stroke="white" strokeWidth="1" />
+                    <rect x="47" y="48" width="6" height="4" fill="white" stroke="white" />
+                    {/* Bullish candle */}
+                    <line x1="75" y1="20" x2="75" y2="70" stroke="white" strokeWidth="2" />
+                    <rect x="70" y="25" width="10" height="35" fill="#22c55e" stroke="#22c55e" />
+                    <text x="90" y="45" fill="#22c55e" fontSize="7" stroke="none">MORNING</text>
+                    <text x="90" y="55" fill="#aaa" fontSize="6" stroke="none">STAR</text>
+                </svg>
+            )}
         </div>
     );
 };
@@ -175,8 +237,8 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
     const currentTerms = ACADEMY_CONTENT[settings.language] || ACADEMY_CONTENT['en'];
 
     const filteredTerms = currentTerms.filter(item => {
-        const matchesSearch = item.term.toLowerCase().includes(search.toLowerCase()) || 
-                              item.definition.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = item.term.toLowerCase().includes(search.toLowerCase()) ||
+            item.definition.toLowerCase().includes(search.toLowerCase());
         const matchesFilter = filter === 'ALL' || item.category === filter;
         return matchesSearch && matchesFilter;
     });
@@ -186,9 +248,9 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
     return (
         <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden overscroll-none touch-none">
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in touch-none" onClick={onClose}></div>
-            
+
             <div className="relative z-10 w-full max-w-lg bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[85dvh] animate-zoom-in">
-                
+
                 {/* Header */}
                 <div className="p-5 border-b border-brand-border bg-brand-card z-10 shrink-0 touch-none">
                     <div className="flex justify-between items-center mb-4">
@@ -206,9 +268,9 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
 
                     <div className="relative mb-3">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input 
-                            type="text" 
-                            placeholder={t('add.search')} 
+                        <input
+                            type="text"
+                            placeholder={t('add.search')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs text-white focus:border-brand-purple outline-none"
@@ -216,14 +278,14 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                     </div>
 
                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                        <button 
+                        <button
                             onClick={() => setFilter('ALL')}
                             className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border whitespace-nowrap transition-all ${filter === 'ALL' ? 'bg-brand-purple text-white border-brand-purple' : 'bg-black/30 border-white/10 text-slate-500'}`}
                         >
                             ALL
                         </button>
                         {categories.map(cat => (
-                            <button 
+                            <button
                                 key={cat}
                                 onClick={() => setFilter(cat)}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border whitespace-nowrap transition-all ${filter === cat ? 'bg-brand-purple text-white border-brand-purple' : 'bg-black/30 border-white/10 text-slate-500'}`}
@@ -237,23 +299,21 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-5 bg-cyber-grid bg-[length:40px_40px] overscroll-contain">
                     <div className="grid gap-3">
                         {filteredTerms.length > 0 ? filteredTerms.map((item, idx) => (
-                            <div 
+                            <div
                                 key={item.id}
                                 onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                                className={`bg-brand-card/80 backdrop-blur-sm border rounded-xl overflow-hidden transition-all duration-300 cursor-pointer shadow-inner ${
-                                    expandedId === item.id 
-                                    ? 'border-brand-cyan shadow-[0_0_15px_rgba(0,240,255,0.15)]' 
+                                className={`bg-brand-card/80 backdrop-blur-sm border rounded-xl overflow-hidden transition-all duration-300 cursor-pointer shadow-inner ${expandedId === item.id
+                                    ? 'border-brand-cyan shadow-[0_0_15px_rgba(0,240,255,0.15)]'
                                     : 'border-white/5 hover:border-brand-cyan/30'
-                                }`}
+                                    }`}
                                 style={{ animationDelay: `${idx * 50}ms` }}
                             >
                                 <div className="p-4 flex justify-between items-center">
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-2 h-2 rounded-full ${
-                                            item.category === 'TECHNICAL' ? 'bg-brand-cyan' : 
-                                            item.category === 'PATTERNS' ? 'bg-brand-danger' : 
-                                            'bg-brand-success'
-                                        }`}></div>
+                                        <div className={`w-2 h-2 rounded-full ${item.category === 'TECHNICAL' ? 'bg-brand-cyan' :
+                                            item.category === 'PATTERNS' ? 'bg-brand-danger' :
+                                                'bg-brand-success'
+                                            }`}></div>
                                         <div>
                                             <span className="font-bold text-white text-sm block">{item.term}</span>
                                             <span className="text-[9px] text-slate-500 font-mono uppercase">{t(`academy.${item.category.toLowerCase()}`)}</span>
@@ -261,11 +321,11 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                                     </div>
                                     <ChevronRightIcon className={`w-4 h-4 text-slate-500 transition-transform ${expandedId === item.id ? 'rotate-90 text-brand-cyan' : ''}`} />
                                 </div>
-                                
+
                                 {expandedId === item.id && (
                                     <div className="px-4 pb-4 animate-fade-in bg-black/20">
                                         <div className="h-[1px] w-full bg-white/5 mb-3"></div>
-                                        
+
                                         <ChartPattern type={item.visualType} />
 
                                         <p className="text-sm text-slate-300 leading-relaxed font-space-mono mb-3">
