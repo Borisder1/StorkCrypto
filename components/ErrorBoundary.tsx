@@ -43,7 +43,7 @@ class ErrorBoundary extends Component<Props, State> {
     public render(): ReactNode {
         if (this.state.hasError) {
             return (
-                <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-6 text-center bg-[#020617] text-white overflow-hidden backdrop-blur-[15px]">
+                <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-6 text-center text-white overflow-hidden" style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(10px)' }}>
                     {/* Background Grid */}
                     <div className="absolute inset-0 bg-[linear-gradient(rgba(239,68,68,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(239,68,68,0.05)_1px,transparent_1px)] bg-[length:40px_40px] pointer-events-none"></div>
 

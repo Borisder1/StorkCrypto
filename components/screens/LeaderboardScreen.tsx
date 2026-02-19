@@ -131,7 +131,7 @@ const LeaderboardScreen: React.FC = () => {
                         icon={<GlobeIcon className="w-6 h-6 text-slate-500 opacity-50" />}
                     />
                 ) : (
-                    restList.map((u, idx) => {
+                    (Array.isArray(restList) ? restList : []).map((u, idx) => {
                         const isMe = u.id === userStats.id;
                         const isWhale = u.subscription_tier === 'WHALE';
                         const isPro = u.subscription_tier === 'PRO';

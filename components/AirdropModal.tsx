@@ -267,7 +267,7 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                                     </p>
                                 </div>
                             ) : (
-                                tasks.map(task => (
+                                (Array.isArray(tasks) ? tasks : []).map(task => (
                                     <div
                                         key={task.id}
                                         onClick={() => handleTaskClick(task)}

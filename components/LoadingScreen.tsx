@@ -254,7 +254,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           position: relative;
           margin: clamp(0px, 0.1vh, 2px) 0;
           font-family: 'Orbitron', monospace;
-          font-size: clamp(20px, 4.5vh, 32px);
+          font-size: clamp(23px, 5.2vh, 37px);
           font-weight: 900;
           width: 1.2em;
           height: 1.5em;
@@ -378,13 +378,17 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         style={{ opacity: scannerVisible ? 1 : 0 }}
       />
 
-      {/* Skip Button - Always visible from start, centered at bottom */}
+      {/* Skip Button - Premium cyberpunk design, always visible */}
       {onSkip && (
         <button
           onClick={onSkip}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 px-6 py-3 bg-brand-cyan/20 border border-brand-cyan/50 rounded-xl text-sm font-orbitron font-bold text-brand-cyan hover:bg-brand-cyan/30 hover:border-brand-cyan hover:shadow-[0_0_20px_rgba(0,217,255,0.5)] transition-all cursor-pointer"
+          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 min-w-[140px] min-h-[48px] px-8 py-4 bg-gradient-to-r from-brand-cyan/10 to-brand-purple/10 border-2 border-brand-cyan/60 rounded-2xl text-sm font-orbitron font-black text-brand-cyan uppercase tracking-wider hover:from-brand-cyan/20 hover:to-brand-purple/20 hover:border-brand-cyan hover:shadow-[0_0_30px_rgba(0,217,255,0.6),0_0_60px_rgba(189,0,255,0.3)] active:scale-95 transition-all cursor-pointer backdrop-blur-sm"
+          style={{ textShadow: '0 0 10px rgba(0,217,255,0.8)' }}
         >
-          SKIP_SEQUENCE ▶
+          <span className="flex items-center gap-2">
+            <span className="animate-pulse">▶▶</span>
+            ПРОПУСТИТИ
+          </span>
         </button>
       )}
     </div>

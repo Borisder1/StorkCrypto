@@ -28,7 +28,7 @@ const InfluencerPulse: React.FC = () => {
                 <UserIcon className="w-4 h-4 text-brand-purple" /> INFLUENCER_TRACKER
             </h3>
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                {posts.map(post => (
+                {(Array.isArray(posts) ? posts : []).map(post => (
                     <div key={post.id} className="min-w-[240px] bg-brand-card/40 border border-white/5 rounded-2xl p-4 relative group shrink-0 hover:border-brand-cyan/20 transition-all">
                         <div className="flex items-center gap-3 mb-3">
                             <img src={post.avatar} className="w-8 h-8 rounded-full object-cover border border-white/10" onError={(e) => (e.currentTarget as any).src = 'https://placehold.co/100'} />

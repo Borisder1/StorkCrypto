@@ -18,8 +18,8 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
 
     return (
         <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center pointer-events-none">
-            {/* Glass Capsule - High Contrast Update */}
-            <nav className="bg-[#050b14]/90 backdrop-blur-2xl border border-white/10 rounded-3xl px-6 py-3 shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex items-center justify-center gap-6 pointer-events-auto relative overflow-visible transition-all hover:border-brand-cyan/20">
+            {/* Glass Capsule - Enhanced for mobile */}
+            <nav className="bg-[#050b14]/90 backdrop-blur-2xl border border-white/10 rounded-3xl px-6 py-4 shadow-[0_10px_40px_rgba(0,0,0,0.8)] flex items-center justify-center gap-6 pointer-events-auto relative overflow-visible transition-all hover:border-brand-cyan/20">
 
                 {/* Glow behind capsule - enhanced */}
                 <div className="absolute inset-0 rounded-3xl bg-brand-cyan/5 blur-xl -z-10"></div>
@@ -30,7 +30,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                         <button
                             key={item.id}
                             onClick={() => handleTabChange(item.id)}
-                            className={`relative flex flex-col items-center justify-end group h-12 transition-all duration-300 ${isActive ? '-translate-y-1' : ''}`}
+                            className={`relative flex flex-col items-center justify-end group h-14 transition-all duration-300 ${isActive ? '-translate-y-1' : ''}`}
                         >
                             {/* Active Light Pillar */}
                             {isActive && (
@@ -39,12 +39,12 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
 
                             <div className={`relative z-10 transition-all duration-300 mb-1 ${isActive ? 'text-brand-cyan scale-110 drop-shadow-[0_0_8px_rgba(0,217,255,0.8)]' : 'text-slate-500 hover:text-slate-200'}`}>
                                 {React.cloneElement(item.icon, {
-                                    className: `w-5 h-5 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`
+                                    className: `w-6 h-6 ${isActive ? 'stroke-[2.5]' : 'stroke-[1.5]'}`
                                 })}
                             </div>
 
-                            {/* Text Label */}
-                            <span className={`text-[8px] font-orbitron font-bold tracking-wider uppercase transition-all duration-300 ${isActive ? 'text-brand-cyan opacity-100' : 'text-slate-600 opacity-70 group-hover:text-slate-400'}`}>
+                            {/* Text Label - larger font */}
+                            <span className={`text-[12px] font-orbitron font-bold tracking-wider uppercase transition-all duration-300 ${isActive ? 'text-brand-cyan opacity-100' : 'text-slate-600 opacity-70 group-hover:text-slate-400'}`}>
                                 {item.label}
                             </span>
 

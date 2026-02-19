@@ -35,7 +35,7 @@ const QuestWidget: React.FC = () => {
             </div>
 
             <div className="space-y-3 relative z-10">
-                {visibleQuests.map(quest => {
+                {(Array.isArray(visibleQuests) ? visibleQuests : []).map(quest => {
                     const isCompleted = quest.progress >= quest.target;
                     const percent = (quest.progress / quest.target) * 100;
 

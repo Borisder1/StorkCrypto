@@ -138,9 +138,9 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
 
     // 5. Повертаємо реалістичні статичні дані (Baselines)
     const REALISTIC_PRICES: Record<string, { price: number, change: number }> = {
-        'bitcoin': { price: 95000, change: 2.5 },
-        'ethereum': { price: 2700, change: 1.8 },
-        'solana': { price: 190, change: 4.2 },
+        'bitcoin': { price: 96450.20, change: 2.5 },
+        'ethereum': { price: 2680.45, change: 1.8 },
+        'solana': { price: 185.30, change: 4.2 },
         'binance-coin': { price: 320, change: -0.5 },
         'xrp': { price: 0.52, change: -1.2 },
         'cardano': { price: 0.38, change: 0.8 },
