@@ -74,10 +74,10 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         // If Mainnet, recalculate based on current prices * amounts in store
         // (The wallet.totalValueUsd might be stale)
         if (balanceType === 'MAINNET') {
-            return assets.reduce((sum, a) => sum + a.value, 0);
+            return (assets ?? []).reduce((sum, a) => sum + a.value, 0);
         }
         // Neural (Demo) Balance
-        return assets.reduce((sum, a) => sum + a.value, 0);
+        return (assets ?? []).reduce((sum, a) => sum + a.value, 0);
     }, [assets, balanceType, wallet]);
 
     const handleRefresh = async () => {
@@ -154,14 +154,14 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                 Array.from({ length: 3 }).map((_, i) => (
                                     <div key={i} className="h-16 rounded-2xl bg-white/5 animate-pulse border border-white/5"></div>
                                 ))
-                            ) : ((assets || []).length === 0) ? (
+                            ) : ((assets ?? []).length === 0) ? (
                                 <EmptyState
                                     message="СХОВИЩЕ_ПОРОЖНЄ"
                                     subMessage="Активи не виявлені в захищеному сховищі. Ініціюйте протоколи придбання."
                                     icon={<ActivityIcon className="w-6 h-6 text-slate-700" />}
                                 />
                             ) : (
-                                (Array.isArray(assets) ? assets : []).map((asset) => <AssetEntry key={asset.ticker} asset={asset} totalPortfolioValue={totalValue} />)
+                                (assets ?? []).map((asset) => <AssetEntry key={asset.ticker} asset={asset} totalPortfolioValue={totalValue} />)
                             )}
                         </div>
                     </div>

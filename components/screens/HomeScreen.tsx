@@ -86,7 +86,7 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
     } = useStore();
 
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
-    const totalBalance = (assets || []).reduce((a, c) => a + (c.value || 0), 0);
+    const totalBalance = (assets ?? []).reduce((a, c) => a + (c.value || 0), 0);
 
     const [wsStatus, setWsStatus] = useState<'CONNECTING' | 'LIVE' | 'OFFLINE'>('CONNECTING');
 

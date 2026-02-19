@@ -83,15 +83,15 @@ const ScannerScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         triggerHaptic('medium');
         try {
             const data = await scanMarket();
-            setMarketData(data);
+            setMarketData(data ?? []);
         } catch (e) { } finally { setScanning(false); }
     };
 
     useEffect(() => { performScan(); }, []);
 
     const processedData = useMemo(() => {
-        if (activeTab === 'MARKET') return marketData || [];
-        if (activeTab === 'ALPHA') return (marketData || []).filter(m => m.rsi > 65 || m.rsi < 35).slice(0, 15);
+        if (activeTab === 'MARKET') return marketData ?? [];
+        if (activeTab === 'ALPHA') return (marketData ?? []).filter(m => m.rsi > 65 || m.rsi < 35).slice(0, 15);
         return [];
     }, [marketData, activeTab]);
 
@@ -145,7 +145,7 @@ const ScannerScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </div>
             ) : (
                 <div ref={containerRef} onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 pt-2">
-                    {(marketData || []).length === 0 && !scanning ? (
+                    {(marketData ?? []).length === 0 && !scanning ? (
                         <EmptyState
                             message={t('scanner.no_data')}
                             subMessage="Market scan returned zero results matching current parameters."
@@ -153,7 +153,7 @@ const ScannerScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         />
                     ) : (
                         <div className="relative" style={{ height: `${totalHeight}px` }}>
-                            {(Array.isArray(visibleItems) ? visibleItems : []).map((coin, idx) => (
+                            {(visibleItems ?? []).map((coin, idx) => (
                                 <ScannerListItem
                                     key={coin.ticker}
                                     isAlpha={activeTab === 'ALPHA'}

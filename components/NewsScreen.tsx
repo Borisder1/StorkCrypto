@@ -28,7 +28,7 @@ const InfluencerPulse: React.FC = () => {
                 <UserIcon className="w-4 h-4 text-brand-purple" /> INFLUENCER_TRACKER
             </h3>
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                {(Array.isArray(posts) ? posts : []).map(post => (
+                {(posts || []).map(post => (
                     <div key={post.id} className="min-w-[240px] bg-brand-card/40 border border-white/5 rounded-2xl p-4 relative group shrink-0 hover:border-brand-cyan/20 transition-all">
                         <div className="flex items-center gap-3 mb-3">
                             <img src={post.avatar} className="w-8 h-8 rounded-full object-cover border border-white/10" onError={(e) => (e.currentTarget as any).src = 'https://placehold.co/100'} />
@@ -70,7 +70,7 @@ const NewsScreen: React.FC = () => {
     const t = (key: string) => getTranslation(settings.language, key);
     const [speakingIndex, setSpeakingIndex] = useState<number | null>(null);
 
-    const news = [...(customNews || []), ...fetchedNews];
+    const news = [...(customNews ?? []), ...(fetchedNews ?? [])];
 
     useEffect(() => {
         const fetch = async () => {
@@ -149,8 +149,8 @@ const NewsScreen: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                    {(loading && (news || []).length === 0) ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="w-full h-24 rounded-[1.5rem]" />) :
-                        (news || []).map((article: any, index) => (
+                    {(loading && (news ?? []).length === 0) ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="w-full h-24 rounded-[1.5rem]" />) :
+                        (news ?? []).map((article: any, index) => (
                             <div key={index} className="p-5 bg-brand-card/40 backdrop-blur-md border border-white/5 rounded-[1.5rem] hover:border-brand-purple/30 transition-all group animate-fade-in-up relative overflow-hidden" style={{ animationDelay: `${index * 50}ms` }}>
                                 <div className="absolute top-0 right-0 w-8 h-8 bg-white/5 rounded-bl-2xl -mr-4 -mt-4 transform rotate-45 group-hover:bg-brand-purple/20 transition-colors"></div>
                                 <div className="flex justify-between items-start gap-4">
@@ -174,7 +174,7 @@ const NewsScreen: React.FC = () => {
                                 </div>
                             </div>
                         ))}
-                    {(news || []).length === 0 && !loading && (
+                    {(news ?? []).length === 0 && !loading && (
                         <div className="py-20 text-center flex flex-col items-center justify-center opacity-50">
                             <ActivityIcon className="w-8 h-8 text-slate-600 mb-3 animate-pulse" />
                             <p className="text-slate-500 font-mono text-xs uppercase tracking-widest">Awaiting News Broadcast...</p>

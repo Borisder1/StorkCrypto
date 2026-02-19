@@ -12,14 +12,20 @@ interface BottomNavProps {
 const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) => {
 
     const handleTabChange = (id: string) => {
+        // Telegram Haptic Feedback
+        // @ts-ignore
+        if (window.Telegram?.WebApp?.HapticFeedback) {
+            // @ts-ignore
+            window.Telegram.WebApp.HapticFeedback.impactOccurred('light');
+        }
         triggerHaptic('selection');
         onTabChange(id as NavItem);
     };
 
     return (
-        <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pb-8 pt-4 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none">
+        <div className="fixed bottom-0 left-0 right-0 z-40 flex justify-center pb-6 pt-6 px-4 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none">
             {/* Glass Capsule - Enhanced for mobile */}
-            <nav className="bg-[#050b14]/90 backdrop-blur-2xl border border-white/10 rounded-[2rem] px-8 py-5 shadow-[0_20px_50px_rgba(0,0,0,0.9)] flex items-center justify-around gap-2 w-full max-w-md pointer-events-auto relative overflow-visible transition-all hover:border-brand-cyan/20">
+            <nav className="bg-[#050b14]/90 backdrop-blur-2xl border border-white/10 rounded-[2rem] px-6 py-6 shadow-[0_20px_50px_rgba(0,0,0,0.9)] flex items-center justify-around gap-2 w-full max-w-md pointer-events-auto relative overflow-visible transition-all hover:border-brand-cyan/20" style={{ padding: '12px 8px' }}>
 
                 {/* Glow behind capsule - enhanced */}
                 <div className="absolute inset-0 rounded-[2rem] bg-brand-cyan/5 blur-2xl -z-10"></div>
@@ -30,7 +36,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                         <button
                             key={item.id}
                             onClick={() => handleTabChange(item.id)}
-                            className={`relative flex flex-col items-center justify-center group h-16 min-w-[60px] transition-all duration-300 ${isActive ? '-translate-y-2' : ''}`}
+                            className={`relative flex flex-col items-center justify-center group h-20 min-w-[64px] transition-all duration-300 ${isActive ? '-translate-y-2' : ''}`}
                         >
                             {/* Active Light Pillar */}
                             {isActive && (
@@ -44,7 +50,7 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                             </div>
 
                             {/* Text Label - larger font */}
-                            <span className={`text-[12px] sm:text-[14px] font-orbitron font-bold tracking-widest uppercase transition-all duration-300 ${isActive ? 'text-brand-cyan opacity-100 scale-105' : 'text-slate-600 opacity-60 group-hover:text-slate-400'}`}>
+                            <span className={`text-[13px] sm:text-[15px] font-orbitron font-bold tracking-widest uppercase transition-all duration-300 ${isActive ? 'text-brand-cyan opacity-100 scale-105' : 'text-slate-600 opacity-60 group-hover:text-slate-400'}`} style={{ paddingTop: '4px' }}>
                                 {item.label}
                             </span>
 

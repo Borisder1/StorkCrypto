@@ -259,7 +259,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           position: relative;
           margin: clamp(0px, 0.1vh, 2px) 0;
           font-family: 'Orbitron', monospace;
-          font-size: clamp(26px, 6vh, 42px);
+          font-size: clamp(30px, 7vh, 48px);
           font-weight: 900;
           width: 1.2em;
           height: 1.5em;
@@ -387,20 +387,32 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
       {onSkip && (
         <button
           onClick={onSkip}
-          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 min-w-[200px] min-h-[56px] px-8 py-4 bg-black/40 border border-brand-cyan/40 backdrop-blur-md rounded-xl text-xs font-orbitron font-black text-brand-cyan uppercase tracking-[0.3em] overflow-hidden group hover:border-brand-cyan hover:shadow-[0_0_20px_rgba(0,217,255,0.4)] transition-all active:scale-95"
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 min-w-[220px] min-h-[60px] px-10 py-5 bg-gradient-to-r from-black/60 via-brand-cyan/10 to-black/60 border border-brand-cyan/50 backdrop-blur-md rounded-2xl text-sm font-orbitron font-black text-brand-cyan uppercase tracking-[0.35em] overflow-hidden group hover:border-brand-cyan hover:shadow-[0_0_30px_rgba(0,217,255,0.5)] transition-all duration-300 active:scale-95"
           style={{
-            boxShadow: 'inset 0 0 15px rgba(0,217,255,0.1)',
-            textShadow: '0 0 8px rgba(0,217,255,0.6)'
+            boxShadow: 'inset 0 0 20px rgba(0,217,255,0.15), 0 0 15px rgba(0,217,255,0.2)',
+            textShadow: '0 0 10px rgba(0,217,255,0.8), 0 0 20px rgba(0,217,255,0.4)'
           }}
         >
+          {/* Animated gradient border */}
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-transparent via-brand-cyan/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
+          
           {/* Neon scan effect */}
-          <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-brand-cyan/10 to-transparent -skew-x-12 -translate-x-full group-hover:animate-scan-fast pointer-events-none"></div>
+          <div className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-brand-cyan/30 to-transparent -skew-x-12 -translate-x-full group-hover:animate-scan-fast pointer-events-none"></div>
+          
+          {/* Corner accents */}
+          <div className="absolute top-0 left-0 w-3 h-3 border-l-2 border-t-2 border-brand-cyan/60 rounded-tl-lg"></div>
+          <div className="absolute top-0 right-0 w-3 h-3 border-r-2 border-t-2 border-brand-cyan/60 rounded-tr-lg"></div>
+          <div className="absolute bottom-0 left-0 w-3 h-3 border-l-2 border-b-2 border-brand-cyan/60 rounded-bl-lg"></div>
+          <div className="absolute bottom-0 right-0 w-3 h-3 border-r-2 border-b-2 border-brand-cyan/60 rounded-br-lg"></div>
 
-          <span className="relative z-10 flex items-center justify-center gap-3">
-            <span className="opacity-40 text-[10px]">{'>>'}</span>
+          <span className="relative z-10 flex items-center justify-center gap-4">
+            <span className="opacity-50 text-[11px] font-bold animate-pulse">{'>>'}</span>
             {t('loading.skip') || 'SKIP_SEQUENCE'}
-            <span className="opacity-40 text-[10px]">{'<<'}</span>
+            <span className="opacity-50 text-[11px] font-bold animate-pulse">{'<<'}</span>
           </span>
+          
+          {/* Glow pulse */}
+          <div className="absolute inset-0 rounded-2xl bg-brand-cyan/5 blur-xl group-hover:bg-brand-cyan/10 transition-colors pointer-events-none"></div>
         </button>
       )}
     </div>
