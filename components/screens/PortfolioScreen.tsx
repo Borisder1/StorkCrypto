@@ -154,7 +154,7 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                 Array.from({ length: 3 }).map((_, i) => (
                                     <div key={i} className="h-16 rounded-2xl bg-white/5 animate-pulse border border-white/5"></div>
                                 ))
-                            ) : (assets?.length === 0 || !assets) ? (
+                            ) : ((assets || []).length === 0) ? (
                                 <EmptyState
                                     message="СХОВИЩЕ_ПОРОЖНЄ"
                                     subMessage="Активи не виявлені в захищеному сховищі. Ініціюйте протоколи придбання."

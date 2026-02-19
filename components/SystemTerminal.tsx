@@ -121,8 +121,8 @@ export const SystemTerminal: React.FC = () => {
             >
                 <div className="flex-1 space-y-1">
                     {(Array.isArray(logs) ? logs : []).map((log, i) => (
-                        <div key={i} className={`flex gap-2 ${log.startsWith('>') ? 'text-white font-bold' : 'text-brand-cyan/70 opacity-80'}`}>
-                            {!log.startsWith('>') && <span className="text-brand-cyan/30 shrink-0">::</span>}
+                        <div key={i} className={`flex gap-2 ${log.startsWith?.('>') ? 'text-white font-bold' : 'text-brand-cyan/70 opacity-80'}`}>
+                            {!log.startsWith?.('>') && <span className="text-brand-cyan/30 shrink-0">::</span>}
                             <span className="break-all">{log}</span>
                         </div>
                     ))}

@@ -145,7 +145,7 @@ const ScannerScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 </div>
             ) : (
                 <div ref={containerRef} onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)} className="flex-1 overflow-y-auto custom-scrollbar relative z-10 pt-2">
-                    {processedData.length === 0 && !scanning ? (
+                    {(marketData || []).length === 0 && !scanning ? (
                         <EmptyState
                             message={t('scanner.no_data')}
                             subMessage="Market scan returned zero results matching current parameters."

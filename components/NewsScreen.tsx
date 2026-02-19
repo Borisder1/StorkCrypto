@@ -149,8 +149,8 @@ const NewsScreen: React.FC = () => {
                 </div>
 
                 <div className="space-y-3">
-                    {(loading && news.length === 0) ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="w-full h-24 rounded-[1.5rem]" />) :
-                        news?.map((article: any, index) => (
+                    {(loading && (news || []).length === 0) ? Array.from({ length: 5 }).map((_, i) => <Skeleton key={i} className="w-full h-24 rounded-[1.5rem]" />) :
+                        (news || []).map((article: any, index) => (
                             <div key={index} className="p-5 bg-brand-card/40 backdrop-blur-md border border-white/5 rounded-[1.5rem] hover:border-brand-purple/30 transition-all group animate-fade-in-up relative overflow-hidden" style={{ animationDelay: `${index * 50}ms` }}>
                                 <div className="absolute top-0 right-0 w-8 h-8 bg-white/5 rounded-bl-2xl -mr-4 -mt-4 transform rotate-45 group-hover:bg-brand-purple/20 transition-colors"></div>
                                 <div className="flex justify-between items-start gap-4">
@@ -174,7 +174,7 @@ const NewsScreen: React.FC = () => {
                                 </div>
                             </div>
                         ))}
-                    {news.length === 0 && !loading && (
+                    {(news || []).length === 0 && !loading && (
                         <div className="py-20 text-center flex flex-col items-center justify-center opacity-50">
                             <ActivityIcon className="w-8 h-8 text-slate-600 mb-3 animate-pulse" />
                             <p className="text-slate-500 font-mono text-xs uppercase tracking-widest">Awaiting News Broadcast...</p>

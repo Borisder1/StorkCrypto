@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useStore } from '../store';
+import { getTranslation } from '../utils/translations';
 
 // ⚡ Клас для частинок енергії, які летять від літер до прогрес-бару
 class EnergyParticle {
@@ -48,6 +50,9 @@ interface LoadingScreenProps {
 }
 
 export function LoadingScreen({ onSkip }: LoadingScreenProps) {
+  const { settings } = useStore();
+  const t = (key: string) => getTranslation(settings?.language || 'en', key);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lettersWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -254,7 +259,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           position: relative;
           margin: clamp(0px, 0.1vh, 2px) 0;
           font-family: 'Orbitron', monospace;
-          font-size: clamp(23px, 5.2vh, 37px);
+          font-size: clamp(26px, 6vh, 42px);
           font-weight: 900;
           width: 1.2em;
           height: 1.5em;
@@ -382,12 +387,19 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
       {onSkip && (
         <button
           onClick={onSkip}
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50 min-w-[140px] min-h-[48px] px-8 py-4 bg-gradient-to-r from-brand-cyan/10 to-brand-purple/10 border-2 border-brand-cyan/60 rounded-2xl text-sm font-orbitron font-black text-brand-cyan uppercase tracking-wider hover:from-brand-cyan/20 hover:to-brand-purple/20 hover:border-brand-cyan hover:shadow-[0_0_30px_rgba(0,217,255,0.6),0_0_60px_rgba(189,0,255,0.3)] active:scale-95 transition-all cursor-pointer backdrop-blur-sm"
-          style={{ textShadow: '0 0 10px rgba(0,217,255,0.8)' }}
+          className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 min-w-[200px] min-h-[56px] px-8 py-4 bg-black/40 border border-brand-cyan/40 backdrop-blur-md rounded-xl text-xs font-orbitron font-black text-brand-cyan uppercase tracking-[0.3em] overflow-hidden group hover:border-brand-cyan hover:shadow-[0_0_20px_rgba(0,217,255,0.4)] transition-all active:scale-95"
+          style={{
+            boxShadow: 'inset 0 0 15px rgba(0,217,255,0.1)',
+            textShadow: '0 0 8px rgba(0,217,255,0.6)'
+          }}
         >
-          <span className="flex items-center gap-2">
-            <span className="animate-pulse">▶▶</span>
-            ПРОПУСТИТИ
+          {/* Neon scan effect */}
+          <div className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-brand-cyan/10 to-transparent -skew-x-12 -translate-x-full group-hover:animate-scan-fast pointer-events-none"></div>
+
+          <span className="relative z-10 flex items-center justify-center gap-3">
+            <span className="opacity-40 text-[10px]">{'>>'}</span>
+            {t('loading.skip') || 'SKIP_SEQUENCE'}
+            <span className="opacity-40 text-[10px]">{'<<'}</span>
           </span>
         </button>
       )}
