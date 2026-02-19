@@ -383,19 +383,13 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         style={{ opacity: scannerVisible ? 1 : 0 }}
       />
 
-      {/* Skip Button - Compact mobile-friendly design */}
+      {/* Skip Button - Minimal design per Design System */}
       {onSkip && (
         <button
           onClick={onSkip}
-          className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 min-w-[120px] min-h-[44px] px-6 py-3 bg-brand-cyan/20 border border-brand-cyan/50 backdrop-blur-md rounded-xl text-xs font-orbitron font-bold text-brand-cyan uppercase tracking-wider overflow-hidden group hover:border-brand-cyan hover:shadow-[0_0_20px_rgba(0,217,255,0.4)] transition-all duration-300 active:scale-95"
-          style={{
-            textShadow: '0 0 8px rgba(0,217,255,0.8)'
-          }}
+          className="absolute bottom-12 z-50 text-slate-600 hover:text-brand-cyan font-orbitron text-[10px] font-bold uppercase tracking-[0.3em] transition-colors duration-300 border-b border-transparent hover:border-brand-cyan pb-1 cursor-pointer"
         >
-          <span className="relative z-10 flex items-center justify-center gap-2">
-            <span className="opacity-60">{'>>'}</span>
-            {t('loading.skip') || 'ПРОПУСТИТИ'}
-          </span>
+          SKIP_INIT {'>>'}
         </button>
       )}
     </div>

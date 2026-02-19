@@ -198,6 +198,8 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
 
                 <div className="grid grid-cols-2 gap-4 mb-8">
                     <div className="relative group rounded-[2.2rem] bg-[#0a0f1e]/60 border border-brand-cyan/20 hover:border-brand-cyan/60 transition-all shadow-2xl h-32">
+                        {/* Neon glow effect behind card */}
+                        <div className="absolute -inset-1 bg-brand-cyan/10 rounded-[2.5rem] blur-xl opacity-50 group-hover:opacity-80 transition duration-500 -z-10"></div>
                         <button
                             onClick={(e) => { e.stopPropagation(); openInfo('MINING'); }}
                             className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-brand-cyan z-20"
@@ -212,6 +214,8 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                     </div>
 
                     <div className="relative group rounded-[2.2rem] bg-[#0a0f1e]/60 border border-brand-purple/20 hover:border-brand-purple/60 transition-all shadow-2xl h-32">
+                        {/* Neon glow effect behind card */}
+                        <div className="absolute -inset-1 bg-brand-purple/10 rounded-[2.5rem] blur-xl opacity-50 group-hover:opacity-80 transition duration-500 -z-10"></div>
                         <button
                             onClick={(e) => { e.stopPropagation(); openInfo('SENTINEL'); }}
                             className="absolute top-3 right-3 w-6 h-6 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-brand-purple z-20"
