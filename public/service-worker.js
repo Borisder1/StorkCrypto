@@ -63,9 +63,13 @@ self.addEventListener('fetch', (event) => {
   // 3. App Shell (HTML, JS) -> Cache First, falling back to Network
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request).catch(() => {
-        // Optional: Return custom offline page here if navigation fails
-        // return caches.match('/offline.html');
+      if (cachedResponse) return cachedResponse;
+      return fetch(event.request).catch(() => {
+        // Return a basic response for navigation requests to prevent TypeError
+        if (event.request.mode === 'navigate') {
+          return caches.match('/');
+        }
+        return new Response('', { status: 408, statusText: 'Offline' });
       });
     })
   );

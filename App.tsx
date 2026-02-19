@@ -49,28 +49,36 @@ const App: React.FC = () => {
         { id: 'portfolio', label: t('nav.assets'), icon: <PieChartIcon /> },
     ];
 
-    // Android Back Button Handler
+    // Android Back Button Handler (only if supported by Telegram version)
     useEffect(() => {
         const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
-        if (tg) {
-            tg.BackButton.onClick(() => {
-                if (activeTab !== 'home') {
-                    navigateTo('home');
-                } else {
-                    tg.close();
-                }
-            });
+        if (tg && tg.BackButton) {
+            try {
+                tg.BackButton.onClick(() => {
+                    if (activeTab !== 'home') {
+                        navigateTo('home');
+                    } else {
+                        tg.close();
+                    }
+                });
+            } catch (e) {
+                // BackButton not supported in this Telegram version
+            }
         }
     }, [activeTab, navigateTo]);
 
     // Show/Hide Back Button based on navigation state
     useEffect(() => {
         const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
-        if (tg) {
-            if (activeTab !== 'home' || isAIChatOpen) {
-                tg.BackButton.show();
-            } else {
-                tg.BackButton.hide();
+        if (tg && tg.BackButton) {
+            try {
+                if (activeTab !== 'home' || isAIChatOpen) {
+                    tg.BackButton.show();
+                } else {
+                    tg.BackButton.hide();
+                }
+            } catch (e) {
+                // BackButton not supported in this Telegram version
             }
         }
     }, [activeTab, isAIChatOpen]);

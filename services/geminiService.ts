@@ -2,13 +2,13 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NewsArticle, AgentAnalysis, AssetMetrics, TradingSignal } from '../types';
 import { supabase } from './supabaseClient';
 
-const USE_EDGE_FUNCTION = true; 
+const USE_EDGE_FUNCTION = true;
 
 const getAI = () => {
     // In Vite, use import.meta.env for client-side keys (VITE_ prefix required)
     // Also support process.env if polyfilled
     const key = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : '');
-    
+
     if (!key) {
         console.warn("[AI] VITE_GEMINI_API_KEY not found in env");
     }
@@ -17,7 +17,7 @@ const getAI = () => {
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, modelName: string = "gemini-3-flash-preview", history: any[] = []): Promise<any> => {
+const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, modelName: string = "gemini-2.0-flash", history: any[] = []): Promise<any> => {
     if (USE_EDGE_FUNCTION) {
         try {
             const { data, error } = await supabase.functions.invoke('ask-ai', {
@@ -43,10 +43,10 @@ const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, mo
             const response = await ai.models.generateContent({ model: modelName, contents: prompt, config });
             if (!response.text) throw new Error("Empty AI Response");
             const responseText = response.text;
-            
+
             // Extract Grounding Metadata if available
             const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-            
+
             if (config.responseMimeType === 'application/json') {
                 const parsed = parseCleanJSON(responseText);
                 if (parsed && sources.length > 0) parsed.sources = sources;
@@ -58,7 +58,7 @@ const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, mo
             else if (i === maxRetries - 1) return null;
         }
     }
-    return null; 
+    return null;
 };
 
 const parseCleanJSON = (text: string) => {
@@ -83,7 +83,7 @@ export const generateTradingSignals = async (settings: any, metrics: AssetMetric
     ${getLanguageInstruction(settings.language)}
     Return JSON only: { "market_sentiment_score": number, "market_phase": string, "macro_context": { "btc_dominance": number, "session": string }, "signals": [{ "asset": string, "signal_type": "LONG"|"SHORT", "strategy_type": "SCALP"|"SWING", "entryPrice": number, "takeProfit": number, "stopLoss": number, "confidence": number, "technical_summary": string, "reasoning_chain": [string] }] }
     `;
-    
+
     try {
         const res = await safeGenerate(prompt, {
             responseMimeType: 'application/json',
@@ -97,10 +97,10 @@ export const generateTradingSignals = async (settings: any, metrics: AssetMetric
 export const generateSpecificAssetAnalysis = async (ticker: string, price: number, change: number, language: string) => {
     const prompt = `Analyze ${ticker} ($${price}). Search Google for latest news, forks, or major events for ${ticker}. 
     ${getLanguageInstruction(language)} Max 3 sentences. Highlight if news sources were found.`;
-    
-    return await safeGenerate(prompt, { 
-        temperature: 0.7, 
-        tools: [{ googleSearch: {} }] 
+
+    return await safeGenerate(prompt, {
+        temperature: 0.7,
+        tools: [{ googleSearch: {} }]
     });
 };
 
@@ -110,20 +110,20 @@ const generateFallbackSignals = (metrics: AssetMetrics[]): AgentAnalysis => {
     const randomAsset = assets[Math.floor(Math.random() * assets.length)];
     const isLong = Math.random() > 0.5;
     const price = Math.floor(Math.random() * 5000) + 1000;
-    
+
     return {
         market_sentiment_score: Math.floor(Math.random() * 40) + 30,
         market_phase: Math.random() > 0.5 ? 'ACCUMULATION' : 'VOLATILITY_SCAN',
         macro_context: { btc_dominance: 52.1 + (Math.random()), session: 'LONDON', volatility_index: 'MED' },
-        signals: [{ 
-            asset: randomAsset, 
-            signal_type: isLong ? 'LONG' : 'SHORT', 
-            strategy_type: 'SWING', 
-            entryPrice: price, 
-            takeProfit: price * (isLong ? 1.05 : 0.95), 
-            stopLoss: price * (isLong ? 0.95 : 1.05), 
-            confidence: Math.floor(Math.random() * 30) + 60, 
-            technical_summary: isLong ? 'Support retest confirmed.' : 'Resistance rejection detected.', 
+        signals: [{
+            asset: randomAsset,
+            signal_type: isLong ? 'LONG' : 'SHORT',
+            strategy_type: 'SWING',
+            entryPrice: price,
+            takeProfit: price * (isLong ? 1.05 : 0.95),
+            stopLoss: price * (isLong ? 0.95 : 1.05),
+            confidence: Math.floor(Math.random() * 30) + 60,
+            technical_summary: isLong ? 'Support retest confirmed.' : 'Resistance rejection detected.',
             reasoning_chain: ['Quant scan detected volume spike', 'Momentum divergence'],
             entry_zone: `${price}-${price + 50}`,
             timeframe: '4H'
@@ -140,7 +140,7 @@ export const createChatSession = (systemContext: string, language: string) => {
     let history: any[] = [];
     return {
         sendMessage: async (msg: { message: string }) => {
-            const text = await safeGenerate(msg.message, { tools: [{ googleSearch: {} }] }, 2, 'gemini-3-flash-preview', history);
+            const text = await safeGenerate(msg.message, { tools: [{ googleSearch: {} }] }, 2, 'gemini-2.0-flash', history);
             if (text) {
                 history.push({ role: 'user', text: msg.message }, { role: 'model', text: text });
                 return { text };
@@ -161,7 +161,7 @@ export const runDeepPortfolioAudit = async (assets: any[], level: number) => {
     return await safeGenerate(`Deep audit: ${context}. Level: ${level}. Search for vulnerabilities in these assets. JSON response.`, { responseMimeType: "application/json", tools: [{ googleSearch: {} }] });
 };
 
-export const generateProactiveInsight = async (tickers: string[]): Promise<{type: string, text: string}> => {
+export const generateProactiveInsight = async (tickers: string[]): Promise<{ type: string, text: string }> => {
     const res = await safeGenerate(`Market insight for: ${tickers.join(',')}. Use search. JSON: {type, text}`, { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] });
     return res || { type: 'INFO', text: 'Scanning...' };
 };
@@ -175,7 +175,7 @@ export const auditContract = async (addressOrCode: string, lang: string): Promis
     Identify vulnerabilities, risk levels, and logic flaws. 
     ${getLanguageInstruction(lang)} 
     Be concise and tactical. Output Markdown.`;
-    
+
     return await safeGenerate(prompt, { temperature: 0.1 });
 };
 
@@ -196,7 +196,7 @@ export const generateUserAvatar = async (): Promise<string | null> => {
                 }
             }
         });
-        
+
         if (response.candidates?.[0]?.content?.parts) {
             for (const part of response.candidates[0].content.parts) {
                 if (part.inlineData) {
