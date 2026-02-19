@@ -16,6 +16,24 @@ interface TelegramWebApp {
         notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
         selectionChanged: () => void;
     };
+    BackButton: {
+        show: () => void;
+        hide: () => void;
+        onClick: (callback: () => void) => void;
+        offClick: (callback: () => void) => void;
+        isVisible: boolean;
+    };
+    MainButton: {
+        text: string;
+        color: string;
+        textColor: string;
+        isVisible: boolean;
+        isActive: boolean;
+        show: () => void;
+        hide: () => void;
+        onClick: (callback: () => void) => void;
+        offClick: (callback: () => void) => void;
+    };
     initDataUnsafe: {
         user?: {
             id: number;

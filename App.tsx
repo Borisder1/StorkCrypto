@@ -51,7 +51,6 @@ const App: React.FC = () => {
 
     // Android Back Button Handler
     useEffect(() => {
-        // @ts-ignore
         const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
         if (tg) {
             tg.BackButton.onClick(() => {
@@ -66,7 +65,6 @@ const App: React.FC = () => {
 
     // Show/Hide Back Button based on navigation state
     useEffect(() => {
-        // @ts-ignore
         const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
         if (tg) {
             if (activeTab !== 'home' || isAIChatOpen) {
@@ -78,7 +76,6 @@ const App: React.FC = () => {
     }, [activeTab, isAIChatOpen]);
 
     useEffect(() => {
-        // @ts-ignore
         const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
