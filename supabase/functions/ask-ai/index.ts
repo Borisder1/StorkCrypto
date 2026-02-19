@@ -6,7 +6,6 @@
 // 4. supabase functions deploy ask-ai
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { GoogleGenAI } from "https://esm.sh/@google/genai@0.1.1";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -21,54 +20,55 @@ serve(async (req) => {
 
   try {
     const { prompt, config, history } = await req.json();
-    
+
     // Get API Key from Deno environment (Supabase Secrets)
     const apiKey = Deno.env.get('GEMINI_API_KEY') || Deno.env.get('API_KEY');
-    
+
     if (!apiKey) {
-      throw new Error("Missing GEMINI_API_KEY in environment variables");
+      return new Response(JSON.stringify({
+        text: "AI_API_KEY_NOT_CONFIGURED",
+        error: "Missing GEMINI_API_KEY in environment variables"
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const ai = new GoogleGenAI({ apiKey });
+    // Use Google GenAI REST API directly
+    const modelName = config?.model || 'gemini-2.0-flash';
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
-    let textResponse = '';
+    const requestBody: any = {
+      contents: history && history.length > 0
+        ? [...history.map((h: any) => ({
+          role: h.role === 'model' ? 'model' : 'user',
+          parts: [{ text: h.text }]
+        })), { role: 'user', parts: [{ text: prompt }] }]
+        : [{ role: 'user', parts: [{ text: prompt }] }],
+      generationConfig: {
+        maxOutputTokens: config?.maxOutputTokens || 500,
+        temperature: config?.temperature || 0.7,
+      }
+    };
 
-    if (history && history.length > 0) {
-      // Conversational mode
-      try {
-        const chat = ai.chats.create({
-          model: config?.model || 'gemini-2.0-flash-exp', // Fallback to a stable model if preview fails
-          history: history.map((h: any) => ({
-            role: h.role === 'model' ? 'model' : 'user',
-            parts: [{ text: h.text }],
-          })),
-          config: {
-            maxOutputTokens: config?.maxOutputTokens || 500,
-          }
-        });
-        
-        const result = await chat.sendMessage({ message: prompt });
-        textResponse = result.text || "NO_DATA_PACKET";
-      } catch (chatError: any) {
-        console.error("Chat Error:", chatError);
-        throw new Error(`Chat API Error: ${chatError.message}`);
-      }
-    } else {
-      // Single prompt mode
-      try {
-        const response = await ai.models.generateContent({
-          model: config?.model || 'gemini-2.0-flash-exp',
-          contents: prompt,
-          config: {
-            maxOutputTokens: config?.maxOutputTokens || 500,
-          }
-        });
-        textResponse = response.text || "NO_DATA_PACKET";
-      } catch (genError: any) {
-         console.error("Generate Error:", genError);
-         throw new Error(`Generate API Error: ${genError.message}`);
-      }
+    const response = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(requestBody)
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Gemini API Error:", errorText);
+      return new Response(JSON.stringify({
+        text: "AI_REQUEST_FAILED",
+        error: `Gemini API Error: ${response.status}`
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
+
+    const data = await response.json();
+    const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "NO_DATA_PACKET";
 
     return new Response(JSON.stringify({ text: textResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -76,7 +76,10 @@ serve(async (req) => {
 
   } catch (error: any) {
     console.error("Function Error:", error);
-    return new Response(JSON.stringify({ error: error.message }), {
+    return new Response(JSON.stringify({
+      text: "AI_FUNCTION_ERROR",
+      error: error.message
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
