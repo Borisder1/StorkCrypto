@@ -18,7 +18,7 @@ export const SocialFeedWidget: React.FC = () => {
             </div>
 
             <div className="space-y-4">
-                {(Array.isArray(socialFeed) ? socialFeed : []).map(item => (
+                {socialFeed.map(item => (
                     <div key={item.id} className="flex items-start gap-3 border-l-2 border-white/5 pl-3 py-1 hover:border-brand-purple/40 transition-all">
                         <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
                             <UserIcon className="w-4 h-4 text-slate-400" />
@@ -37,7 +37,7 @@ export const SocialFeedWidget: React.FC = () => {
                     </div>
                 ))}
             </div>
-
+            
             <div className="absolute bottom-0 left-0 w-full h-12 bg-gradient-to-t from-brand-bg/80 to-transparent pointer-events-none"></div>
         </div>
     );

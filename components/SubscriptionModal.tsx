@@ -95,7 +95,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
             <div className="relative z-10 w-full sm:max-w-md bg-brand-bg rounded-t-[2.5rem] sm:rounded-[2.5rem] border-t sm:border border-white/10 shadow-[0_-10px_60px_rgba(139,92,246,0.3)] flex flex-col max-h-[90vh] overflow-hidden">
                 
                 <div className="shrink-0 px-6 py-5 text-center border-b border-white/5 relative bg-brand-card/50">
-                    <button onClick={onClose} className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/5 text-slate-400 flex items-center justify-center btn-interactive hover:bg-white/10 transition-colors">✕</button>
+                    <button onClick={onClose} className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/5 text-slate-400 flex items-center justify-center hover:bg-white/10 transition-colors">✕</button>
                     <div className="flex items-center justify-center gap-3 mb-1">
                         <div className="w-10 h-10 bg-brand-purple/20 rounded-xl flex items-center justify-center border border-brand-purple/30">
                             <StorkIcon className="w-6 h-6 text-brand-purple" />
@@ -130,7 +130,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                             <li key={i} className="text-xs text-slate-300 flex items-center gap-3"><div className={`w-1.5 h-1.5 rounded-full ${p.id === 'WHALE' ? 'bg-brand-purple' : 'bg-brand-cyan'}`}></div>{feat}</li>
                                         ))}
                                     </ul>
-                                    <button onClick={() => handleSelectPlan(p.id as any)} className={`relative z-10 w-full py-4 font-black font-orbitron text-[10px] rounded-2xl transition-all uppercase tracking-[0.2em] shadow-lg btn-interactive ${p.id === 'WHALE' ? 'bg-brand-purple text-white hover:shadow-[0_0_20px_#8b5cf6]' : 'bg-brand-cyan text-black hover:shadow-[0_0_20px_#00d9ff]'}`}>
+                                    <button onClick={() => handleSelectPlan(p.id as any)} className={`relative z-10 w-full py-4 font-black font-orbitron text-[10px] rounded-2xl transition-all uppercase tracking-[0.2em] shadow-lg ${p.id === 'WHALE' ? 'bg-brand-purple text-white hover:shadow-[0_0_20px_#8b5cf6]' : 'bg-brand-cyan text-black hover:shadow-[0_0_20px_#00d9ff]'}`}>
                                         Initialize {p.name}
                                     </button>
                                 </div>
@@ -141,11 +141,11 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                     {step === 'PAY' && (
                         <div className="space-y-5 animate-fade-in">
                             <div className="grid grid-cols-2 gap-2">
-                                <button onClick={() => setSelectedMethod('STARS')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 btn-interactive ${selectedMethod === 'STARS' ? 'bg-yellow-500/20 border-yellow-500' : 'bg-white/5 border-transparent opacity-60'}`}>
+                                <button onClick={() => setSelectedMethod('STARS')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all ${selectedMethod === 'STARS' ? 'bg-yellow-500/20 border-yellow-500' : 'bg-white/5 border-transparent opacity-60'}`}>
                                     <StarIcon className="w-8 h-8 text-yellow-400" />
                                     <span className="font-black text-[10px] text-white uppercase">Telegram Stars</span>
                                 </button>
-                                <button onClick={() => setSelectedMethod('TON')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 btn-interactive ${selectedMethod === 'TON' ? 'bg-brand-cyan/20 border-brand-cyan' : 'bg-white/5 border-transparent opacity-60'}`}>
+                                <button onClick={() => setSelectedMethod('TON')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all ${selectedMethod === 'TON' ? 'bg-brand-cyan/20 border-brand-cyan' : 'bg-white/5 border-transparent opacity-60'}`}>
                                     <TelegramIcon className="w-8 h-8 text-brand-cyan" />
                                     <span className="font-black text-[10px] text-white uppercase">TON Wallet</span>
                                 </button>
@@ -159,7 +159,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                     <p className="text-4xl font-black text-white font-orbitron mb-6">
                                         {getPriceInStars(plans.find(p => p.id === selectedPlan)?.price || 0)}
                                     </p>
-                                    <button onClick={handleStarsPayment} className="w-full py-4 bg-[#0088cc] text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg btn-interactive">
+                                    <button onClick={handleStarsPayment} className="w-full py-4 bg-[#0088cc] text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg">
                                         Pay with Stars
                                     </button>
                                 </div>
@@ -170,7 +170,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                         <p className="text-xs font-mono text-brand-cyan">{adminWallet}</p>
                                     </div>
                                     <input type="text" value={txHash} onChange={(e) => setTxHash(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-mono mb-4" placeholder="Transaction Hash..." />
-                                    <button onClick={handleManualPaymentNotify} className="w-full py-4 bg-brand-green text-black font-black rounded-2xl uppercase text-xs btn-interactive">Verify Hash</button>
+                                    <button onClick={handleManualPaymentNotify} className="w-full py-4 bg-brand-green text-black font-black rounded-2xl uppercase text-xs">Verify Hash</button>
                                 </div>
                             )}
                         </div>
@@ -190,7 +190,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                             </div>
                             <h3 className="text-xl font-black text-white font-orbitron uppercase">LINK_ESTABLISHED</h3>
                             <p className="text-slate-500 text-xs mt-2 font-mono uppercase">{txHash}</p>
-                            <button onClick={onClose} className="mt-8 px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase text-white btn-interactive">Back to Terminal</button>
+                            <button onClick={onClose} className="mt-8 px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase text-white">Back to Terminal</button>
                         </div>
                     )}
                 </div>

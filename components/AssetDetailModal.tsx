@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import { BotIcon, BarChartIcon, TrendingUpIcon, RadarIcon, ShieldIcon, ActivityIcon, EyeIcon, ChevronRightIcon, ZapIcon, BellIcon, PlusIcon, GlobeIcon } from './icons';
 import { getOHLCData, TICKER_TO_ID, type OHLCData } from '../services/priceService';
@@ -19,7 +20,7 @@ const TIMEFRAMES = [
 
 const MonteCarloChart: React.FC<{ startPrice: number, volatility: number, paths: SimulationPath[], takeProfit?: number, stopLoss?: number }> = ({ startPrice, volatility, paths, takeProfit, stopLoss }) => {
     if (!paths || paths.length === 0) return <div className="h-48 flex items-center justify-center text-xs text-slate-500 animate-pulse">RUNNING_SIMULATION...</div>;
-
+    
     const minPrice = Math.min(...paths.flatMap(p => p.path), stopLoss || startPrice * 0.9);
     const maxPrice = Math.max(...paths.flatMap(p => p.path), takeProfit || startPrice * 1.1);
     const range = maxPrice - minPrice;
@@ -31,12 +32,12 @@ const MonteCarloChart: React.FC<{ startPrice: number, volatility: number, paths:
         <div className="relative h-56 w-full bg-black/40 rounded-xl border border-white/5 overflow-hidden">
             <svg viewBox="0 0 100 100" preserveAspectRatio="none" className="absolute inset-0 w-full h-full opacity-60">
                 {paths.map((sim, i) => (
-                    <polyline
-                        key={i}
-                        points={sim.path.map((price, idx) => `${(idx / (sim.path.length - 1)) * 100},${100 - ((price - minPrice) / range) * 100}`).join(' ')}
-                        fill="none"
-                        stroke={takeProfit && sim.path.some(p => p >= takeProfit) ? '#22c55e' : '#ef4444'}
-                        strokeWidth="0.5"
+                    <polyline 
+                        key={i} 
+                        points={sim.path.map((price, idx) => `${(idx / (sim.path.length - 1)) * 100},${100 - ((price - minPrice) / range) * 100}`).join(' ')} 
+                        fill="none" 
+                        stroke={takeProfit && sim.path.some(p => p >= takeProfit) ? '#22c55e' : '#ef4444'} 
+                        strokeWidth="0.5" 
                         strokeOpacity="0.4"
                     />
                 ))}
@@ -52,14 +53,14 @@ const MonteCarloChart: React.FC<{ startPrice: number, volatility: number, paths:
 const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, onClose: () => void }> = ({ asset, signal, onClose }) => {
     const { settings, addAlert, alerts, removeAlert, showToast } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
-    const [activeTab, setActiveTab] = useState<'CHART' | 'WATCHDOG' | 'AI_SETUP'>('CHART');
-    const [timeframe, setTimeframe] = useState('7');
+    const [activeTab, setActiveTab] = useState<'CHART' | 'ORDERBOOK' | 'WATCHDOG' | 'AI_SETUP'>('CHART');
+    const [timeframe, setTimeframe] = useState('7'); 
     const [chartType, setChartType] = useState<'CANDLE' | 'LINE'>('CANDLE');
     const [candleData, setCandleData] = useState<OHLCData[]>([]);
     const [quant, setQuant] = useState({ fdi: 1.5, entropy: 0.5, exhaustion: null as any, conviction: null as any });
     const [aiReport, setAiReport] = useState<any>(null);
     const [aiLoading, setAiLoading] = useState(false);
-
+    
     const [alertPrice, setAlertPrice] = useState<string>('');
 
     const chartContainerRef = useRef<HTMLDivElement>(null);
@@ -88,7 +89,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                 if (mounted) {
                     setQuant({ fdi, entropy, exhaustion: exh, conviction: conv });
                 }
-            } catch (e) { }
+            } catch (e) {}
         };
         load();
         return () => { mounted = false; };
@@ -113,7 +114,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
             if (update && mainSeriesRef.current) {
                 const lastCandle = candleData[candleData.length - 1];
                 const updatedTime = (lastCandle.time / 1000) as any;
-
+                
                 if (chartType === 'CANDLE') {
                     (mainSeriesRef.current as ISeriesApi<"Candlestick">).update({
                         time: updatedTime,
@@ -136,16 +137,16 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
     // Chart Lifecycle Management
     useEffect(() => {
         if (!chartContainerRef.current || candleData.length === 0 || activeTab !== 'CHART') return;
-
-        if (chartInstance.current) {
-            chartInstance.current.remove();
-            chartInstance.current = null;
+        
+        if (chartInstance.current) { 
+            chartInstance.current.remove(); 
+            chartInstance.current = null; 
         }
 
         const chart = createChart(chartContainerRef.current, {
             layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#64748b' },
             grid: { vertLines: { visible: false }, horzLines: { color: 'rgba(255, 255, 255, 0.03)' } },
-            width: chartContainerRef.current.clientWidth,
+            width: chartContainerRef.current.clientWidth, 
             height: 320,
             timeScale: { borderColor: 'rgba(255, 255, 255, 0.05)' },
         });
@@ -162,24 +163,17 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
         chart.timeScale().fitContent();
         chartInstance.current = chart;
 
-        // Resize Observer
-        const handleResize = () => {
-            if (chartContainerRef.current && chartInstance.current) {
-                chartInstance.current.applyOptions({ width: chartContainerRef.current.clientWidth });
-            }
-        };
-
-        const resizeObserver = new ResizeObserver(handleResize);
+        // Resize observer to handle container width changes
+        const resizeObserver = new ResizeObserver(entries => {
+            if (entries.length === 0 || !entries[0].contentRect) return;
+            const newRect = entries[0].contentRect;
+            chart.applyOptions({ width: newRect.width });
+        });
         resizeObserver.observe(chartContainerRef.current);
-        window.addEventListener('resize', handleResize);
 
-        return () => {
+        return () => { 
             resizeObserver.disconnect();
-            window.removeEventListener('resize', handleResize);
-            if (chartInstance.current) {
-                chartInstance.current.remove();
-                chartInstance.current = null;
-            }
+            if (chartInstance.current) { chartInstance.current.remove(); chartInstance.current = null; } 
         };
     }, [candleData, chartType, activeTab]);
 
@@ -214,29 +208,29 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                             <p className={`text-sm font-bold font-mono ${asset.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>${asset.value.toFixed(2)} ({asset.change.toFixed(2)}%)</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-12 h-12 rounded-full bg-white/5 text-slate-400 flex items-center justify-center">✕</button>
+                    <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-colors">✕</button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
-                    <div className="flex gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10 mb-8 shadow-inner">
-                        {['CHART', 'WATCHDOG', 'AI_SETUP'].map(t => (
-                            <button key={t} onClick={() => setActiveTab(t as any)} className={`flex-1 py-3 rounded-xl text-[10px] font-black font-orbitron transition-all ${activeTab === t ? 'bg-brand-card text-brand-cyan shadow-lg' : 'text-slate-500'}`}>{t.replace('_', ' ')}</button>
+                    <div className="flex gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10 mb-8 shadow-inner overflow-x-auto no-scrollbar">
+                        {['CHART', 'ORDERBOOK', 'WATCHDOG', 'AI_SETUP'].map(t => (
+                            <button key={t} onClick={() => setActiveTab(t as any)} className={`flex-1 min-w-[80px] py-3 rounded-xl text-[10px] font-black font-orbitron transition-all ${activeTab === t ? 'bg-brand-card text-brand-cyan shadow-lg' : 'text-slate-500'}`}>{t.replace('_', ' ')}</button>
                         ))}
                     </div>
 
                     {activeTab === 'CHART' && (
-                        <div className="space-y-6 animate-fade-in">
-                            <div className="bg-black/30 rounded-[2.5rem] border border-white/5 p-2 min-h-[350px] relative overflow-hidden">
-                                <div className="flex justify-between p-4 absolute top-0 left-0 w-full z-20 pointer-events-none">
-                                    <div className="flex gap-2 pointer-events-auto">
-                                        <button onClick={() => setChartType('CANDLE')} className={`p-2 rounded-lg border ${chartType === 'CANDLE' ? 'border-brand-cyan text-brand-cyan' : 'border-white/5 text-slate-500'}`}><BarChartIcon className="w-4 h-4" /></button>
-                                        <button onClick={() => setChartType('LINE')} className={`p-2 rounded-lg border ${chartType === 'LINE' ? 'border-brand-cyan text-brand-cyan' : 'border-white/5 text-slate-500'}`}><ActivityIcon className="w-4 h-4" /></button>
+                        <div className="space-y-6 animate-fade-in w-full">
+                            <div className="bg-black/30 rounded-[2.5rem] border border-white/5 p-2 min-h-[350px] relative w-full overflow-hidden">
+                                <div className="flex justify-between p-4 absolute top-0 left-0 w-full z-20">
+                                    <div className="flex gap-2">
+                                        <button onClick={() => setChartType('CANDLE')} className={`p-2 rounded-lg border ${chartType === 'CANDLE' ? 'border-brand-cyan text-brand-cyan' : 'border-white/5 text-slate-500'}`}><BarChartIcon className="w-4 h-4"/></button>
+                                        <button onClick={() => setChartType('LINE')} className={`p-2 rounded-lg border ${chartType === 'LINE' ? 'border-brand-cyan text-brand-cyan' : 'border-white/5 text-slate-500'}`}><ActivityIcon className="w-4 h-4"/></button>
                                     </div>
-                                    <div className="flex bg-black/60 rounded-xl p-1 border border-white/5 pointer-events-auto">
+                                    <div className="flex bg-black/60 rounded-xl p-1 border border-white/5">
                                         {TIMEFRAMES.map(tf => <button key={tf.label} onClick={() => setTimeframe(tf.days)} className={`text-[8px] font-black px-3 py-1.5 rounded-lg ${timeframe === tf.days ? 'bg-brand-cyan/20 text-brand-cyan' : 'text-slate-500'}`}>{tf.label}</button>)}
                                     </div>
                                 </div>
-                                <div ref={chartContainerRef} className="w-full max-w-full h-[320px] mt-10 overflow-hidden" />
+                                <div ref={chartContainerRef} className="w-full h-[320px] mt-10" style={{ width: '100%' }} />
                             </div>
 
                             {/* Stage 5 Quant Panel */}
@@ -255,22 +249,72 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                         </div>
                     )}
 
+                    {activeTab === 'ORDERBOOK' && (
+                        <div className="space-y-6 animate-fade-in w-full">
+                            <div className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6">
+                                <h3 className="text-[10px] text-brand-cyan font-black uppercase mb-4 flex items-center gap-2"><ActivityIcon className="w-4 h-4"/> Market_Depth (Orderbook)</h3>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {/* ASKS (SELLS) */}
+                                    <div className="space-y-1 flex flex-col-reverse">
+                                        {Array.from({length: 8}).map((_, i) => {
+                                            const price = asset.value * (1 + (8-i)*0.001);
+                                            const size = Math.random() * 10 + 1;
+                                            const depth = (size / 11) * 100;
+                                            return (
+                                                <div key={`ask-${i}`} className="relative h-6 flex items-center justify-between px-2 group">
+                                                    <div className="absolute top-0 right-0 h-full bg-red-500/10 transition-all" style={{ width: `${depth}%` }}></div>
+                                                    <span className="text-[10px] font-mono text-red-400 relative z-10">{price.toFixed(2)}</span>
+                                                    <span className="text-[10px] font-mono text-slate-400 relative z-10">{size.toFixed(2)}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    {/* BIDS (BUYS) */}
+                                    <div className="space-y-1">
+                                        {Array.from({length: 8}).map((_, i) => {
+                                            const price = asset.value * (1 - (i+1)*0.001);
+                                            const size = Math.random() * 10 + 1;
+                                            const depth = (size / 11) * 100;
+                                            return (
+                                                <div key={`bid-${i}`} className="relative h-6 flex items-center justify-between px-2 group">
+                                                    <div className="absolute top-0 left-0 h-full bg-green-500/10 transition-all" style={{ width: `${depth}%` }}></div>
+                                                    <span className="text-[10px] font-mono text-green-400 relative z-10">{price.toFixed(2)}</span>
+                                                    <span className="text-[10px] font-mono text-slate-400 relative z-10">{size.toFixed(2)}</span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                                <div className="mt-6 p-4 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between">
+                                    <div>
+                                        <p className="text-[8px] text-slate-500 font-black uppercase mb-1">Spread</p>
+                                        <p className="text-xs font-mono text-white">{(asset.value * 0.001).toFixed(4)}</p>
+                                    </div>
+                                    <div className="text-right">
+                                        <p className="text-[8px] text-slate-500 font-black uppercase mb-1">Buy_Wall_Strength</p>
+                                        <p className="text-xs font-mono text-brand-green">STRONG</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {activeTab === 'WATCHDOG' && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="bg-brand-cyan/5 border border-brand-cyan/20 rounded-[2.5rem] p-6">
-                                <h3 className="text-[10px] text-brand-cyan font-black uppercase mb-4 flex items-center gap-2"><BellIcon className="w-4 h-4" /> Deploy_Price_Sentinel</h3>
+                                <h3 className="text-[10px] text-brand-cyan font-black uppercase mb-4 flex items-center gap-2"><BellIcon className="w-4 h-4"/> Deploy_Price_Sentinel</h3>
                                 <div className="flex gap-2">
                                     <div className="relative flex-1">
                                         <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 font-mono text-xs">$</span>
-                                        <input
-                                            type="number"
+                                        <input 
+                                            type="number" 
                                             value={alertPrice}
                                             onChange={(e) => setAlertPrice(e.target.value)}
-                                            placeholder="Enter target price..."
+                                            placeholder="Enter target price..." 
                                             className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-8 pr-4 text-white font-mono text-sm focus:border-brand-cyan outline-none"
                                         />
                                     </div>
-                                    <button
+                                    <button 
                                         onClick={handleAddAlert}
                                         className="bg-brand-cyan text-black px-6 rounded-xl font-black text-xs uppercase active:scale-95 transition-transform"
                                     >
@@ -287,7 +331,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                                         <p className="text-[10px] font-mono uppercase">No active sentinels for {asset.ticker}</p>
                                     </div>
                                 ) : (
-                                    (Array.isArray(assetAlerts) ? assetAlerts : []).map(alert => (
+                                    assetAlerts.map(alert => (
                                         <div key={alert.id} className="bg-brand-card/40 border border-white/5 rounded-2xl p-4 flex justify-between items-center group">
                                             <div className="flex items-center gap-4">
                                                 <div className={`w-2 h-2 rounded-full ${alert.active ? 'bg-brand-green animate-pulse' : 'bg-slate-600'}`}></div>
@@ -307,7 +351,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                     {activeTab === 'AI_SETUP' && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="bg-brand-purple/5 border border-brand-purple/20 rounded-[2.5rem] p-8 relative overflow-hidden">
-                                <h4 className="text-[10px] text-brand-purple font-black uppercase mb-6 flex items-center gap-2"><BotIcon className="w-5 h-5" /> Live_Neural_Synthetics</h4>
+                                <h4 className="text-[10px] text-brand-purple font-black uppercase mb-6 flex items-center gap-2"><BotIcon className="w-5 h-5"/> Live_Neural_Synthetics</h4>
                                 {aiLoading ? <div className="text-xs text-slate-500 animate-pulse font-mono">📡 LINKING_TO_GLOBAL_SEARCH...</div> : (
                                     <div className="space-y-4">
                                         <p className="text-sm text-slate-200 font-mono leading-relaxed italic">"{aiReport}"</p>
@@ -322,10 +366,22 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                         </div>
                     )}
                 </div>
-
-                <div className="p-6 border-t border-white/5 bg-brand-bg shrink-0">
-                    <button onClick={() => triggerHaptic('heavy')} className="w-full py-6 bg-brand-green text-black font-black font-orbitron rounded-[1.8rem] shadow-2xl text-sm tracking-[0.25em] uppercase active:scale-95">
-                        EXECUTE_NEURAL_ORDER
+                
+                <div className="p-4 sm:p-6 border-t border-white/5 bg-brand-bg shrink-0 flex gap-2">
+                    <button onClick={() => triggerHaptic('heavy')} className="flex-1 py-3 bg-brand-green text-black font-black font-orbitron rounded-xl shadow-2xl text-[10px] sm:text-xs tracking-widest uppercase active:scale-95">
+                        {t('btn.execute_order')}
+                    </button>
+                    <button 
+                        onClick={() => {
+                            triggerHaptic('medium');
+                            const text = `Check out ${asset.name} (${asset.ticker}) on StorkCrypto!\nCurrent Price: $${asset.value.toFixed(2)}\n24h Change: ${asset.change.toFixed(2)}%`;
+                            const channelUsername = 'storkcrypto'; 
+                            const url = `https://t.me/${channelUsername}?text=${encodeURIComponent(text)}`;
+                            window.open(url, '_blank');
+                        }}
+                        className="w-10 h-10 sm:w-12 sm:h-12 bg-[#0088cc] text-white rounded-xl flex items-center justify-center shadow-2xl active:scale-95 shrink-0"
+                    >
+                        <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.195-.054-.304-.346-.11l-6.4 4.024-2.76-.86c-.6-.185-.61-.6.125-.89l10.736-4.136c.5-.186.94.11.725.918z"/></svg>
                     </button>
                 </div>
             </div>

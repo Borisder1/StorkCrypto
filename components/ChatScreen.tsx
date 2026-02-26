@@ -20,10 +20,10 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         const initSession = async () => {
             // Calculate Total Value
             const totalValue = assets.reduce((sum, a) => sum + (a.value || 0), 0);
-
+            
             // Build Asset String
             const assetContext = assets.map(a => `${a.ticker}: ${a.amount.toFixed(4)} ($${a.value.toFixed(2)})`).join(', ');
-
+            
             // Wallet Status
             const walletInfo = wallet.isConnected ? `Connected: ${wallet.walletType} (${wallet.address})` : 'Wallet: Disconnected';
 
@@ -63,12 +63,12 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const handleSend = async (messageText?: string) => {
         const text = messageText || input;
         if (!text.trim() || isLoading) return;
-
+        
         triggerHaptic('medium');
         addChatMessage({ role: 'user', text });
         setInput('');
         setIsLoading(true);
-
+        
         try {
             let responseText = "";
             if (isAuditMode && (text.startsWith('0x') || text.length > 25)) {
@@ -90,24 +90,24 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         <div className="flex flex-col h-full bg-[#020617] relative animate-fade-in font-mono">
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-brand-cyan/20 bg-[#050b14]">
-                <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded border flex items-center justify-center ${isAuditMode ? 'bg-brand-purple/20 border-brand-purple text-brand-purple' : 'bg-brand-cyan/20 border-brand-cyan text-brand-cyan'}`}>
+                 <div className="flex items-center gap-3">
+                     <div className={`w-8 h-8 rounded border flex items-center justify-center ${isAuditMode ? 'bg-brand-purple/20 border-brand-purple text-brand-purple' : 'bg-brand-cyan/20 border-brand-cyan text-brand-cyan'}`}>
                         <BotIcon className="w-5 h-5" />
-                    </div>
-                    <div>
+                     </div>
+                     <div>
                         <h1 className="text-xs font-bold text-white tracking-widest uppercase">Stork_AI_Core</h1>
                         <p className="text-[8px] text-slate-500">UPLINK_ESTABLISHED</p>
-                    </div>
-                </div>
-                <div className="flex gap-2">
-                    <button
+                     </div>
+                 </div>
+                 <div className="flex gap-2">
+                    <button 
                         onClick={() => { setIsAuditMode(!isAuditMode); triggerHaptic('selection'); }}
                         className={`px-3 py-1 rounded border text-[9px] font-bold uppercase transition-all ${isAuditMode ? 'bg-brand-purple text-white border-brand-purple' : 'bg-transparent border-white/20 text-slate-500'}`}
                     >
                         {isAuditMode ? 'AUDIT_MODE' : 'CHAT_MODE'}
                     </button>
                     <button onClick={() => { setIsAIChatOpen(false); onClose?.(); }} className="w-8 h-8 rounded bg-red-900/20 border border-red-500/50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">✕</button>
-                </div>
+                 </div>
             </div>
 
             {/* Chat Area */}
@@ -128,8 +128,8 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         )}
                     </div>
                 )}
-
-                {(Array.isArray(chatHistory) ? chatHistory : []).map((msg, idx) => (
+                
+                {chatHistory.map((msg, idx) => (
                     <div key={idx} className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                         <div className={`max-w-[85%] p-3 rounded-lg border text-xs leading-relaxed font-mono shadow-lg ${msg.role === 'user' ? 'bg-brand-cyan/10 border-brand-cyan/50 text-brand-cyan rounded-tr-none' : 'bg-black/60 border-white/10 text-slate-300 rounded-tl-none'}`}>
                             {msg.isAudit && <div className="text-[8px] font-black text-brand-purple uppercase mb-1 border-b border-brand-purple/30 pb-1">SECURITY_PROTOCOL</div>}
@@ -138,7 +138,7 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <span className="text-[7px] text-slate-600 mt-1 uppercase font-bold">{msg.role === 'user' ? 'OP_CMD' : 'AI_RESP'}</span>
                     </div>
                 ))}
-
+                
                 {isLoading && (
                     <div className="flex items-start">
                         <div className="bg-black/60 border border-white/10 rounded-lg p-3 rounded-tl-none flex gap-1">

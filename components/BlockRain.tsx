@@ -19,29 +19,38 @@ const BlockRain: React.FC = () => {
         // Hex chars for crypto feel
         const chars = "0123456789ABCDEFx";
 
-        const draw = () => {
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'; // Fade effect
+        let animationFrameId: number;
+        let lastTime = 0;
+        const fps = 20; // Lower FPS for battery saving
+        const interval = 1000 / fps;
+
+        const draw = (currentTime: number) => {
+            animationFrameId = requestAnimationFrame(draw);
+
+            const delta = currentTime - lastTime;
+            if (delta < interval) return;
+            lastTime = currentTime - (delta % interval);
+
+            ctx.fillStyle = 'rgba(2, 6, 23, 0.1)'; // Match brand-bg fade
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            ctx.fillStyle = '#00F0FF'; // Brand Cyan
+            ctx.fillStyle = '#00F0FF'; 
             ctx.font = '10px monospace';
 
             for (let i = 0; i < drops.length; i++) {
                 const text = chars[Math.floor(Math.random() * chars.length)];
-                
-                // Random opacity for depth
-                ctx.globalAlpha = Math.random() * 0.5 + 0.1;
+                ctx.globalAlpha = Math.random() * 0.3 + 0.1;
                 ctx.fillText(text, i * 20, drops[i] * 20);
                 ctx.globalAlpha = 1.0;
 
-                if (drops[i] * 20 > canvas.height && Math.random() > 0.975) {
+                if (drops[i] * 20 > canvas.height && Math.random() > 0.98) {
                     drops[i] = 0;
                 }
                 drops[i]++;
             }
         };
 
-        const interval = setInterval(draw, 50);
+        animationFrameId = requestAnimationFrame(draw);
 
         const handleResize = () => {
             canvas.width = window.innerWidth;
@@ -50,7 +59,7 @@ const BlockRain: React.FC = () => {
         window.addEventListener('resize', handleResize);
 
         return () => {
-            clearInterval(interval);
+            cancelAnimationFrame(animationFrameId);
             window.removeEventListener('resize', handleResize);
         };
     }, []);
