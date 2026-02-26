@@ -13,8 +13,8 @@ const AuthScreen: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     
-    // Побудова абсолютного шляху для надійності
-    const logoUrl = `${window.location.origin}/logo.jpg`;
+    // Побудова шляху з урахуванням BASE_URL для коректної роботи в підпапках (GitHub Pages)
+    const logoUrl = `${import.meta.env.BASE_URL}logo.jpg`;
     const [imgError, setImgError] = useState(false);
 
     const t = (key: string) => getTranslation(settings.language, key);
