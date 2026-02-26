@@ -16,7 +16,7 @@ import http from 'http';
 const token = process.env.TELEGRAM_BOT_TOKEN || '7417393370:AAHltsez_OwNbdDm3Ajw6yoWl2JaO6lOIEE'; 
 
 // URL вашого Web App
-const webAppUrl = process.env.WEB_APP_URL || 'https://storkcrypto.borishanter12.workers.dev/';
+const webAppUrl = process.env.WEB_APP_URL || 'https://a310c93f.storkcrypto-app.pages.dev/';
 
 const bot = new TelegramBot(token, { polling: true });
 
@@ -85,9 +85,15 @@ const checkPrices = () => {
 // Запуск моніторингу кожні 60 секунд
 setInterval(checkPrices, 60000);
 
+bot.on('polling_error', (error) => {
+    console.error(`[Polling Error] ${error.code}: ${error.message}`);
+});
+
 bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text;
+    
+    console.log(`[Message Received] from ${chatId}: ${text}`);
     
     // Реєструємо користувача для розсилки
     userIds.add(chatId);
