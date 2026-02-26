@@ -2,23 +2,27 @@ import React from 'react';
 import { useStore } from '../store';
 import { ShieldIcon, TrendingUpIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
+import { getTranslation } from '../utils/translations';
+import EmptyState from './EmptyState';
 
 const QuestWidget: React.FC = () => {
-    const { quests, claimQuestReward } = useStore();
+    const { quests, claimQuestReward, settings } = useStore();
+    const t = (key: string) => getTranslation(settings?.language || 'en', key);
 
     const visibleQuests = quests.filter(q => !q.isClaimed || q.progress >= q.target).slice(0, 2);
 
     if (visibleQuests.length === 0) return (
-        <div className="bg-brand-card/30 border border-brand-border rounded-[2rem] p-4 flex flex-col items-center justify-center min-h-[100px] text-center">
-            <ActivityIcon className="w-6 h-6 text-slate-700 mb-1" />
-            <p className="text-slate-500 text-[8px] font-bold uppercase tracking-widest font-orbitron">Missions Clear</p>
-        </div>
+        <EmptyState
+            message={t('missions.offline') || 'MISSIONS_OFFLINE'}
+            subMessage={t('module.calibrating') || 'System upgrading to V2 protocol. New objectives will be broadcasted shortly.'}
+            icon={<ShieldIcon className="w-6 h-6 text-slate-700" />}
+        />
     );
 
     return (
         <div className="bg-brand-card/60 backdrop-blur-xl border border-brand-border rounded-[2rem] p-4 relative overflow-hidden group">
             <div className="absolute top-0 left-8 w-[1px] h-full bg-brand-cyan/5"></div>
-            
+
             <div className="flex justify-between items-center mb-4 relative z-10">
                 <div>
                     <h3 className="text-white font-black text-[10px] font-orbitron tracking-widest flex items-center gap-2 uppercase">
@@ -31,7 +35,7 @@ const QuestWidget: React.FC = () => {
             </div>
 
             <div className="space-y-3 relative z-10">
-                {visibleQuests.map(quest => {
+                {(Array.isArray(visibleQuests) ? visibleQuests : []).map(quest => {
                     const isCompleted = quest.progress >= quest.target;
                     const percent = (quest.progress / quest.target) * 100;
 
@@ -48,7 +52,7 @@ const QuestWidget: React.FC = () => {
                                     </div>
                                 </div>
                                 {isCompleted ? (
-                                    <button 
+                                    <button
                                         onClick={() => { triggerHaptic('success'); claimQuestReward(quest.id); }}
                                         className="px-2.5 py-1 bg-brand-cyan text-black text-[8px] font-black rounded-md shadow-[0_0_10px_var(--primary-color)] transition-all hover:scale-105 active:scale-95 uppercase font-orbitron"
                                     >
@@ -60,10 +64,10 @@ const QuestWidget: React.FC = () => {
                                     </span>
                                 )}
                             </div>
-                            
+
                             <div className="h-0.5 w-full bg-slate-800 rounded-full overflow-hidden flex items-center">
-                                <div 
-                                    className={`h-full transition-all duration-1000 ease-out ${isCompleted ? 'bg-brand-green' : 'bg-brand-purple'}`} 
+                                <div
+                                    className={`h-full transition-all duration-1000 ease-out ${isCompleted ? 'bg-brand-green' : 'bg-brand-purple'}`}
                                     style={{ width: `${percent}%` }}
                                 ></div>
                             </div>

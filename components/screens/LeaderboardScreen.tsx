@@ -4,16 +4,17 @@ import { useStore } from '../../store';
 import { supabase } from '../../services/supabaseClient';
 import { ShieldIcon, ActivityIcon, GlobeIcon, ZapIcon, UserIcon } from '../icons';
 import { triggerHaptic } from '../../utils/haptics';
-import UpgradeBanner from '../UpgradeBanner'; 
+import UpgradeBanner from '../UpgradeBanner';
+import EmptyState from '../EmptyState';
 
 const RankPodium: React.FC<{ user: any, rank: number }> = ({ user, rank }) => {
     if (!user) return <div className="w-1/3 h-full"></div>;
 
     const height = rank === 1 ? 'h-48' : rank === 2 ? 'h-40' : 'h-32';
-    const color = rank === 1 ? 'border-yellow-400 text-yellow-400 bg-yellow-400/10' : 
-                  rank === 2 ? 'border-slate-300 text-slate-300 bg-slate-300/10' : 
-                  'border-amber-600 text-amber-600 bg-amber-600/10';
-    
+    const color = rank === 1 ? 'border-yellow-400 text-yellow-400 bg-yellow-400/10' :
+        rank === 2 ? 'border-slate-300 text-slate-300 bg-slate-300/10' :
+            'border-amber-600 text-amber-600 bg-amber-600/10';
+
     const glow = rank === 1 ? 'shadow-[0_0_30px_rgba(250,204,21,0.3)]' : '';
 
     return (
@@ -49,7 +50,7 @@ const LeaderboardScreen: React.FC = () => {
                     .select('id, username, first_name, xp, level, subscription_tier')
                     .order('xp', { ascending: false })
                     .limit(50);
-                
+
                 if (data) {
                     setGlobalUsers(data);
                 }
@@ -79,7 +80,7 @@ const LeaderboardScreen: React.FC = () => {
                         <p className="text-[10px] text-slate-500 font-space-mono uppercase">Global Pilot Rankings</p>
                     </div>
                 </div>
-                
+
                 <div className="w-10 h-10 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center">
                     <GlobeIcon className="w-5 h-5 text-brand-cyan" />
                 </div>
@@ -124,11 +125,13 @@ const LeaderboardScreen: React.FC = () => {
                         <p className="text-[10px] text-slate-500 font-mono">Syncing Neural Grid...</p>
                     </div>
                 ) : globalUsers.length === 0 ? (
-                    <div className="text-center py-10 text-slate-500 text-xs border border-dashed border-white/10 rounded-xl">
-                        No pilots found in sector.
-                    </div>
+                    <EmptyState
+                        message="NO_PILOTS_FOUND"
+                        subMessage="No pilots found in sector. Be the first to claim the rank."
+                        icon={<GlobeIcon className="w-6 h-6 text-slate-500 opacity-50" />}
+                    />
                 ) : (
-                    restList.map((u, idx) => {
+                    (Array.isArray(restList) ? restList : []).map((u, idx) => {
                         const isMe = u.id === userStats.id;
                         const isWhale = u.subscription_tier === 'WHALE';
                         const isPro = u.subscription_tier === 'PRO';

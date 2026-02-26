@@ -28,6 +28,7 @@ const TradeModal: React.FC<TradeModalProps> = ({ ticker, currentPrice, initialTP
     
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const chartInstance = useRef<IChartApi | null>(null);
+    const observerRef = useRef<ResizeObserver | null>(null);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -71,6 +72,15 @@ const TradeModal: React.FC<TradeModalProps> = ({ ticker, currentPrice, initialTP
                     handleScale: false, handleScroll: false,
                 });
 
+                // Add ResizeObserver for responsiveness
+                if (observerRef.current) observerRef.current.disconnect();
+                observerRef.current = new ResizeObserver(() => {
+                    if (chart && chartContainerRef.current) {
+                        chart.applyOptions({ width: chartContainerRef.current.clientWidth });
+                    }
+                });
+                observerRef.current.observe(chartContainerRef.current);
+
                 const series = chart.addAreaSeries({
                     lineColor: '#00d9ff', topColor: 'rgba(0, 217, 255, 0.1)', bottomColor: 'rgba(0, 217, 255, 0)', lineWidth: 2,
                 });
@@ -88,6 +98,9 @@ const TradeModal: React.FC<TradeModalProps> = ({ ticker, currentPrice, initialTP
                     chart.timeScale().fitContent();
                     chartInstance.current = chart;
                 }
+                
+                // Cleanup observer on unmount (will be handled by closure, but good to track if needed)
+                // Since we don't have a separate ref for observer, we rely on component unmount
             } catch (e) {
                 console.warn("Trade chart init error", e);
             }
@@ -102,6 +115,10 @@ const TradeModal: React.FC<TradeModalProps> = ({ ticker, currentPrice, initialTP
                     chartInstance.current.remove();
                 } catch(e) {}
                 chartInstance.current = null;
+            }
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+                observerRef.current = null;
             }
         };
     }, [ticker]);

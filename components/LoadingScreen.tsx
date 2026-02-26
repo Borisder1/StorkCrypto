@@ -1,4 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { useStore } from '../store';
+import { getTranslation } from '../utils/translations';
 
 // ⚡ Клас для частинок енергії, які летять від літер до прогрес-бару
 class EnergyParticle {
@@ -44,16 +46,19 @@ class EnergyParticle {
 }
 
 interface LoadingScreenProps {
-    onSkip?: () => void;
+  onSkip?: () => void;
 }
 
 export function LoadingScreen({ onSkip }: LoadingScreenProps) {
+  const { settings } = useStore();
+  const t = (key: string) => getTranslation(settings?.language || 'en', key);
+
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lettersWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const scannerLineRef = useRef<HTMLDivElement>(null);
   const progressContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const [progress, setProgress] = useState(0);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [progressVisible, setProgressVisible] = useState(false);
@@ -80,38 +85,37 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
     // 📝 Створюємо літери динамічно
     const lettersWrapper = lettersWrapperRef.current;
     if (lettersWrapper) {
-        // Clear previous content
-        lettersWrapper.innerHTML = '';
-        
-        word.split('').forEach((char) => {
+      // Clear previous content
+      lettersWrapper.innerHTML = '';
+
+      word.split('').forEach((char) => {
         const container = document.createElement('div');
         container.className = 'letter-container';
-        
+
         const inner = document.createElement('div');
         inner.className = 'letter-inner';
-        
+
         const finalFace = document.createElement('div');
         finalFace.className = 'letter-face final-face';
         finalFace.textContent = char;
-        
+
         const scramblerFace = document.createElement('div');
         scramblerFace.className = 'letter-face scrambler-face';
         scramblerFace.textContent = '?';
-        
+
         inner.appendChild(finalFace);
         inner.appendChild(scramblerFace);
         container.appendChild(inner);
         lettersWrapper.appendChild(container);
-        
+
         letterElements.push({ element: container, revealed: false });
       });
     }
 
     // 🎬 Анімація частинок
     function animateParticles() {
-      if (!ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
+
       particles.forEach((p, index) => {
         p.draw(ctx);
         p.update();
@@ -119,7 +123,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           particles.splice(index, 1);
         }
       });
-      
+
       if (particles.length > 0 || animationFrameId) {
         animationFrameId = requestAnimationFrame(animateParticles);
       }
@@ -138,32 +142,23 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
 
       // ⚡ ФАЗА 1: Сканування літер (2.5 секунди)
       setScannerVisible(true);
-      
-      // Встановлюємо початкову позицію сканера (Зверху)
       scannerLineRef.current.style.top = `${wrapperRect.top}px`;
-      // Центруємо по горизонталі
-      scannerLineRef.current.style.left = '50%';
-      scannerLineRef.current.style.transform = 'translateX(-50%)';
 
       let startTime = performance.now();
-      
+
       function scan(time: number) {
         const elapsed = time - startTime;
         const scanDuration = 2500;
         const progress = Math.min(elapsed / scanDuration, 1);
-        
-        // Рух зверху вниз (по осі Y)
-        const currentY = wrapperRect!.top + wrapperRect!.height * progress;
-        
+        const currentY = wrapperRect.top + wrapperRect.height * progress;
+
         if (scannerLineRef.current) {
-          // Рухаємо лише по Y, X фіксований по центру
-          scannerLineRef.current.style.transform = `translateX(-50%) translateY(${currentY - wrapperRect!.top}px)`;
+          scannerLineRef.current.style.transform = `translateX(-50%) translateY(${currentY - wrapperRect.top}px)`;
         }
 
-        // Розкриваємо літери коли сканер проходить через них (перевірка по Y)
+        // Розкриваємо літери коли сканер проходить через них
         letterElements.forEach((el) => {
           const letterRect = el.element.getBoundingClientRect();
-          // Додаємо невеликий offset, щоб літера відкривалась коли лінія торкається її верху
           if (currentY > letterRect.top && !el.revealed) {
             el.element.classList.add('revealed');
             el.revealed = true;
@@ -190,7 +185,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           const textRect = lettersWrapper?.getBoundingClientRect();
           const barRect = progressContainerRef.current?.getBoundingClientRect();
           const progressBarWidth = progressBarRef.current?.offsetWidth || 0;
-          
+
           if (textRect && barRect) {
             // Генеруємо 5 частинок кожні 50мс
             for (let i = 0; i < 5; i++) {
@@ -205,7 +200,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         }, 50);
 
         let transferStartTime = Date.now();
-        
+
         function updateProgressBar() {
           const elapsed = Date.now() - transferStartTime;
           const currentProgress = Math.min(elapsed / chargeDuration, 1);
@@ -215,7 +210,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           }
         }
         updateProgressBar();
-        
+
         await new Promise((resolve) => setTimeout(resolve, chargeDuration));
         clearInterval(chargeInterval);
       }
@@ -241,7 +236,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#0a0a14] flex flex-col items-center justify-center overflow-hidden">
+    <div className="fixed inset-0 z-50 bg-[#0a0a14] flex flex-col items-center justify-center overflow-hidden">
       {/* 🎨 Анімований фоновий грід */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0" style={{
@@ -262,9 +257,9 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
 
         .letter-container {
           position: relative;
-          margin: clamp(0px, 0.1vh, 2px) 0; /* Vertical spacing */
+          margin: clamp(0px, 0.1vh, 2px) 0;
           font-family: 'Orbitron', monospace;
-          font-size: clamp(20px, 4.5vh, 32px);
+          font-size: clamp(18px, 4vh, 28px);
           font-weight: 900;
           width: 1.2em;
           height: 1.5em;
@@ -280,7 +275,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           width: 100%;
           height: 100%;
           transform-style: preserve-3d;
-          transform: rotateX(-90deg); /* Start hidden/rotated */
+          transform: rotateX(-90deg);
           transition: transform 0.6s cubic-bezier(0.6, 0, 0.2, 1);
         }
 
@@ -326,14 +321,12 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           position: absolute;
           top: 0;
           left: 50%;
-          /* Horizontal Scanner Bar */
+          transform: translateX(-50%);
           width: 300px;
-          height: 3px; 
+          height: 3px;
           background: linear-gradient(90deg, transparent, #00d9ff 20%, #ffffff 50%, #00d9ff 80%, transparent);
           box-shadow: 0 0 20px #00d9ff, 0 0 40px #00d9ff, 0 0 60px #00d9ff;
           transition: opacity 0.5s;
-          /* Centered horizontally */
-          transform: translateX(-50%);
         }
 
         .progress-container {
@@ -365,7 +358,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
       {/* 🎨 Canvas для частинок */}
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-10" />
 
-      {/* 📝 Контейнер з літерами STORKCRYPTO - Vertical Layout */}
+      {/* 📝 Контейнер з літерами STORKCRYPTO */}
       <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
         <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
       </div>
@@ -390,13 +383,15 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         style={{ opacity: scannerVisible ? 1 : 0 }}
       />
 
-      {/* Кнопка пропуску (відновлено) */}
-      <button 
-        onClick={onSkip}
-        className="absolute bottom-12 z-50 text-slate-600 hover:text-[#00d9ff] font-orbitron text-[10px] font-bold uppercase tracking-[0.3em] transition-colors duration-300 border-b border-transparent hover:border-[#00d9ff] pb-1 cursor-pointer"
-      >
-        SKIP_INIT {'>>'}
-      </button>
+      {/* Skip Button - Minimal design per Design System */}
+      {onSkip && (
+        <button
+          onClick={onSkip}
+          className="absolute bottom-12 z-50 text-slate-600 hover:text-brand-cyan font-orbitron text-[10px] font-bold uppercase tracking-[0.3em] transition-colors duration-300 border-b border-transparent hover:border-brand-cyan pb-1 cursor-pointer"
+        >
+          SKIP_INIT {'>>'}
+        </button>
+      )}
     </div>
   );
 }

@@ -1,0 +1,40 @@
+{
+  "name": "StorkCrypto AI Terminal",
+  "short_name": "StorkCrypto",
+  "description": "Neural crypto portfolio tracker and AI market scanner.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/logo.jpg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any"
+    },
+    {
+      "src": "/logo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Market Scanner",
+      "short_name": "Scanner",
+      "description": "Open AI Market Scanner",
+      "url": "/?tab=scanner",
+      "icons": [{ "src": "/logo.jpg", "sizes": "192x192", "type": "image/jpeg" }]
+    },
+    {
+      "name": "My Portfolio",
+      "short_name": "Portfolio",
+      "description": "View Assets",
+      "url": "/?tab=portfolio",
+      "icons": [{ "src": "/logo.jpg", "sizes": "192x192", "type": "image/jpeg" }]
+    }
+  ]
+}

@@ -7,7 +7,7 @@ import { getTranslation } from '../utils/translations';
 export const SystemTerminal: React.FC = () => {
     const { navigateTo, setIsAIChatOpen, activeTab, settings } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
-    
+
     // Initial State is localized
     const [logs, setLogs] = useState<string[]>([]);
     const [inputValue, setInputValue] = useState("");
@@ -43,14 +43,14 @@ export const SystemTerminal: React.FC = () => {
             const randomKey = logKeys[Math.floor(Math.random() * logKeys.length)];
             // Use the translation function here to ensure the log is in the current language
             const randomMsg = t(randomKey) + (randomKey.includes('ping') ? ': 42ms' : '');
-            
+
             const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            
+
             setLogs(prev => {
                 const updated = [...prev, `[${timestamp}] ${randomMsg}`];
                 return updated.length > 20 ? updated.slice(1) : updated;
             });
-            
+
             setIntegrity(prev => Math.min(100, Math.max(98, prev + (Math.random() - 0.5) * 0.1)));
             timeoutId = window.setTimeout(addLog, Math.random() * 6000 + 3000);
         };
@@ -68,7 +68,7 @@ export const SystemTerminal: React.FC = () => {
     const executeCommand = (cmd: string) => {
         const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit' });
         let response = `${t('term.not_found')}: ${cmd}`;
-        
+
         setIsGlitching(true);
         setTimeout(() => setIsGlitching(false), 150);
         triggerHaptic('medium');
@@ -104,25 +104,25 @@ export const SystemTerminal: React.FC = () => {
                 <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/40 to-transparent"></div>
                 <div className="flex items-center gap-3">
                     <div className="flex gap-1 items-end h-3">
-                         {[1,2,3,4].map(i => <div key={i} className="w-0.5 bg-brand-cyan animate-pulse" style={{ height: `${Math.random() * 100}%`, animationDelay: `${i * 0.1}s` }}></div>)}
+                        {[1, 2, 3, 4].map(i => <div key={i} className="w-0.5 bg-brand-cyan animate-pulse" style={{ height: `${Math.random() * 100}%`, animationDelay: `${i * 0.1}s` }}></div>)}
                     </div>
                     <span className="text-[10px] font-black text-white tracking-[0.2em] font-orbitron uppercase">{t('term.title')}</span>
                 </div>
                 <div className="flex items-center gap-3">
-                     <span className="text-[9px] font-mono text-brand-cyan/60">{integrity.toFixed(1)}% INTG</span>
-                     <div className="w-2 h-2 rounded-full bg-brand-cyan animate-ping shadow-[0_0_10px_#00d9ff]"></div>
+                    <span className="text-[9px] font-mono text-brand-cyan/60">{integrity.toFixed(1)}% INTG</span>
+                    <div className="w-2 h-2 rounded-full bg-brand-cyan animate-ping shadow-[0_0_10px_#00d9ff]"></div>
                 </div>
             </div>
 
-            <div 
+            <div
                 ref={containerRef}
                 onClick={() => inputRef.current?.focus()}
                 className="bg-black/90 backdrop-blur-2xl border-x border-b border-white/10 rounded-b-3xl p-5 h-40 overflow-y-auto custom-scrollbar relative font-mono text-[11px] shadow-2xl flex flex-col group/body"
             >
                 <div className="flex-1 space-y-1">
-                    {logs.map((log, i) => (
-                        <div key={i} className={`flex gap-2 ${log.startsWith('>') ? 'text-white font-bold' : 'text-brand-cyan/70 opacity-80'}`}>
-                            {!log.startsWith('>') && <span className="text-brand-cyan/30 shrink-0">::</span>}
+                    {(Array.isArray(logs) ? logs : []).map((log, i) => (
+                        <div key={i} className={`flex gap-2 ${log.startsWith?.('>') ? 'text-white font-bold' : 'text-brand-cyan/70 opacity-80'}`}>
+                            {!log.startsWith?.('>') && <span className="text-brand-cyan/30 shrink-0">::</span>}
                             <span className="break-all">{log}</span>
                         </div>
                     ))}
@@ -130,9 +130,9 @@ export const SystemTerminal: React.FC = () => {
 
                 <div className="flex items-center gap-2 mt-4 shrink-0 bg-brand-cyan/5 p-2 rounded-lg border border-brand-cyan/10">
                     <span className="text-brand-cyan font-black animate-pulse">{'>'}</span>
-                    <input 
+                    <input
                         ref={inputRef}
-                        type="text" 
+                        type="text"
                         value={inputValue}
                         onChange={(e) => setInputValue(e.target.value)}
                         onKeyDown={handleKeyDown}
@@ -143,7 +143,7 @@ export const SystemTerminal: React.FC = () => {
                     />
                 </div>
             </div>
-            
+
             <div className="absolute inset-0 pointer-events-none rounded-3xl overflow-hidden opacity-5">
                 <div className="w-full h-full animate-scanline bg-gradient-to-b from-transparent via-white to-transparent"></div>
             </div>

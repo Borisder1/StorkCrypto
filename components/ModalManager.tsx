@@ -16,7 +16,7 @@ const ScannerModal = lazy(() => import('./ScannerModal'));
 const AnalyticsModal = lazy(() => import('./AnalyticsModal'));
 const NewsModal = lazy(() => import('./NewsModal'));
 const MediaScreen = lazy(() => import('./screens/MediaScreen'));
-const ChatScreen = lazy(() => import('./screens/ChatScreen'));
+const ChatScreen = lazy(() => import('./ChatScreen'));
 
 const ModalManager: React.FC = () => {
     const { 
@@ -67,8 +67,10 @@ const ModalManager: React.FC = () => {
 
                 {/* AI Chat (Top Layer Z-200) */}
                 {isAIChatOpen && (
-                    <div className="fixed inset-0 z-[200] bg-brand-bg animate-slide-up-mobile">
-                        <ChatScreen onClose={() => setIsAIChatOpen(false)} />
+                    <div className="fixed inset-0 z-[200] bg-black/80 flex justify-center animate-slide-up-mobile">
+                        <div className="w-full max-w-md h-full bg-brand-bg relative shadow-2xl">
+                            <ChatScreen onClose={() => setIsAIChatOpen(false)} />
+                        </div>
                     </div>
                 )}
             </ErrorBoundary>

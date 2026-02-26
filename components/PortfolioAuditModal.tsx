@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { BotIcon, ShieldIcon, ActivityIcon, ZapIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { runDeepPortfolioAudit } from '../services/geminiService';
+import EmptyState from './EmptyState';
 
 const PortfolioAuditModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { assets = [], userStats } = useStore();
@@ -43,6 +44,12 @@ const PortfolioAuditModal: React.FC<{ onClose: () => void }> = ({ onClose }) => 
                             <div className="w-16 h-16 border-4 border-brand-cyan/20 border-t-brand-cyan rounded-full animate-spin"></div>
                             <p className="text-[10px] font-mono text-brand-cyan uppercase animate-pulse">Neural Thinking Mode Active...</p>
                         </div>
+                    ) : assets.length === 0 ? (
+                        <EmptyState 
+                            message="NO_ASSETS_DETECTED" 
+                            subMessage="Audit cannot proceed without portfolio data. Add assets to enable neural analysis."
+                            icon={<BotIcon className="w-6 h-6 text-slate-600 opacity-50" />}
+                        />
                     ) : (
                         <div className="animate-fade-in-up">
                             <div className="flex justify-between items-end mb-8">
