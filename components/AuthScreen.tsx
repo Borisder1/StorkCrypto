@@ -4,6 +4,7 @@ import { StorkIcon, TelegramIcon, ShieldIcon, UserIcon, ChevronRightIcon } from 
 import { useStore } from '../store';
 import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
+import logo from '../assets/logo.jpg';
 
 const AuthScreen: React.FC = () => {
     const { login, settings } = useStore();
@@ -14,7 +15,7 @@ const AuthScreen: React.FC = () => {
     const [error, setError] = useState('');
     
     // Побудова шляху з урахуванням BASE_URL для коректної роботи в підпапках (GitHub Pages)
-    const logoUrl = `${import.meta.env.BASE_URL}logo.jpg`;
+    const logoUrl = logo;
     const [imgError, setImgError] = useState(false);
 
     const t = (key: string) => getTranslation(settings.language, key);

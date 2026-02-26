@@ -1,5 +1,6 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom/client';
+import './index.css';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
