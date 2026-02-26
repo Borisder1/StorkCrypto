@@ -47,9 +47,9 @@ export interface Position {
 
 export interface MiningStats {
     isActive: boolean;
-    miningRate: number; // Tokens per second
-    lastClaimTime: string; // ISO String
-    storageCapacity: number; // Max hours (e.g., 8)
+    miningRate: number; 
+    lastClaimTime: string; 
+    storageCapacity: number; 
 }
 
 export interface AirdropTask {
@@ -59,7 +59,7 @@ export interface AirdropTask {
     icon: 'TELEGRAM' | 'TWITTER' | 'WALLET' | 'INVITE' | 'PARTNER';
     isCompleted: boolean;
     link?: string;
-    isPartner?: boolean; // Custom tasks via Admin
+    isPartner?: boolean;
 }
 
 export interface BannerConfig {
@@ -74,26 +74,28 @@ export interface BannerConfig {
 
 export interface SentinelConfig {
     active: boolean;
-    whaleThreshold: number; // USD value
+    whaleThreshold: number;
     trackWhales: boolean;
     trackVolatility: boolean;
     trackSentiment: boolean;
-    quietHoursStart: string; // "22:00"
-    quietHoursEnd: string; // "07:00"
+    notifyExpiringPack: boolean; // NEW: Повідомляти про закінчення пакету
+    notifyBreakingNews: boolean; // NEW: Повідомляти про важливі новини
+    quietHoursStart: string; 
+    quietHoursEnd: string; 
 }
 
 export interface UserStats {
     id: string;
-    username?: string;
-    firstName?: string;
+    username?: string; 
+    firstName?: string; 
     storkBalance: number;
     signalsGenerated: number;
     subscriptionTier: 'FREE' | 'PRO' | 'WHALE';
-    trialActive: boolean;
-    trialEndsAt: string;
+    trialActive: boolean; 
+    trialEndsAt: string;  
     xp: number;
     level: number;
-    referralCount: number; // PHASE 2
+    referralCount: number;
     demoBalance: number;
     shadowHistory: ShadowTrade[];
     role: 'USER' | 'ADMIN';
@@ -196,9 +198,9 @@ export interface CopiedTrader {
     id: string;
     name: string;
     roi: number;
-    tvl: number;
+    tvl: number; 
     winRate: number;
-    riskScore: number;
+    riskScore: number; 
     activeVault?: CopyVaultConfig;
 }
 
@@ -258,7 +260,7 @@ export interface AgentAnalysis {
 
 export interface TradingSignal {
     signal_type: 'LONG' | 'SHORT';
-    strategy_type: 'SCALP' | 'SWING' | 'BREAKOUT' | 'REVERSAL';
+    strategy_type: 'SCALP' | 'SWING' | 'BREAKOUT' | 'REVERSAL'; 
     asset: string;
     entry_zone: string;
     confidence: number;
@@ -268,7 +270,7 @@ export interface TradingSignal {
     entryPrice: number;
     takeProfit: number;
     stopLoss: number;
-    valid_until?: number;
+    valid_until?: number; 
 }
 
 export interface AssetReport {
@@ -317,7 +319,7 @@ export interface AcademyTerm {
     visualType?: VisualType;
 }
 
-export type VisualType = 'NONE' | 'CHART_HEAD_SHOULDERS' | 'CHART_DOUBLE_TOP' | 'CHART_DOUBLE_BOTTOM' | 'CHART_BULL_FLAG' | 'CHART_CUP_HANDLE' | 'CHART_ASC_TRIANGLE' | 'CHART_DESC_TRIANGLE' | 'CHART_WEDGE_BULL' | 'CHART_WEDGE_BEAR' | 'CANDLE_DOJI' | 'CANDLE_HAMMER' | 'CANDLE_SHOOTING_STAR' | 'CANDLE_ENGULFING' | 'CANDLE_MORNING_STAR';
+export type VisualType = 'NONE' | 'CHART_HEAD_SHOULDERS' | 'CHART_DOUBLE_TOP' | 'CHART_DOUBLE_BOTTOM' | 'CHART_BULL_FLAG' | 'CHART_CUP_HANDLE' | 'CHART_ASC_TRIANGLE' | 'CHART_DESC_TRIANGLE' | 'CHART_WEDGE_BULL' | 'CHART_WEDGE_BEAR' | 'CANDLE_DOJI';
 
 export interface AppSettings {
     language: Language;
@@ -331,9 +333,19 @@ export interface AppSettings {
     onboardingComplete: boolean;
     marketOverride: MarketOverride;
     adminTreasuryWallet: string;
-    xpToProRate: number;
+    xpToProRate: number; 
     pendingSubRequests: SubscriptionRequest[];
     subscriptionPlans: SubscriptionPlan[];
+    twoFactorEnabled: boolean;
+    twoFactorSecret?: string;
+    dashboardConfig: {
+        showMarketSummary: boolean;
+        showConnectivity: boolean;
+        showMarketPulse: boolean;
+        showInsights: boolean;
+        showWhaleTracker: boolean;
+        showQuests: boolean;
+    };
 }
 
 export interface AuthSlice {
@@ -344,13 +356,11 @@ export interface AuthSlice {
 
 export interface TradeSlice {
     assets: Asset[];
-    marketPrices: MarketPriceMap; // NEW: Shared prices
-    updateMarketPrices: (prices: MarketPriceMap) => void;
     addAsset: (asset: Asset) => void;
     updateAssetPrice: (ticker: string, price: number, change: number) => void;
     positions: Position[];
     openPosition: (ticker: string, side: 'LONG' | 'SHORT', margin: number, leverage: number, price: number, tp?: number, sl?: number) => void;
-    liquidateAll: () => void;
+    closePosition: (id: string, currentPrice: number) => void;
     wallet: { isConnected: boolean; address: string | null; totalValueUsd: number; isSyncing: boolean; walletType?: string; chain?: string; balance?: string; txHistory: Transaction[] };
     connectWallet: (address: string, walletType: string, chain: string) => void;
     disconnectWallet: () => void;
@@ -382,22 +392,19 @@ export interface AppSlice {
     setShowCalendar: (show: boolean) => void;
     showReferral: boolean;
     setShowReferral: (show: boolean) => void;
-
+    
     showAirdrop: boolean;
     setShowAirdrop: (show: boolean) => void;
     claimMining: () => void;
-    upgradeMining: (type: 'RATE' | 'STORAGE') => void; // NEW
     completeAirdropTask: (taskId: string) => void;
-
-    // NEW: Partner Tasks & Banners
+    
     partnerTasks: AirdropTask[];
     addPartnerTask: (task: AirdropTask) => void;
     removePartnerTask: (id: string) => void;
     activeBanners: BannerConfig[];
     addBanner: (banner: BannerConfig) => void;
     removeBanner: (id: string) => void;
-
-    // NEW: Sentinel Config Management
+    
     showSentinel: boolean;
     setShowSentinel: (show: boolean) => void;
     updateSentinelConfig: (config: Partial<SentinelConfig>) => void;
@@ -412,10 +419,11 @@ export interface AppSlice {
     toggleMaintenance: (val: boolean) => void;
     userStats: UserStats;
     grantXp: (amount: number, reason: string) => void;
+    addXp: (amount: number) => void;
     upgradeUserTier: (tier: string, days?: number) => void;
-    redeemXpForPro: (days: number) => void;
-    checkTrialStatus: () => void;
-    hasProAccess: () => boolean;
+    redeemXpForPro: (days: number) => void; 
+    checkTrialStatus: () => void; 
+    hasProAccess: () => boolean; 
     getRankName: () => string;
     levelUpState: { visible: boolean; level: number; rewards: string[] };
     closeLevelUp: () => void;
@@ -433,7 +441,7 @@ export interface AppSlice {
     removeAlert: (id: string) => void;
     quests: Quest[];
     claimQuestReward: (id: string) => void;
-    updateQuestProgress: (type: 'TRADE' | 'SCAN' | 'SOCIAL', amount: number) => void;
+    updateQuestProgress: (type: 'TRADE' | 'SCAN' | 'SOCIAL', amount: number) => void; 
     copiedTraders: CopiedTrader[];
     copyTrader: (trader: CopiedTrader, config: CopyVaultConfig) => void;
     stopCopying: (id: string) => void;
@@ -455,14 +463,14 @@ export interface AppSlice {
     processSubscriptionRequest: (requestId: string, approve: boolean) => void;
     telegramBotConnected: boolean;
     connectTelegramBot: () => void;
-    syncUserData: (tgUser?: any) => void;
+    syncUserData: (tgUser?: any) => void; 
     redeemReferral: (referrerId: string) => void;
     exportData: () => void;
     importData: (data: string) => void;
     showAdInquiry: boolean;
     setShowAdInquiry: (show: boolean) => void;
     fetchPendingSubscriptions: () => Promise<void>;
-
+    
     adminBroadcast: { message: string; type: 'INFO' | 'ALERT' | 'SUCCESS'; id: string } | null;
     sendBroadcast: (message: string, type: 'INFO' | 'ALERT' | 'SUCCESS') => void;
 }

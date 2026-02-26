@@ -2,38 +2,25 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NewsArticle, AgentAnalysis, AssetMetrics, TradingSignal } from '../types';
 import { supabase } from './supabaseClient';
 
-const USE_EDGE_FUNCTION = true;
+const USE_EDGE_FUNCTION = true; 
 
-const getAI = () => {
-    // In Vite, use import.meta.env for client-side keys (VITE_ prefix required)
-    // Also support process.env if polyfilled
-    const key = import.meta.env.VITE_GEMINI_API_KEY || (typeof process !== 'undefined' ? process.env.GEMINI_API_KEY : '');
-
-    if (!key) {
-        console.warn("[AI] VITE_GEMINI_API_KEY not found in env");
-    }
-    return new GoogleGenAI({ apiKey: key || 'EMPTY_KEY' });
-};
+const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, modelName: string = "gemini-2.0-flash", history: any[] = []): Promise<any> => {
+const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, modelName: string = "gemini-3-flash-preview", history: any[] = []): Promise<any> => {
     if (USE_EDGE_FUNCTION) {
         try {
             const { data, error } = await supabase.functions.invoke('ask-ai', {
-                body: { prompt, config, history },
-                headers: {
-                    'Content-Type': 'application/json'
-                }
+                body: { prompt, config, history }
             });
             if (error) throw error;
             let resultText = data?.text || data;
             if (typeof resultText === 'object' && resultText !== null) return resultText;
             if (config.responseMimeType === 'application/json' && typeof resultText === 'string') return parseCleanJSON(resultText);
             return resultText;
-        } catch (e: any) {
-            console.warn("[AI] Edge Function failed (CORS or Network), falling back to local...", e);
-            // If it's a CORS error (net::ERR_FAILED), we immediately fall back to local AI
+        } catch (e) {
+            console.warn("[AI] Edge Function failed, falling back to local...", e);
         }
     }
 
@@ -43,10 +30,10 @@ const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, mo
             const response = await ai.models.generateContent({ model: modelName, contents: prompt, config });
             if (!response.text) throw new Error("Empty AI Response");
             const responseText = response.text;
-
+            
             // Extract Grounding Metadata if available
             const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-
+            
             if (config.responseMimeType === 'application/json') {
                 const parsed = parseCleanJSON(responseText);
                 if (parsed && sources.length > 0) parsed.sources = sources;
@@ -58,7 +45,7 @@ const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, mo
             else if (i === maxRetries - 1) return null;
         }
     }
-    return null;
+    return null; 
 };
 
 const parseCleanJSON = (text: string) => {
@@ -81,9 +68,14 @@ export const generateTradingSignals = async (settings: any, metrics: AssetMetric
     const prompt = `
     Analyze crypto market: [${dataCtx}]. Search for latest news/trends for these coins.
     ${getLanguageInstruction(settings.language)}
-    Return JSON only: { "market_sentiment_score": number, "market_phase": string, "macro_context": { "btc_dominance": number, "session": string }, "signals": [{ "asset": string, "signal_type": "LONG"|"SHORT", "strategy_type": "SCALP"|"SWING", "entryPrice": number, "takeProfit": number, "stopLoss": number, "confidence": number, "technical_summary": string, "reasoning_chain": [string] }] }
+    CRITICAL INSTRUCTION: You must act as a MULTI-AGENT CONSENSUS SYSTEM.
+    1. Quant Agent: Analyzes numbers, RSI, MACD, volume.
+    2. Sentiment Agent: Analyzes news, fear/greed, social trends.
+    3. Risk Manager: Evaluates Risk/Reward ratio.
+    A signal is ONLY generated if ALL 3 agents vote YES. Use Smart Money Concepts (SMC) and Volume Spread Analysis (VSA).
+    Return JSON only: { "market_sentiment_score": number, "market_phase": string, "macro_context": { "btc_dominance": number, "session": string }, "signals": [{ "asset": string, "signal_type": "LONG"|"SHORT", "strategy_type": "SCALP"|"SWING", "entryPrice": number, "takeProfit": number, "stopLoss": number, "confidence": number, "technical_summary": string, "reasoning_chain": [string], "entry_zone": string, "timeframe": string }] }
     `;
-
+    
     try {
         const res = await safeGenerate(prompt, {
             responseMimeType: 'application/json',
@@ -97,36 +89,31 @@ export const generateTradingSignals = async (settings: any, metrics: AssetMetric
 export const generateSpecificAssetAnalysis = async (ticker: string, price: number, change: number, language: string) => {
     const prompt = `Analyze ${ticker} ($${price}). Search Google for latest news, forks, or major events for ${ticker}. 
     ${getLanguageInstruction(language)} Max 3 sentences. Highlight if news sources were found.`;
-
-    return await safeGenerate(prompt, {
-        temperature: 0.7,
-        tools: [{ googleSearch: {} }]
+    
+    return await safeGenerate(prompt, { 
+        temperature: 0.7, 
+        tools: [{ googleSearch: {} }] 
     });
 };
 
 const generateFallbackSignals = (metrics: AssetMetrics[]): AgentAnalysis => {
-    // Generate randomized fallback data to simulate live market activity
-    const assets = ['BTC', 'ETH', 'SOL', 'BNB', 'XRP'];
-    const randomAsset = assets[Math.floor(Math.random() * assets.length)];
-    const isLong = Math.random() > 0.5;
-    const price = Math.floor(Math.random() * 5000) + 1000;
-
+    // Fixed: Added entry_zone and timeframe to meet TradingSignal interface requirements
     return {
-        market_sentiment_score: Math.floor(Math.random() * 40) + 30,
-        market_phase: Math.random() > 0.5 ? 'ACCUMULATION' : 'VOLATILITY_SCAN',
-        macro_context: { btc_dominance: 52.1 + (Math.random()), session: 'LONDON', volatility_index: 'MED' },
-        signals: [{
-            asset: randomAsset,
-            signal_type: isLong ? 'LONG' : 'SHORT',
-            strategy_type: 'SWING',
-            entryPrice: price,
-            takeProfit: price * (isLong ? 1.05 : 0.95),
-            stopLoss: price * (isLong ? 0.95 : 1.05),
-            confidence: Math.floor(Math.random() * 30) + 60,
-            technical_summary: isLong ? 'Support retest confirmed.' : 'Resistance rejection detected.',
-            reasoning_chain: ['Quant scan detected volume spike', 'Momentum divergence'],
-            entry_zone: `${price}-${price + 50}`,
-            timeframe: '4H'
+        market_sentiment_score: 50,
+        market_phase: 'RECOVERY_SCAN',
+        macro_context: { btc_dominance: 52.1, session: 'LONDON', volatility_index: 'MED' },
+        signals: [{ 
+            asset: 'BTC', 
+            signal_type: 'LONG', 
+            strategy_type: 'SWING', 
+            entryPrice: 65000, 
+            takeProfit: 68000, 
+            stopLoss: 64000, 
+            confidence: 70, 
+            technical_summary: 'Support bounce.', 
+            reasoning_chain: ['Quant scan detected demand'],
+            entry_zone: '64000-66000',
+            timeframe: '1D'
         }]
     };
 };
@@ -140,7 +127,7 @@ export const createChatSession = (systemContext: string, language: string) => {
     let history: any[] = [];
     return {
         sendMessage: async (msg: { message: string }) => {
-            const text = await safeGenerate(msg.message, { tools: [{ googleSearch: {} }] }, 2, 'gemini-2.0-flash', history);
+            const text = await safeGenerate(msg.message, { tools: [{ googleSearch: {} }] }, 2, 'gemini-3-flash-preview', history);
             if (text) {
                 history.push({ role: 'user', text: msg.message }, { role: 'model', text: text });
                 return { text };
@@ -161,7 +148,7 @@ export const runDeepPortfolioAudit = async (assets: any[], level: number) => {
     return await safeGenerate(`Deep audit: ${context}. Level: ${level}. Search for vulnerabilities in these assets. JSON response.`, { responseMimeType: "application/json", tools: [{ googleSearch: {} }] });
 };
 
-export const generateProactiveInsight = async (tickers: string[]): Promise<{ type: string, text: string }> => {
+export const generateProactiveInsight = async (tickers: string[]): Promise<{type: string, text: string}> => {
     const res = await safeGenerate(`Market insight for: ${tickers.join(',')}. Use search. JSON: {type, text}`, { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] });
     return res || { type: 'INFO', text: 'Scanning...' };
 };
@@ -175,7 +162,7 @@ export const auditContract = async (addressOrCode: string, lang: string): Promis
     Identify vulnerabilities, risk levels, and logic flaws. 
     ${getLanguageInstruction(lang)} 
     Be concise and tactical. Output Markdown.`;
-
+    
     return await safeGenerate(prompt, { temperature: 0.1 });
 };
 
@@ -196,7 +183,7 @@ export const generateUserAvatar = async (): Promise<string | null> => {
                 }
             }
         });
-
+        
         if (response.candidates?.[0]?.content?.parts) {
             for (const part of response.candidates[0].content.parts) {
                 if (part.inlineData) {

@@ -71,22 +71,23 @@ const ScannerListItem = React.memo(({ coin, onAssetClick, style, isAlpha }: {
                         </div>
                         <div>
                             <div className="flex items-center gap-2">
-                                <h4 className="font-bold text-white text-sm font-orbitron tracking-wide">{coin.ticker}</h4>
+                                {/* Reduced font size for mobile */}
+                                <h4 className="font-bold text-white text-xs font-orbitron tracking-wide">{coin.ticker}</h4>
                                 {isAlpha && <span className="text-[7px] font-black text-brand-purple bg-brand-purple/10 px-1 rounded animate-pulse">ALPHA</span>}
                             </div>
-                            <span className="text-[9px] font-mono text-slate-500 uppercase">Vol: {coin.volatility}</span>
+                            <span className="text-[8px] font-mono text-slate-500 uppercase">Vol: {coin.volatility}</span>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-6">
-                        <div className={`flex flex-col items-center w-16 py-1 rounded bg-black/20 border border-white/5`}>
-                            <span className="text-[7px] text-slate-500 font-black uppercase">RSI</span>
-                            <span className={`text-[10px] font-bold ${coin.rsi > 70 ? 'text-red-400' : coin.rsi < 30 ? 'text-green-400' : 'text-slate-300'}`}>{coin.rsi}</span>
+                    <div className="flex items-center gap-4">
+                        <div className={`flex flex-col items-center w-12 py-1 rounded bg-black/20 border border-white/5`}>
+                            <span className="text-[6px] text-slate-500 font-black uppercase">RSI</span>
+                            <span className={`text-[9px] font-bold ${coin.rsi > 70 ? 'text-red-400' : coin.rsi < 30 ? 'text-green-400' : 'text-slate-300'}`}>{coin.rsi}</span>
                         </div>
 
-                        <div className="flex flex-col items-end min-w-[60px]">
-                            <p className="font-mono text-sm font-bold text-white tracking-tight">${coin.price < 1 ? coin.price.toFixed(4) : coin.price.toFixed(2)}</p>
-                            <span className={`text-[10px] font-bold ${coin.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
+                        <div className="flex flex-col items-end min-w-[50px]">
+                            <p className="font-mono text-xs font-bold text-white tracking-tight">${coin.price < 1 ? coin.price.toFixed(4) : coin.price.toFixed(2)}</p>
+                            <span className={`text-[9px] font-bold ${coin.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
                                 {coin.change > 0 ? '+' : ''}{coin.change.toFixed(2)}%
                             </span>
                         </div>
@@ -126,7 +127,7 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
     useEffect(() => { performScan(); }, [activeTab]);
 
     const filteredData = useMemo(() => {
-        if (activeTab === 'ALPHA') return marketData.filter(m => Math.abs(m.change) > 5 || m.rsi > 70 || m.rsi < 30);
+        if (activeTab === 'ALPHA') return marketData.filter(m => Math.abs(m.change) > 5 || m.rsi > 70 || m.rsi < 35);
         return marketData;
     }, [marketData, activeTab]);
 
@@ -136,25 +137,24 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
     const visibleItems = filteredData.slice(startIndex, endIndex);
 
     return (
-        <div className="fixed inset-0 z-[120] bg-black/80 flex justify-center animate-fade-in overflow-hidden">
-            <div className="w-full max-w-md h-full bg-brand-bg flex flex-col relative shadow-2xl">
-                <TacticalBackground />
-                
-                <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
+        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden">
+            <TacticalBackground />
+            
+            <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose(); }}
-                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
+                        className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
                     >
-                        <ChevronRightIcon className="w-6 h-6 rotate-180" />
+                        <ChevronRightIcon className="w-5 h-5 rotate-180" />
                     </button>
                     <div>
-                        <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">Scanner_V8</h1>
+                        <h1 className="font-orbitron text-base sm:text-lg font-black text-white tracking-widest uppercase">Scanner_V8</h1>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">Neural_Grid: ONLINE</p>
                     </div>
                 </div>
-                <button onClick={performScan} disabled={scanning || activeTab === 'GLOBE'} className="w-10 h-10 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan">
-                    <SearchIcon className={`w-5 h-5 ${scanning ? 'animate-spin' : ''}`} />
+                <button onClick={performScan} disabled={scanning || activeTab === 'GLOBE'} className="w-8 h-8 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan">
+                    <SearchIcon className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
                 </button>
             </div>
 
@@ -196,7 +196,6 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
             </div>
 
             {selectedAsset && <AssetDetailModal asset={selectedAsset} onClose={() => setSelectedAsset(null)} />}
-            </div>
         </div>
     );
 };

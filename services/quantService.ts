@@ -1,5 +1,6 @@
+
 // QUANTITATIVE ANALYSIS ENGINE (WEB WORKER ENABLED)
-// v8.0 UPDATE: Fractal Geometry & Entropy Maxing
+// v12.0 UPDATE: Optimized Math Kernel for Mobile
 
 export interface KeyLevel {
     price: number;
@@ -60,13 +61,17 @@ self.onmessage = function(e) {
                 result = calculateKelly(payload.winProb, payload.winLossRatio);
                 break;
             case 'MONTE_CARLO':
-                result = runMonteCarloSimulation(payload.startPrice, payload.volatility, payload.steps, payload.simulations);
+                // Optimized for mobile: limit iterations to prevent main thread freezing on older Androids
+                result = runMonteCarloSimulation(payload.startPrice, payload.volatility, payload.steps, Math.min(payload.simulations, 50));
                 break;
             case 'SMA':
                 result = calculateSMA(payload.data, payload.period);
                 break;
             case 'BOLLINGER':
                 result = calculateBollingerBands(payload.data, payload.period, payload.stdDev);
+                break;
+            case 'REGRESSION':
+                result = calculateLinearRegression(payload.data);
                 break;
             default:
                 throw new Error('Unknown calculation type');
@@ -76,6 +81,32 @@ self.onmessage = function(e) {
         self.postMessage({ id, error: error.message, status: 'ERROR' });
     }
 };
+
+// Linear Regression for Trend Lines
+function calculateLinearRegression(data) {
+    if (!data || data.length < 2) return null;
+    const n = data.length;
+    let sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
+    
+    // We use index as X (time) and price as Y
+    for (let i = 0; i < n; i++) {
+        sumX += i;
+        sumY += data[i];
+        sumXY += i * data[i];
+        sumXX += i * i;
+    }
+    
+    const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+    const intercept = (sumY - slope * sumX) / n;
+    
+    // Return start and end points for the line
+    return {
+        slope,
+        intercept,
+        startPoint: intercept,
+        endPoint: slope * (n - 1) + intercept
+    };
+}
 
 // Fractal Dimension Index (FDI) - Sevcik Method
 function calculateFDI(series) {
@@ -242,9 +273,10 @@ const runAsyncMath = <T>(type: string, payload: any): Promise<T> => {
     if (!worker) return Promise.resolve({} as T);
     return new Promise((resolve, reject) => {
         const id = crypto.randomUUID();
+        // Shortened timeout for UI responsiveness on mobile
         const timeoutId = setTimeout(() => {
             if (messageQueue.has(id)) { messageQueue.delete(id); reject(new Error('Timeout')); }
-        }, 10000);
+        }, 5000); // 5 sec max calc time
         messageQueue.set(id, { resolve, reject, timeoutId });
         worker!.postMessage({ id, type, payload });
     });
@@ -261,6 +293,7 @@ export const calculateKellyCriterion = (winProb: number, winLossRatio: number): 
 export const runMonteCarloSimulation = (startPrice: number, volatility: number, steps: number = 20, simulations: number = 50): Promise<SimulationPath[]> => runAsyncMath('MONTE_CARLO', { startPrice, volatility, steps, simulations });
 export const calculateSMA = (data: any[], period: number = 20): Promise<any[]> => runAsyncMath('SMA', { data, period });
 export const calculateBollingerBands = (data: any[], period: number = 20, stdDev: number = 2): Promise<any[]> => runAsyncMath('BOLLINGER', { data, period, stdDev });
+export const calculateLinearRegression = (data: number[]): Promise<{ slope: number, intercept: number, startPoint: number, endPoint: number }> => runAsyncMath('REGRESSION', { data });
 
 export const calculateZScore = (currentPrice: number, history: number[]): number => {
     const n = history.length;

@@ -6,6 +6,8 @@
 // 4. supabase functions deploy ask-ai
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+// Fixed: Using the correct @google/genai SDK as per guidelines
+import { GoogleGenAI } from "https://esm.sh/@google/genai";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,66 +22,47 @@ serve(async (req) => {
 
   try {
     const { prompt, config, history } = await req.json();
+    
+    // Fixed: Always initialize with GoogleGenAI and obtain API key from process.env.API_KEY
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
-    // Get API Key from Deno environment (Supabase Secrets)
-    const apiKey = Deno.env.get('GEMINI_API_KEY') || Deno.env.get('API_KEY');
+    let textResponse = '';
 
-    if (!apiKey) {
-      return new Response(JSON.stringify({
-        text: "AI_API_KEY_NOT_CONFIGURED",
-        error: "Missing GEMINI_API_KEY in environment variables"
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
-
-    // Use Google GenAI REST API directly
-    const modelName = config?.model || 'gemini-2.0-flash';
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
-
-    const requestBody: any = {
-      contents: history && history.length > 0
-        ? [...history.map((h: any) => ({
+    if (history && history.length > 0) {
+      // Fixed: Using ai.chats.create for conversational tasks
+      const chat = ai.chats.create({
+        model: config?.model || 'gemini-3-flash-preview',
+        history: history.map((h: any) => ({
           role: h.role === 'model' ? 'model' : 'user',
-          parts: [{ text: h.text }]
-        })), { role: 'user', parts: [{ text: prompt }] }]
-        : [{ role: 'user', parts: [{ text: prompt }] }],
-      generationConfig: {
-        maxOutputTokens: config?.maxOutputTokens || 500,
-        temperature: config?.temperature || 0.7,
-      }
-    };
-
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(requestBody)
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Gemini API Error:", errorText);
-      return new Response(JSON.stringify({
-        text: "AI_REQUEST_FAILED",
-        error: `Gemini API Error: ${response.status}`
-      }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          parts: [{ text: h.text }],
+        })),
+        config: {
+            maxOutputTokens: config?.maxOutputTokens || 500,
+        }
       });
+      
+      const result = await chat.sendMessage({ message: prompt });
+      // Fixed: Access result.text property directly
+      textResponse = result.text || "NO_DATA_PACKET";
+    } else {
+      // Fixed: Using ai.models.generateContent directly for single prompt mode
+      const response = await ai.models.generateContent({
+        model: config?.model || 'gemini-3-flash-preview',
+        contents: prompt,
+        config: {
+          maxOutputTokens: config?.maxOutputTokens || 500,
+        }
+      });
+      // Fixed: Access response.text property directly
+      textResponse = response.text || "NO_DATA_PACKET";
     }
-
-    const data = await response.json();
-    const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || "NO_DATA_PACKET";
 
     return new Response(JSON.stringify({ text: textResponse }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
 
   } catch (error: any) {
-    console.error("Function Error:", error);
-    return new Response(JSON.stringify({
-      text: "AI_FUNCTION_ERROR",
-      error: error.message
-    }), {
+    return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

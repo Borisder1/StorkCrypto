@@ -4,6 +4,7 @@ import { BookIcon, ChevronRightIcon, SearchIcon, FilterIcon } from './icons';
 import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
 import { AcademyTerm, Language } from '../types';
+import { LineChart, Line, ResponsiveContainer, YAxis, Area, AreaChart } from 'recharts';
 
 interface AcademyModalProps {
     onClose: () => void;
@@ -24,14 +25,16 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
         { id: 'wedgebull', term: 'Falling Wedge', category: 'PATTERNS', definition: 'Bullish pattern. Price lowers in narrowing range.', visualType: 'CHART_WEDGE_BULL', example: 'Reversal likely upwards.' },
         { id: 'wedgebear', term: 'Rising Wedge', category: 'PATTERNS', definition: 'Bearish pattern. Price rises in narrowing range.', visualType: 'CHART_WEDGE_BEAR', example: 'Reversal likely downwards.' },
         { id: 'doji', term: 'Doji Candle', category: 'PATTERNS', definition: 'Candle where Open ≈ Close. Indecision.', visualType: 'CANDLE_DOJI', example: 'Doji at top indicates potential reversal.' },
-        { id: 'hammer', term: 'Hammer Candle', category: 'PATTERNS', definition: 'Bullish reversal candle with small body and long lower wick. Found at bottom of downtrend.', visualType: 'CANDLE_HAMMER', example: 'Hammer at support = potential bounce.' },
-        { id: 'shootingstar', term: 'Shooting Star', category: 'PATTERNS', definition: 'Bearish reversal candle with small body and long upper wick. Found at top of uptrend.', visualType: 'CANDLE_SHOOTING_STAR', example: 'Shooting star at resistance = potential drop.' },
-        { id: 'engulfing', term: 'Engulfing Pattern', category: 'PATTERNS', definition: 'Two-candle pattern where second candle completely engulfs the first. Strong reversal signal.', visualType: 'CANDLE_ENGULFING', example: 'Bullish engulfing after downtrend = reversal.' },
-        { id: 'morningstar', term: 'Morning Star', category: 'PATTERNS', definition: 'Three-candle bullish reversal: large bearish, small doji, large bullish. Very reliable.', visualType: 'CANDLE_MORNING_STAR', example: 'Morning star at support = strong buy signal.' },
         { id: 'fomo', term: 'FOMO', category: 'PSYCHOLOGY', definition: 'Fear Of Missing Out. Emotional buying at tops.', example: 'Don\'t buy green candles on FOMO.' },
         { id: 'fud', term: 'FUD', category: 'PSYCHOLOGY', definition: 'Fear, Uncertainty, Doubt. News manipulation.', example: 'China ban is just FUD.' },
         { id: 'seedphrase', term: 'Seed Phrase', category: 'SECURITY', definition: '12-24 words key to your wallet. Never share.', example: 'Keep offline on paper.' },
-        { id: 'phishing', term: 'Phishing', category: 'SECURITY', definition: 'Fake sites stealing credentials.', example: 'Don\'t click suspicious links.' }
+        { id: 'phishing', term: 'Phishing', category: 'SECURITY', definition: 'Fake sites stealing credentials.', example: 'Don\'t click suspicious links.' },
+        { id: 'defi', term: 'DeFi (Decentralized Finance)', category: 'TECHNICAL', definition: 'Financial services on blockchain without intermediaries.', example: 'Uniswap, Aave.' },
+        { id: 'nft', term: 'NFT (Non-Fungible Token)', category: 'TECHNICAL', definition: 'Unique digital asset verified on blockchain.', example: 'Bored Ape Yacht Club.' },
+        { id: 'staking', term: 'Staking', category: 'TECHNICAL', definition: 'Locking up coins to support network and earn rewards.', example: 'Staking ETH for 5% APY.' },
+        { id: 'coldwallet', term: 'Cold Wallet', category: 'SECURITY', definition: 'Offline hardware wallet for maximum security.', example: 'Ledger, Trezor.' },
+        { id: 'gas', term: 'Gas Fees', category: 'TECHNICAL', definition: 'Fee paid to miners/validators to process transactions.', example: 'High gas on Ethereum.' },
+        { id: 'marketcap', term: 'Market Cap', category: 'TECHNICAL', definition: 'Total value of all coins in circulation (Price x Supply).', example: 'Bitcoin market cap > $1 Trillion.' }
     ],
     ua: [
         { id: 'rsi', term: 'RSI (Індекс відносної сили)', category: 'TECHNICAL', definition: 'Індикатор імпульсу (0-100). >70: Перекупленість (продаж). <30: Перепроданність (покупка).', example: 'RSI впав до 25 - сильний сигнал на покупку.' },
@@ -46,14 +49,16 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
         { id: 'wedgebull', term: 'Падаючий Клин', category: 'PATTERNS', definition: 'Бичачий сигнал. Ціна звужується, рухаючись вниз.', visualType: 'CHART_WEDGE_BULL', example: 'Ймовірний прорив вгору.' },
         { id: 'wedgebear', term: 'Зростаючий Клин', category: 'PATTERNS', definition: 'Ведмежий сигнал. Ціна звужується, рухаючись вгору.', visualType: 'CHART_WEDGE_BEAR', example: 'Ймовірний прорив вниз.' },
         { id: 'doji', term: 'Свічка Доджі', category: 'PATTERNS', definition: 'Свічка, де Відкриття ≈ Закриття. Знак невизначеності.', visualType: 'CANDLE_DOJI', example: 'Доджі на вершині - можливий розворот.' },
-        { id: 'hammer', term: 'Свічка Молот', category: 'PATTERNS', definition: 'Бичача свічка розвороту з малим тілом та довгою нижньою тінню. Знаходиться на дні тренду.', visualType: 'CANDLE_HAMMER', example: 'Молот на підтримці = можливий відскік.' },
-        { id: 'shootingstar', term: 'Падаюча Зірка', category: 'PATTERNS', definition: 'Ведмежа свічка розвороту з малим тілом та довгою верхньою тінню. На вершині тренду.', visualType: 'CANDLE_SHOOTING_STAR', example: 'Падаюча зірка на опорі = можливе падіння.' },
-        { id: 'engulfing', term: 'Патерн Поглинання', category: 'PATTERNS', definition: 'Двох-свічковий патерн, де друга свічка повністю поглинає першу. Сильний сигнал розвороту.', visualType: 'CANDLE_ENGULFING', example: 'Бичаче поглинання після падіння = розворот.' },
-        { id: 'morningstar', term: 'Ранкова Зірка', category: 'PATTERNS', definition: 'Три-свічковий бичачий розворот: велика ведмежа, мала доджі, велика бичача. Дуже надійний.', visualType: 'CANDLE_MORNING_STAR', example: 'Ранкова зірка на підтримці = сильний сигнал покупки.' },
         { id: 'fomo', term: 'FOMO (ФОМО)', category: 'PSYCHOLOGY', definition: 'Страх втраченої вигоди. Емоційні покупки на хаях.', example: 'Не купуй зелені свічки через FOMO.' },
         { id: 'fud', term: 'FUD (ФАД)', category: 'PSYCHOLOGY', definition: 'Страх, Невизначеність, Сумнів. Маніпуляція новинами.', example: 'Новини про заборону - це просто FUD.' },
         { id: 'seedphrase', term: 'Сід-фраза', category: 'SECURITY', definition: '12-24 слова для доступу до гаманця. Нікому не давай.', example: 'Зберігай на папері в сейфі.' },
-        { id: 'phishing', term: 'Фішинг', category: 'SECURITY', definition: 'Підроблені сайти для крадіжки паролів.', example: 'Не переходь за підозрілими посиланнями.' }
+        { id: 'phishing', term: 'Фішинг', category: 'SECURITY', definition: 'Підроблені сайти для крадіжки паролів.', example: 'Не переходь за підозрілими посиланнями.' },
+        { id: 'defi', term: 'DeFi (Децентралізовані Фінанси)', category: 'TECHNICAL', definition: 'Фінансові послуги на блокчейні без посередників.', example: 'Uniswap, Aave.' },
+        { id: 'nft', term: 'NFT (Невзаємозамінний Токен)', category: 'TECHNICAL', definition: 'Унікальний цифровий актив на блокчейні.', example: 'Bored Ape Yacht Club.' },
+        { id: 'staking', term: 'Стейкінг', category: 'TECHNICAL', definition: 'Блокування монет для підтримки мережі та отримання винагороди.', example: 'Стейкінг ETH під 5% річних.' },
+        { id: 'coldwallet', term: 'Холодний Гаманець', category: 'SECURITY', definition: 'Офлайн апаратний гаманець для максимальної безпеки.', example: 'Ledger, Trezor.' },
+        { id: 'gas', term: 'Газ (Комісія)', category: 'TECHNICAL', definition: 'Плата майнерам/валідаторам за обробку транзакцій.', example: 'Високий газ в мережі Ethereum.' },
+        { id: 'marketcap', term: 'Ринкова Капіталізація', category: 'TECHNICAL', definition: 'Загальна вартість усіх монет в обігу (Ціна x Пропозиція).', example: 'Капіталізація Bitcoin > $1 Трлн.' }
     ],
     pl: [
         { id: 'rsi', term: 'RSI (Wskaźnik Siły Względnej)', category: 'TECHNICAL', definition: 'Wskaźnik momentum (0-100). >70: Wykupienie (sprzedaż). <30: Wyprzedanie (kupno).', example: 'RSI spadło do 25 - sygnał kupna.' },
@@ -68,155 +73,122 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
         { id: 'wedgebull', term: 'Klin Zniżkujący', category: 'PATTERNS', definition: 'Sygnał byka. Cena spada w zwężającym się zakresie.', visualType: 'CHART_WEDGE_BULL', example: 'Prawdopodobne wybicie w górę.' },
         { id: 'wedgebear', term: 'Klin Zwyżkujący', category: 'PATTERNS', definition: 'Sygnał niedźwiedzia. Cena rośnie w zwężającym się zakresie.', visualType: 'CHART_WEDGE_BEAR', example: 'Prawdopodobne wybicie w dół.' },
         { id: 'doji', term: 'Świeca Doji', category: 'PATTERNS', definition: 'Świeca gdzie Otwarcie ≈ Zamknięcie. Niepewność.', visualType: 'CANDLE_DOJI', example: 'Doji na szczycie - możliwe odwrócenie.' },
-        { id: 'hammer', term: 'Świeca Młot', category: 'PATTERNS', definition: 'Bycza świeca odwrócenia z małym korpusem i długim dolnym cieniem. Na dole trendu spadkowego.', visualType: 'CANDLE_HAMMER', example: 'Młot na wsparciu = potencjalne odbicie.' },
-        { id: 'shootingstar', term: 'Gwiazda Spadająca', category: 'PATTERNS', definition: 'Niedźwiedzia świeca odwrócenia z małym korpusem i długim górnym cieniem. Na szczycie trendu.', visualType: 'CANDLE_SHOOTING_STAR', example: 'Gwiazda na oporze = potencjalny spadek.' },
-        { id: 'engulfing', term: 'Formacja Objęcia', category: 'PATTERNS', definition: 'Dwu-świecowa formacja gdzie druga świeca całkowicie obejmuje pierwszą. Silny sygnał odwrócenia.', visualType: 'CANDLE_ENGULFING', example: 'Bycze objęcie po spadku = odwrócenie.' },
-        { id: 'morningstar', term: 'Gwiazda Poranna', category: 'PATTERNS', definition: 'Trzy-świecowa bycza formacja: duża niedźwiedzia, mała doji, duża bycza. Bardzo niezawodna.', visualType: 'CANDLE_MORNING_STAR', example: 'Gwiazda poranna na wsparciu = silny sygnał kupna.' },
         { id: 'fomo', term: 'FOMO', category: 'PSYCHOLOGY', definition: 'Strach przed pominięciem. Emocjonalne zakupy na szczycie.', example: 'Nie kupuj zielonych świec przez FOMO.' },
         { id: 'fud', term: 'FUD', category: 'PSYCHOLOGY', definition: 'Strach, Niepewność, Wątpliwość. Manipulacja newsami.', example: 'Newsy o banach to często FUD.' },
         { id: 'seedphrase', term: 'Fraza Seed', category: 'SECURITY', definition: '12-24 słowa klucza do portfela. Nikomu nie podawaj.', example: 'Trzymaj offline na papierze.' },
-        { id: 'phishing', term: 'Phishing', category: 'SECURITY', definition: 'Fałszywe strony kradnące dane.', example: 'Nie klikaj w podejrzane linki.' }
+        { id: 'phishing', term: 'Phishing', category: 'SECURITY', definition: 'Fałszywe strony kradnące dane.', example: 'Nie klikaj w podejrzane linki.' },
+        { id: 'defi', term: 'DeFi', category: 'TECHNICAL', definition: 'Finanse zdecentralizowane na blockchainie.', example: 'Uniswap, Aave.' },
+        { id: 'nft', term: 'NFT', category: 'TECHNICAL', definition: 'Unikalny token cyfrowy.', example: 'Bored Ape Yacht Club.' },
+        { id: 'staking', term: 'Staking', category: 'TECHNICAL', definition: 'Blokowanie monet dla nagród.', example: 'Staking ETH na 5%.' },
+        { id: 'coldwallet', term: 'Zimny Portfel', category: 'SECURITY', definition: 'Portfel offline dla bezpieczeństwa.', example: 'Ledger, Trezor.' },
+        { id: 'gas', term: 'Opłaty Gas', category: 'TECHNICAL', definition: 'Opłata za transakcje w sieci.', example: 'Wysoki gas na Ethereum.' },
+        { id: 'marketcap', term: 'Kapitalizacja Rynkowa', category: 'TECHNICAL', definition: 'Całkowita wartość monet w obiegu.', example: 'Bitcoin > $1 Bln.' }
     ]
 };
 
-// Visual Components for Patterns
+// Visual Components for Patterns using Custom SVG Candlesticks
 const ChartPattern: React.FC<{ type: AcademyTerm['visualType'] }> = ({ type }) => {
     if (!type || type === 'NONE') return null;
 
-    return (
-        <div className="h-32 w-full bg-black/40 rounded-lg border border-white/5 mb-3 flex items-center justify-center relative overflow-hidden">
-            {/* Grid Background */}
-            <div className="absolute inset-0" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px' }}></div>
+    const getData = (type: string) => {
+        // Data format: {o: open, h: high, l: low, c: close}
+        switch(type) {
+            case 'CHART_HEAD_SHOULDERS': return [
+                {o: 20, c: 40, h: 45, l: 15}, {o: 40, c: 30, h: 42, l: 25}, // Left shoulder
+                {o: 30, c: 60, h: 65, l: 28}, {o: 60, c: 30, h: 62, l: 25}, // Head
+                {o: 30, c: 45, h: 48, l: 28}, {o: 45, c: 20, h: 47, l: 15}, // Right shoulder
+            ];
+            case 'CHART_DOUBLE_TOP': return [
+                {o: 20, c: 80, h: 85, l: 15}, {o: 80, c: 40, h: 82, l: 35}, // First top
+                {o: 40, c: 80, h: 85, l: 35}, {o: 80, c: 20, h: 82, l: 15}, // Second top
+            ];
+            case 'CHART_DOUBLE_BOTTOM': return [
+                {o: 80, c: 20, h: 85, l: 15}, {o: 20, c: 60, h: 65, l: 15}, // First bottom
+                {o: 60, c: 20, h: 65, l: 15}, {o: 20, c: 80, h: 85, l: 15}, // Second bottom
+            ];
+            case 'CHART_BULL_FLAG': return [
+                {o: 20, c: 80, h: 85, l: 15}, // Pole
+                {o: 80, c: 70, h: 82, l: 65}, {o: 70, c: 75, h: 78, l: 68}, {o: 75, c: 65, h: 78, l: 60}, {o: 65, c: 70, h: 72, l: 62}, // Flag
+                {o: 70, c: 95, h: 100, l: 65} // Breakout
+            ];
+            case 'CHART_CUP_HANDLE': return [
+                {o: 80, c: 40, h: 85, l: 35}, {o: 40, c: 20, h: 45, l: 15}, {o: 20, c: 20, h: 25, l: 15}, {o: 20, c: 40, h: 45, l: 15}, {o: 40, c: 80, h: 85, l: 35}, // Cup
+                {o: 80, c: 70, h: 82, l: 65}, {o: 70, c: 75, h: 78, l: 68}, // Handle
+                {o: 75, c: 95, h: 100, l: 70} // Breakout
+            ];
+            case 'CHART_ASC_TRIANGLE': return [
+                {o: 20, c: 80, h: 85, l: 15}, {o: 80, c: 40, h: 82, l: 35}, 
+                {o: 40, c: 80, h: 85, l: 35}, {o: 80, c: 60, h: 82, l: 55}, 
+                {o: 60, c: 80, h: 85, l: 55}, {o: 80, c: 100, h: 105, l: 75}
+            ];
+            case 'CHART_DESC_TRIANGLE': return [
+                {o: 80, c: 20, h: 85, l: 15}, {o: 20, c: 60, h: 65, l: 15}, 
+                {o: 60, c: 20, h: 65, l: 15}, {o: 20, c: 40, h: 45, l: 15}, 
+                {o: 40, c: 20, h: 45, l: 15}, {o: 20, c: 0, h: 25, l: 0}
+            ];
+            case 'CHART_WEDGE_BULL': return [
+                {o: 80, c: 40, h: 85, l: 35}, {o: 40, c: 70, h: 75, l: 35}, 
+                {o: 70, c: 35, h: 75, l: 30}, {o: 35, c: 60, h: 65, l: 30}, 
+                {o: 60, c: 30, h: 65, l: 25}, {o: 30, c: 90, h: 95, l: 25}
+            ];
+            case 'CHART_WEDGE_BEAR': return [
+                {o: 20, c: 60, h: 65, l: 15}, {o: 60, c: 30, h: 65, l: 25}, 
+                {o: 30, c: 65, h: 70, l: 25}, {o: 65, c: 40, h: 70, l: 35}, 
+                {o: 40, c: 70, h: 75, l: 35}, {o: 70, c: 10, h: 75, l: 5}
+            ];
+            default: return [];
+        }
+    };
 
-            {type === 'CHART_HEAD_SHOULDERS' && (
-                <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-cyan fill-none stroke-2">
-                    <path d="M20,80 L40,50 L60,80 L80,20 L120,80 L140,50 L160,80" />
-                    <line x1="10" y1="80" x2="190" y2="80" stroke="rgba(255,255,255,0.3)" strokeDasharray="4" />
-                    <text x="80" y="15" fill="white" stroke="none" fontSize="8">HEAD</text>
-                </svg>
-            )}
+    const data = getData(type);
+    const isBullish = ['CHART_DOUBLE_BOTTOM', 'CHART_BULL_FLAG', 'CHART_CUP_HANDLE', 'CHART_ASC_TRIANGLE', 'CHART_WEDGE_BULL'].includes(type);
 
-            {type === 'CHART_DOUBLE_TOP' && (
-                <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-danger fill-none stroke-2">
-                    <path d="M20,80 L50,20 L80,70 L110,20 L140,80" />
-                    <line x1="20" y1="20" x2="140" y2="20" stroke="rgba(255,255,255,0.3)" strokeDasharray="4" />
-                </svg>
-            )}
-
-            {type === 'CHART_DOUBLE_BOTTOM' && (
-                <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-success fill-none stroke-2">
-                    <path d="M20,20 L50,80 L80,40 L110,80 L140,20" />
-                    <line x1="20" y1="80" x2="140" y2="80" stroke="rgba(255,255,255,0.3)" strokeDasharray="4" />
-                </svg>
-            )}
-
-            {type === 'CHART_BULL_FLAG' && (
-                <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-success fill-none stroke-2">
-                    <path d="M20,90 L20,30" strokeWidth="3" />
-                    <path d="M20,30 L60,40 L60,60 L20,50" fill="rgba(34, 197, 94, 0.1)" />
-                    <path d="M20,30 L60,40" />
-                    <path d="M20,50 L60,60" />
-                    <path d="M60,50 L90,20" strokeDasharray="4" stroke="white" />
-                </svg>
-            )}
-
-            {type === 'CHART_CUP_HANDLE' && (
-                <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-success fill-none stroke-2">
-                    <path d="M20,20 C20,90 100,90 100,20" />
-                    <path d="M100,20 L120,40 L130,30" />
-                    <path d="M130,30 L150,10" strokeDasharray="4" stroke="white" />
-                </svg>
-            )}
-
-            {type === 'CHART_ASC_TRIANGLE' && (
-                <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-success fill-none stroke-2">
-                    <line x1="40" y1="20" x2="140" y2="20" stroke="white" />
-                    <line x1="40" y1="80" x2="140" y2="20" stroke="white" />
-                    <path d="M40,80 L60,20 L80,55 L100,20 L120,35 L140,20 L160,5" />
-                </svg>
-            )}
-
-            {type === 'CHART_DESC_TRIANGLE' && (
-                <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-danger fill-none stroke-2">
-                    <line x1="40" y1="80" x2="140" y2="80" stroke="white" />
-                    <line x1="40" y1="20" x2="140" y2="80" stroke="white" />
-                    <path d="M40,20 L60,80 L80,45 L100,80 L120,65 L140,80 L160,95" />
-                </svg>
-            )}
-
-            {type === 'CHART_WEDGE_BULL' && (
-                <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-success fill-none stroke-2">
-                    <line x1="20" y1="20" x2="140" y2="60" stroke="white" strokeDasharray="2" />
-                    <line x1="20" y1="50" x2="140" y2="80" stroke="white" strokeDasharray="2" />
-                    <path d="M20,20 L40,50 L60,30 L80,60 L100,50 L120,70" />
-                </svg>
-            )}
-
-            {type === 'CHART_WEDGE_BEAR' && (
-                <svg viewBox="0 0 200 100" className="w-full h-full p-2 stroke-brand-danger fill-none stroke-2">
-                    <line x1="20" y1="80" x2="140" y2="40" stroke="white" strokeDasharray="2" />
-                    <line x1="20" y1="50" x2="140" y2="20" stroke="white" strokeDasharray="2" />
-                    <path d="M20,80 L40,50 L60,70 L80,40 L100,60 L120,30" />
-                </svg>
-            )}
-
-            {type === 'CANDLE_DOJI' && (
+    if (type === 'CANDLE_DOJI') {
+        return (
+            <div className="h-32 w-full bg-black/40 rounded-lg border border-white/5 mb-3 flex items-center justify-center relative overflow-hidden">
                 <svg viewBox="0 0 100 100" className="w-full h-full p-4">
                     <line x1="50" y1="10" x2="50" y2="90" stroke="white" strokeWidth="2" />
                     <rect x="45" y="48" width="10" height="4" fill="white" />
                     <text x="65" y="52" fill="#aaa" fontSize="10" stroke="none">OPEN ≈ CLOSE</text>
                 </svg>
-            )}
+            </div>
+        );
+    }
 
-            {/* Japanese Candlestick Patterns */}
-            {type === 'CANDLE_HAMMER' && (
-                <svg viewBox="0 0 100 100" className="w-full h-full p-4">
-                    <line x1="50" y1="20" x2="50" y2="30" stroke="white" strokeWidth="2" />
-                    <rect x="40" y="30" width="20" height="10" fill="#22c55e" stroke="#22c55e" />
-                    <line x1="50" y1="40" x2="50" y2="90" stroke="white" strokeWidth="2" />
-                    <text x="65" y="50" fill="#22c55e" fontSize="8" stroke="none">HAMMER</text>
-                    <text x="65" y="60" fill="#aaa" fontSize="6" stroke="none">Bullish Reversal</text>
-                </svg>
-            )}
+    return (
+        <div className="h-40 w-full bg-black/40 rounded-lg border border-white/5 mb-3 relative overflow-hidden">
+             {/* Grid Background */}
+             <div className="absolute inset-0" style={{backgroundImage: 'linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px)', backgroundSize: '20px 20px'}}></div>
+             
+             <div className="absolute inset-0 p-4 flex items-end justify-between">
+                 <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
+                     {data.map((d, i) => {
+                         const isUp = d.c >= d.o;
+                         const color = isUp ? '#22c55e' : '#ef4444';
+                         const x = (i / (data.length - 1)) * 90 + 5; // Spread evenly
+                         // Invert Y axis because SVG 0,0 is top-left
+                         const yHigh = 100 - d.h;
+                         const yLow = 100 - d.l;
+                         const yOpen = 100 - d.o;
+                         const yClose = 100 - d.c;
+                         const bodyTop = Math.min(yOpen, yClose);
+                         const bodyHeight = Math.max(Math.abs(yOpen - yClose), 1); // min 1px height
 
-            {type === 'CANDLE_SHOOTING_STAR' && (
-                <svg viewBox="0 0 100 100" className="w-full h-full p-4">
-                    <line x1="50" y1="10" x2="50" y2="60" stroke="white" strokeWidth="2" />
-                    <rect x="40" y="60" width="20" height="10" fill="#ef4444" stroke="#ef4444" />
-                    <line x1="50" y1="70" x2="50" y2="80" stroke="white" strokeWidth="2" />
-                    <text x="65" y="65" fill="#ef4444" fontSize="8" stroke="none">SHOOTING STAR</text>
-                    <text x="65" y="75" fill="#aaa" fontSize="6" stroke="none">Bearish Reversal</text>
-                </svg>
-            )}
+                         return (
+                             <g key={i} className="animate-fade-in" style={{ animationDelay: `${i * 100}ms` }}>
+                                 {/* Wick */}
+                                 <line x1={x} y1={yHigh} x2={x} y2={yLow} stroke={color} strokeWidth="1" />
+                                 {/* Body */}
+                                 <rect x={x - 2} y={bodyTop} width="4" height={bodyHeight} fill={color} />
+                             </g>
+                         );
+                     })}
+                 </svg>
+             </div>
 
-            {type === 'CANDLE_ENGULFING' && (
-                <svg viewBox="0 0 100 100" className="w-full h-full p-4">
-                    {/* Bearish candle (smaller) */}
-                    <line x1="35" y1="30" x2="35" y2="70" stroke="white" strokeWidth="1" />
-                    <rect x="30" y="35" width="10" height="25" fill="#ef4444" stroke="#ef4444" opacity="0.5" />
-                    {/* Bullish candle (engulfing) */}
-                    <line x1="55" y1="20" x2="55" y2="80" stroke="white" strokeWidth="2" />
-                    <rect x="45" y="25" width="20" height="50" fill="#22c55e" stroke="#22c55e" />
-                    <text x="70" y="50" fill="#22c55e" fontSize="8" stroke="none">BULLISH</text>
-                    <text x="70" y="60" fill="#aaa" fontSize="6" stroke="none">ENGULFING</text>
-                </svg>
-            )}
-
-            {type === 'CANDLE_MORNING_STAR' && (
-                <svg viewBox="0 0 120 100" className="w-full h-full p-4">
-                    {/* Bearish candle */}
-                    <line x1="25" y1="25" x2="25" y2="75" stroke="white" strokeWidth="1" />
-                    <rect x="20" y="30" width="10" height="35" fill="#ef4444" stroke="#ef4444" />
-                    {/* Doji/Small body */}
-                    <line x1="50" y1="45" x2="50" y2="55" stroke="white" strokeWidth="1" />
-                    <rect x="47" y="48" width="6" height="4" fill="white" stroke="white" />
-                    {/* Bullish candle */}
-                    <line x1="75" y1="20" x2="75" y2="70" stroke="white" strokeWidth="2" />
-                    <rect x="70" y="25" width="10" height="35" fill="#22c55e" stroke="#22c55e" />
-                    <text x="90" y="45" fill="#22c55e" fontSize="7" stroke="none">MORNING</text>
-                    <text x="90" y="55" fill="#aaa" fontSize="6" stroke="none">STAR</text>
-                </svg>
-            )}
+            <div className="absolute top-2 right-2 px-2 py-1 rounded bg-black/60 border border-white/10 text-[8px] font-mono text-white">
+                {isBullish ? 'BULLISH' : 'BEARISH'}
+            </div>
         </div>
     );
 };
@@ -237,8 +209,8 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
     const currentTerms = ACADEMY_CONTENT[settings.language] || ACADEMY_CONTENT['en'];
 
     const filteredTerms = currentTerms.filter(item => {
-        const matchesSearch = item.term.toLowerCase().includes(search.toLowerCase()) ||
-            item.definition.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = item.term.toLowerCase().includes(search.toLowerCase()) || 
+                              item.definition.toLowerCase().includes(search.toLowerCase());
         const matchesFilter = filter === 'ALL' || item.category === filter;
         return matchesSearch && matchesFilter;
     });
@@ -248,9 +220,9 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
     return (
         <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden overscroll-none touch-none">
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in touch-none" onClick={onClose}></div>
-
+            
             <div className="relative z-10 w-full max-w-lg bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[85dvh] animate-zoom-in">
-
+                
                 {/* Header */}
                 <div className="p-5 border-b border-brand-border bg-brand-card z-10 shrink-0 touch-none">
                     <div className="flex justify-between items-center mb-4">
@@ -259,18 +231,18 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                                 <BookIcon className="w-5 h-5 text-brand-purple" />
                             </div>
                             <div>
-                                <h2 className="font-orbitron font-bold text-lg text-white">{t('academy.title')}</h2>
+                                <h2 className="font-orbitron font-bold text-base sm:text-lg text-white">{t('academy.title')}</h2>
                                 <p className="text-[10px] text-slate-400 font-space-mono">{t('academy.subtitle')}</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">✕</button>
+                        <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">✕</button>
                     </div>
 
                     <div className="relative mb-3">
                         <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                        <input
-                            type="text"
-                            placeholder={t('add.search')}
+                        <input 
+                            type="text" 
+                            placeholder={t('add.search')} 
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                             className="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs text-white focus:border-brand-purple outline-none"
@@ -278,14 +250,14 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                     </div>
 
                     <div className="flex gap-2 overflow-x-auto no-scrollbar pb-1">
-                        <button
+                        <button 
                             onClick={() => setFilter('ALL')}
                             className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border whitespace-nowrap transition-all ${filter === 'ALL' ? 'bg-brand-purple text-white border-brand-purple' : 'bg-black/30 border-white/10 text-slate-500'}`}
                         >
                             ALL
                         </button>
                         {categories.map(cat => (
-                            <button
+                            <button 
                                 key={cat}
                                 onClick={() => setFilter(cat)}
                                 className={`px-3 py-1.5 rounded-lg text-[10px] font-bold border whitespace-nowrap transition-all ${filter === cat ? 'bg-brand-purple text-white border-brand-purple' : 'bg-black/30 border-white/10 text-slate-500'}`}
@@ -299,21 +271,23 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-5 bg-cyber-grid bg-[length:40px_40px] overscroll-contain">
                     <div className="grid gap-3">
                         {filteredTerms.length > 0 ? filteredTerms.map((item, idx) => (
-                            <div
+                            <div 
                                 key={item.id}
                                 onClick={() => setExpandedId(expandedId === item.id ? null : item.id)}
-                                className={`bg-brand-card/80 backdrop-blur-sm border rounded-xl overflow-hidden transition-all duration-300 cursor-pointer shadow-inner ${expandedId === item.id
-                                    ? 'border-brand-cyan shadow-[0_0_15px_rgba(0,240,255,0.15)]'
+                                className={`bg-brand-card/80 backdrop-blur-sm border rounded-xl overflow-hidden transition-all duration-300 cursor-pointer shadow-inner ${
+                                    expandedId === item.id 
+                                    ? 'border-brand-cyan shadow-[0_0_15px_rgba(0,240,255,0.15)]' 
                                     : 'border-white/5 hover:border-brand-cyan/30'
-                                    }`}
+                                }`}
                                 style={{ animationDelay: `${idx * 50}ms` }}
                             >
                                 <div className="p-4 flex justify-between items-center">
                                     <div className="flex items-center gap-3">
-                                        <div className={`w-2 h-2 rounded-full ${item.category === 'TECHNICAL' ? 'bg-brand-cyan' :
-                                            item.category === 'PATTERNS' ? 'bg-brand-danger' :
-                                                'bg-brand-success'
-                                            }`}></div>
+                                        <div className={`w-2 h-2 rounded-full ${
+                                            item.category === 'TECHNICAL' ? 'bg-brand-cyan' : 
+                                            item.category === 'PATTERNS' ? 'bg-brand-danger' : 
+                                            'bg-brand-success'
+                                        }`}></div>
                                         <div>
                                             <span className="font-bold text-white text-sm block">{item.term}</span>
                                             <span className="text-[9px] text-slate-500 font-mono uppercase">{t(`academy.${item.category.toLowerCase()}`)}</span>
@@ -321,20 +295,34 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                                     </div>
                                     <ChevronRightIcon className={`w-4 h-4 text-slate-500 transition-transform ${expandedId === item.id ? 'rotate-90 text-brand-cyan' : ''}`} />
                                 </div>
-
+                                
                                 {expandedId === item.id && (
                                     <div className="px-4 pb-4 animate-fade-in bg-black/20">
                                         <div className="h-[1px] w-full bg-white/5 mb-3"></div>
-
-                                        <ChartPattern type={item.visualType} />
-
-                                        <p className="text-sm text-slate-300 leading-relaxed font-space-mono mb-3">
+                                        
+                                        <p className="text-sm text-slate-300 leading-relaxed font-space-mono mb-4">
                                             {item.definition}
                                         </p>
-                                        <div className="bg-brand-cyan/5 rounded-lg p-3 border-l-2 border-brand-cyan">
+
+                                        {item.visualType && <ChartPattern type={item.visualType} />}
+
+                                        <div className="bg-brand-cyan/5 rounded-lg p-3 border-l-2 border-brand-cyan mb-3">
                                             <p className="text-[10px] text-brand-cyan uppercase font-bold mb-1">Ex:</p>
                                             <p className="text-xs text-slate-300 italic">"{item.example}"</p>
                                         </div>
+                                        <button 
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                const answer = window.prompt(`Quiz for ${item.term}:\nWhat is the main takeaway? (Type anything to pass for now)`);
+                                                if (answer) {
+                                                    useStore.getState().addXp(50);
+                                                    alert('Correct! You earned 50 XP.');
+                                                }
+                                            }}
+                                            className="w-full py-2 bg-brand-purple/20 hover:bg-brand-purple/40 border border-brand-purple/50 rounded-lg text-xs font-bold text-brand-purple transition-colors"
+                                        >
+                                            TAKE QUIZ (+50 XP)
+                                        </button>
                                     </div>
                                 )}
                             </div>

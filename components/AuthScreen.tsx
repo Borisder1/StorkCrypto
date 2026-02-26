@@ -12,9 +12,9 @@ const AuthScreen: React.FC = () => {
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
-
-    // Використовуємо відносний шлях для логотипу
-    const logoUrl = '/logo.jpg';
+    
+    // Побудова абсолютного шляху для надійності
+    const logoUrl = `${window.location.origin}/logo.jpg`;
     const [imgError, setImgError] = useState(false);
 
     const t = (key: string) => getTranslation(settings.language, key);
@@ -24,7 +24,7 @@ const AuthScreen: React.FC = () => {
         setError('');
         triggerHaptic('medium');
         try {
-            const res = await login(provider);
+            const res = await login(provider); 
             if (!res.success) setError(res.message || 'Auth Failed');
         } catch (e) {
             setError(`${provider.toUpperCase()} Connection Error`);
@@ -36,18 +36,18 @@ const AuthScreen: React.FC = () => {
     return (
         <div className="fixed inset-0 z-[100] bg-[#020617] flex flex-col overflow-hidden h-[100dvh] w-full">
             <div className="absolute inset-0 bg-cyber-grid bg-[length:40px_40px] opacity-10"></div>
-
+            
             <div className="flex-1 overflow-y-auto custom-scrollbar w-full flex flex-col items-center justify-center p-6">
                 <div className="w-full max-w-sm relative z-10 flex flex-col items-center my-auto animate-fade-in-up">
-
+                    
                     {/* Brand Logo Container */}
                     <div className="relative mb-12">
                         <div className="absolute -inset-6 bg-brand-cyan/20 blur-2xl rounded-full animate-pulse-slow"></div>
                         <div className="w-40 h-40 rounded-[2.5rem] bg-[#050b14] border-2 border-white/10 flex items-center justify-center shadow-2xl relative z-10 overflow-hidden">
                             {!imgError ? (
-                                <img
+                                <img 
                                     src={logoUrl}
-                                    alt="StorkCrypto"
+                                    alt="StorkCrypto" 
                                     className="w-full h-full object-cover"
                                     onError={() => setImgError(true)}
                                 />
@@ -64,7 +64,7 @@ const AuthScreen: React.FC = () => {
                         {t('auth.welcome')}
                     </p>
 
-                    <button
+                    <button 
                         onClick={() => handleSocialLogin('telegram')}
                         disabled={loading}
                         className="w-full h-20 rounded-[2rem] bg-[#24A1DE] relative overflow-hidden group shadow-lg active:scale-[0.98] transition-all"

@@ -9,16 +9,16 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/logo.jpg",
+      "src": "https://placehold.co/192x192/00F0FF/000000.png?text=STORK",
       "sizes": "192x192",
-      "type": "image/jpeg",
-      "purpose": "any"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
-      "src": "/logo.jpg",
+      "src": "https://placehold.co/512x512/00F0FF/000000.png?text=STORK",
       "sizes": "512x512",
-      "type": "image/jpeg",
-      "purpose": "any"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
@@ -27,14 +27,14 @@
       "short_name": "Scanner",
       "description": "Open AI Market Scanner",
       "url": "/?tab=scanner",
-      "icons": [{ "src": "/logo.jpg", "sizes": "192x192", "type": "image/jpeg" }]
+      "icons": [{ "src": "https://placehold.co/192x192/00F0FF/000000.png?text=SCAN", "sizes": "192x192" }]
     },
     {
       "name": "My Portfolio",
       "short_name": "Portfolio",
       "description": "View Assets",
       "url": "/?tab=portfolio",
-      "icons": [{ "src": "/logo.jpg", "sizes": "192x192", "type": "image/jpeg" }]
+      "icons": [{ "src": "https://placehold.co/192x192/00F0FF/000000.png?text=PORT", "sizes": "192x192" }]
     }
   ]
 }

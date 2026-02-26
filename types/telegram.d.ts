@@ -11,28 +11,17 @@ interface TelegramWebApp {
      * Method to open a payment invoice.
      */
     openInvoice: (url: string, callback?: (status: string) => void) => void;
+    BackButton: {
+        isVisible: boolean;
+        show: () => void;
+        hide: () => void;
+        onClick: (callback: () => void) => void;
+        offClick: (callback: () => void) => void;
+    };
     HapticFeedback: {
         impactOccurred: (style: 'light' | 'medium' | 'heavy' | 'rigid' | 'soft') => void;
         notificationOccurred: (type: 'error' | 'success' | 'warning') => void;
         selectionChanged: () => void;
-    };
-    BackButton: {
-        show: () => void;
-        hide: () => void;
-        onClick: (callback: () => void) => void;
-        offClick: (callback: () => void) => void;
-        isVisible: boolean;
-    };
-    MainButton: {
-        text: string;
-        color: string;
-        textColor: string;
-        isVisible: boolean;
-        isActive: boolean;
-        show: () => void;
-        hide: () => void;
-        onClick: (callback: () => void) => void;
-        offClick: (callback: () => void) => void;
     };
     initDataUnsafe: {
         user?: {

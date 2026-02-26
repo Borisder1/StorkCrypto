@@ -1,11 +1,10 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { type ChatMessage } from '../types';
-import { BotIcon, SendIcon, ShieldIcon, PieChartIcon, ActivityIcon } from './icons';
-import { createChatSession, auditContract, getLatestCryptoNews } from '../services/geminiService';
+import { type ChatMessage } from '../../types';
+import { BotIcon, SendIcon, ShieldIcon, PieChartIcon, ActivityIcon } from '../icons';
+import { createChatSession, auditContract, getLatestCryptoNews } from '../../services/geminiService';
 import { type Chat } from '@google/genai';
-import { useStore } from '../store';
-import { triggerHaptic } from '../utils/haptics';
+import { useStore } from '../../store';
+import { triggerHaptic } from '../../utils/haptics';
 
 const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const { settings, chatHistory, addChatMessage, setIsAIChatOpen, assets, userStats, wallet } = useStore();

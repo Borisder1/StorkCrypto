@@ -1,6 +1,0 @@
-Fix: Supabase Auth fallback, Service Worker 404s, Telegram version check
-
-- App.tsx: Check Telegram WebApp version >= 6.1 before setting header colors.
-- service-worker.js: Remove non-existent index.tsx and CDN links from cache list.
-- appSlice.ts: Use anonymous auth to create valid user ID before inserting into profiles (fixes 409 Conflict).
-- geminiService.ts: Support VITE_GEMINI_API_KEY for client-side fallback when Edge Function fails.

@@ -3,7 +3,8 @@ const CACHE_NAME = 'stork-neural-v1';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json',
+  '/index.tsx',
+  'https://cdn.tailwindcss.com',
   'https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap'
 ];
 
@@ -63,13 +64,9 @@ self.addEventListener('fetch', (event) => {
   // 3. App Shell (HTML, JS) -> Cache First, falling back to Network
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
-      if (cachedResponse) return cachedResponse;
-      return fetch(event.request).catch(() => {
-        // Return a basic response for navigation requests to prevent TypeError
-        if (event.request.mode === 'navigate') {
-          return caches.match('/');
-        }
-        return new Response('', { status: 408, statusText: 'Offline' });
+      return cachedResponse || fetch(event.request).catch(() => {
+        // Optional: Return custom offline page here if navigation fails
+        // return caches.match('/offline.html');
       });
     })
   );
