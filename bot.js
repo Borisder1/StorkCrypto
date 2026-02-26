@@ -8,16 +8,27 @@
  * 3. Sentinel Mode (Price Monitoring)
  */
 
-const TelegramBot = require('node-telegram-bot-api');
-const https = require('https');
+import TelegramBot from 'node-telegram-bot-api';
+import https from 'https';
+import http from 'http';
 
 // ВСТАВТЕ СЮДИ ТОКЕН ВАШОГО БОТА
-const token = '7417393370:AAHltsez_OwNbdDm3Ajw6yoWl2JaO6lOIEE'; 
+const token = process.env.TELEGRAM_BOT_TOKEN || '7417393370:AAHltsez_OwNbdDm3Ajw6yoWl2JaO6lOIEE'; 
 
 // URL вашого Web App
-const webAppUrl = 'https://storkcrypto.borishanter12.workers.dev/';
+const webAppUrl = process.env.WEB_APP_URL || 'https://storkcrypto.borishanter12.workers.dev/';
 
 const bot = new TelegramBot(token, { polling: true });
+
+// Health Check Server for Railway/Render
+const PORT = process.env.PORT || 8080;
+const server = http.createServer((req, res) => {
+    res.writeHead(200);
+    res.end('StorkCrypto Sentinel Bot is running!');
+});
+server.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+});
 
 // Зберігання користувачів (У реальному проекті використовуйте базу даних)
 const userIds = new Set();
