@@ -14,7 +14,7 @@ if (!rootElement) {
 } else {
     // ⚡ CRITICAL FIX: Always use the hosted manifest to prevent [TON_CONNECT_SDK] Failed to fetch.
     // Localhost or file:// URLs cannot be reached by external wallets (Tonkeeper).
-    const MANIFEST_URL = 'https://storkcrypto.borishanter12.workers.dev/tonconnect-manifest.json';
+    const MANIFEST_URL = 'https://a310c93f.storkcrypto-app.pages.dev/tonconnect-manifest.json';
 
     console.log("[System] Using Manifest:", MANIFEST_URL);
 

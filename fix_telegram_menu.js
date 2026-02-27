@@ -4,11 +4,11 @@
 // 2. Запустіть команду: node fix_telegram_menu.js
 // 3. Якщо успішно - перезапустіть Telegram.
 
-const https = require('https');
+import https from 'https';
 
 // КОНФІГУРАЦІЯ (Взято з вашого опису)
 const BOT_TOKEN = '7417393370:AAHltsez_OwNbdDm3Ajw6yoWl2JaO6lOIEE';
-const WEB_APP_URL = 'https://storkcrypto.borishanter12.workers.dev/';
+const WEB_APP_URL = 'https://a310c93f.storkcrypto-app.pages.dev/';
 const BUTTON_TEXT = 'Stork Terminal'; // Назва кнопки
 
 const payload = JSON.stringify({
