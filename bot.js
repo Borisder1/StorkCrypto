@@ -13,7 +13,7 @@ import https from 'https';
 import http from 'http';
 
 // ВСТАВТЕ СЮДИ ТОКЕН ВАШОГО БОТА
-const token = process.env.TELEGRAM_BOT_TOKEN || '7417393370:AAHltsez_OwNbdDm3Ajw6yoWl2JaO6lOIEE'; 
+const token = process.env.TELEGRAM_BOT_TOKEN || '8501512462:AAFR_bSDLp3jiqKgDQnkimOAuwiWrA9xdWs'; 
 
 // URL вашого Web App
 const webAppUrl = process.env.WEB_APP_URL || 'https://a310c93f.storkcrypto-app.pages.dev/';
