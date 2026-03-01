@@ -16,7 +16,8 @@ import { getFearGreedIndex } from '../../services/priceService';
 import InfoModal from '../InfoModal';
 import { AIMarketSummary } from '../AIMarketSummary';
 import DexAggregatorModal from '../DexAggregatorModal';
-import logo from '../../assets/logo.jpg';
+
+import AIAgentModal from '../AIAgentModal';
 
 const MarketPulseWidget: React.FC = () => {
     const [pulse, setPulse] = useState({ dom: 54.2, fear: 50, phase: 'SCANNING...', load: 24 });
@@ -102,6 +103,7 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
 
     const [showCustomize, setShowCustomize] = useState(false);
     const [showDex, setShowDex] = useState(false);
+    const [showAIAgents, setShowAIAgents] = useState(false);
 
     useEffect(() => {
         const unsubscribe = binanceWS.subscribe((data) => {
@@ -161,7 +163,7 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                     <div className="flex items-center gap-3" onClick={() => window.location.reload()}>
                         <div className="relative group cursor-pointer">
                             <div className="w-10 h-10 rounded-xl bg-brand-cyan/5 border border-brand-cyan/20 flex items-center justify-center overflow-hidden transition-all group-hover:border-brand-cyan/50">
-                                <img src={logo} alt="StorkCrypto Logo" className="w-full h-full object-cover" />
+                                <img src="/logo.jpg" alt="StorkCrypto Logo" className="w-full h-full object-cover" />
                             </div>
                             <div className="absolute -top-1 -right-1 w-3 h-3 bg-brand-green rounded-full shadow-[0_0_8px_#22c55e] border-2 border-[#020617] animate-pulse"></div>
                         </div>
@@ -265,7 +267,7 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                 </div>
 
                 {/* DEX AGGREGATOR BUTTON */}
-                <div className="mb-8">
+                <div className="mb-4">
                     <button 
                         onClick={() => { triggerHaptic('medium'); setShowDex(true); }}
                         className="w-full relative group rounded-[2.2rem] bg-gradient-to-r from-brand-cyan/10 to-brand-purple/10 border border-white/10 hover:border-brand-cyan/40 transition-all shadow-2xl p-6 flex items-center justify-between overflow-hidden"
@@ -282,6 +284,28 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                         </div>
                         <div className="relative z-10 px-3 py-1.5 rounded-lg bg-brand-cyan/20 border border-brand-cyan/30 text-[8px] font-black text-brand-cyan uppercase tracking-widest animate-pulse shrink-0">
                             BETA
+                        </div>
+                    </button>
+                </div>
+
+                {/* AI AGENTS BUTTON */}
+                <div className="mb-8">
+                    <button 
+                        onClick={() => { triggerHaptic('medium'); setShowAIAgents(true); }}
+                        className="w-full relative group rounded-[2.2rem] bg-gradient-to-r from-brand-purple/10 to-brand-cyan/10 border border-brand-purple/20 hover:border-brand-purple/50 transition-all shadow-2xl p-6 flex items-center justify-between overflow-hidden"
+                    >
+                        <div className="absolute inset-0 bg-brand-purple/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        <div className="flex items-center gap-4 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-black/40 border border-brand-purple/30 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform shrink-0">
+                                <BotIcon className="w-6 h-6 text-brand-purple" />
+                            </div>
+                            <div className="text-left">
+                                <h3 className="font-orbitron font-black text-white text-sm uppercase tracking-widest">AI_Agents</h3>
+                                <p className="text-[9px] text-brand-purple font-mono uppercase">Neural_Advisors</p>
+                            </div>
+                        </div>
+                        <div className="relative z-10 px-3 py-1.5 rounded-lg bg-brand-purple/20 border border-brand-purple/30 text-[8px] font-black text-brand-purple uppercase tracking-widest animate-pulse shrink-0">
+                            PRO
                         </div>
                     </button>
                 </div>
@@ -381,6 +405,7 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
              )}
 
              {showDex && <DexAggregatorModal onClose={() => setShowDex(false)} />}
+             {showAIAgents && <AIAgentModal onClose={() => setShowAIAgents(false)} />}
         </div>
     );
 };

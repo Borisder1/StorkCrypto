@@ -15,6 +15,9 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
     en: [
         { id: 'rsi', term: 'RSI (Relative Strength Index)', category: 'TECHNICAL', definition: 'Momentum indicator (0-100). >70: Overbought (sell potential). <30: Oversold (buy potential).', example: 'RSI dropped to 25 - strong buy signal.' },
         { id: 'macd', term: 'MACD', category: 'TECHNICAL', definition: 'Trend-following indicator showing relationship between two MAs. Golden Cross suggests entry.', example: 'Blue line crossed Red line upwards.' },
+        { id: 'smc', term: 'Smart Money Concepts (SMC)', category: 'TECHNICAL', definition: 'Trading methodology based on tracking institutional order flow and liquidity.', visualType: 'CHART_SMC', example: 'Trading with the banks, not against them.' },
+        { id: 'ob', term: 'Order Block (OB)', category: 'TECHNICAL', definition: 'The last opposite candle before a strong impulsive move that breaks structure. Often acts as strong support/resistance.', visualType: 'CHART_OB', example: 'Price tapped the 1H bullish order block and reversed.' },
+        { id: 'fvg', term: 'Fair Value Gap (FVG)', category: 'TECHNICAL', definition: 'An imbalance in price action leaving a gap between the wicks of the 1st and 3rd candle in a 3-candle sequence.', visualType: 'CHART_FVG', example: 'Price returned to fill the FVG before continuing.' },
         { id: 'hns', term: 'Head & Shoulders', category: 'PATTERNS', definition: 'Reversal pattern with 3 peaks. Signals trend change from Bullish to Bearish.', visualType: 'CHART_HEAD_SHOULDERS', example: 'Price broke neckline downwards.' },
         { id: 'bullflag', term: 'Bull Flag', category: 'PATTERNS', definition: 'Continuation pattern. Impulse up, consolidation down, breakout up.', visualType: 'CHART_BULL_FLAG', example: 'Price consolidating after 10% pump.' },
         { id: 'doubletop', term: 'Double Top', category: 'PATTERNS', definition: 'Bearish reversal. Price hits resistance twice and fails.', visualType: 'CHART_DOUBLE_TOP', example: 'Failed to break $70k twice.' },
@@ -27,6 +30,7 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
         { id: 'doji', term: 'Doji Candle', category: 'PATTERNS', definition: 'Candle where Open ≈ Close. Indecision.', visualType: 'CANDLE_DOJI', example: 'Doji at top indicates potential reversal.' },
         { id: 'fomo', term: 'FOMO', category: 'PSYCHOLOGY', definition: 'Fear Of Missing Out. Emotional buying at tops.', example: 'Don\'t buy green candles on FOMO.' },
         { id: 'fud', term: 'FUD', category: 'PSYCHOLOGY', definition: 'Fear, Uncertainty, Doubt. News manipulation.', example: 'China ban is just FUD.' },
+        { id: 'revenge', term: 'Revenge Trading', category: 'PSYCHOLOGY', definition: 'Trying to immediately win back losses with emotional, unplanned trades.', example: 'Lost $100, opened 50x long to get it back.' },
         { id: 'seedphrase', term: 'Seed Phrase', category: 'SECURITY', definition: '12-24 words key to your wallet. Never share.', example: 'Keep offline on paper.' },
         { id: 'phishing', term: 'Phishing', category: 'SECURITY', definition: 'Fake sites stealing credentials.', example: 'Don\'t click suspicious links.' },
         { id: 'defi', term: 'DeFi (Decentralized Finance)', category: 'TECHNICAL', definition: 'Financial services on blockchain without intermediaries.', example: 'Uniswap, Aave.' },
@@ -39,6 +43,9 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
     ua: [
         { id: 'rsi', term: 'RSI (Індекс відносної сили)', category: 'TECHNICAL', definition: 'Індикатор імпульсу (0-100). >70: Перекупленість (продаж). <30: Перепроданність (покупка).', example: 'RSI впав до 25 - сильний сигнал на покупку.' },
         { id: 'macd', term: 'MACD', category: 'TECHNICAL', definition: 'Індикатор тренду. "Золотий хрест" (перетин ліній) вказує на ріст.', example: 'Синя лінія перетнула червону знизу вгору.' },
+        { id: 'smc', term: 'Smart Money Concepts (SMC)', category: 'TECHNICAL', definition: 'Методологія торгівлі, заснована на відстеженні інституційного потоку ордерів та ліквідності.', visualType: 'CHART_SMC', example: 'Торгуй разом з банками, а не проти них.' },
+        { id: 'ob', term: 'Ордер Блок (OB)', category: 'TECHNICAL', definition: 'Остання протилежна свічка перед сильним імпульсним рухом, що ламає структуру. Часто діє як сильна підтримка/опір.', visualType: 'CHART_OB', example: 'Ціна торкнулася бичачого ордер блоку на 1H і розвернулася.' },
+        { id: 'fvg', term: 'Імбаланс (FVG)', category: 'TECHNICAL', definition: 'Розрив справедливої вартості. Неефективність ціноутворення, що залишає прогалину між тінями 1-ї та 3-ї свічки.', visualType: 'CHART_FVG', example: 'Ціна повернулася, щоб перекрити FVG перед продовженням росту.' },
         { id: 'hns', term: 'Голова і Плечі', category: 'PATTERNS', definition: 'Патерн розвороту з 3 вершинами. Сигнал зміни тренду з бичачого на ведмежий.', visualType: 'CHART_HEAD_SHOULDERS', example: 'Ціна пробила лінію шиї вниз.' },
         { id: 'bullflag', term: 'Бичачий Прапор', category: 'PATTERNS', definition: 'Патерн продовження. Імпульс вгору, консолідація вниз, прорив вгору.', visualType: 'CHART_BULL_FLAG', example: 'Ціна відпочиває після росту на 10%.' },
         { id: 'doubletop', term: 'Подвійна Вершина', category: 'PATTERNS', definition: 'Ведмежий розворот. Ціна двічі вдаряється в опір і падає.', visualType: 'CHART_DOUBLE_TOP', example: 'Не вдалося пробити $70k двічі.' },
@@ -51,6 +58,7 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
         { id: 'doji', term: 'Свічка Доджі', category: 'PATTERNS', definition: 'Свічка, де Відкриття ≈ Закриття. Знак невизначеності.', visualType: 'CANDLE_DOJI', example: 'Доджі на вершині - можливий розворот.' },
         { id: 'fomo', term: 'FOMO (ФОМО)', category: 'PSYCHOLOGY', definition: 'Страх втраченої вигоди. Емоційні покупки на хаях.', example: 'Не купуй зелені свічки через FOMO.' },
         { id: 'fud', term: 'FUD (ФАД)', category: 'PSYCHOLOGY', definition: 'Страх, Невизначеність, Сумнів. Маніпуляція новинами.', example: 'Новини про заборону - це просто FUD.' },
+        { id: 'revenge', term: 'Торгівля з помсти', category: 'PSYCHOLOGY', definition: 'Спроба негайно відіграти збитки за допомогою емоційних, незапланованих угод.', example: 'Втратив $100, відкрив лонг з 50x щоб повернути.' },
         { id: 'seedphrase', term: 'Сід-фраза', category: 'SECURITY', definition: '12-24 слова для доступу до гаманця. Нікому не давай.', example: 'Зберігай на папері в сейфі.' },
         { id: 'phishing', term: 'Фішинг', category: 'SECURITY', definition: 'Підроблені сайти для крадіжки паролів.', example: 'Не переходь за підозрілими посиланнями.' },
         { id: 'defi', term: 'DeFi (Децентралізовані Фінанси)', category: 'TECHNICAL', definition: 'Фінансові послуги на блокчейні без посередників.', example: 'Uniswap, Aave.' },
@@ -63,6 +71,9 @@ const ACADEMY_CONTENT: Record<Language, AcademyTerm[]> = {
     pl: [
         { id: 'rsi', term: 'RSI (Wskaźnik Siły Względnej)', category: 'TECHNICAL', definition: 'Wskaźnik momentum (0-100). >70: Wykupienie (sprzedaż). <30: Wyprzedanie (kupno).', example: 'RSI spadło do 25 - sygnał kupna.' },
         { id: 'macd', term: 'MACD', category: 'TECHNICAL', definition: 'Wskaźnik trendu. "Złoty Krzyż" sugeruje wejście.', example: 'Niebieska linia przecięła czerwoną w górę.' },
+        { id: 'smc', term: 'Smart Money Concepts (SMC)', category: 'TECHNICAL', definition: 'Metodologia handlu oparta na śledzeniu przepływu zleceń instytucjonalnych i płynności.', visualType: 'CHART_SMC', example: 'Handluj z bankami, nie przeciwko nim.' },
+        { id: 'ob', term: 'Order Block (OB)', category: 'TECHNICAL', definition: 'Ostatnia przeciwna świeca przed silnym ruchem impulsywnym, który łamie strukturę. Często działa jako silne wsparcie/opór.', visualType: 'CHART_OB', example: 'Cena dotknęła byczego bloku zleceń na 1H i odwróciła się.' },
+        { id: 'fvg', term: 'Fair Value Gap (FVG)', category: 'TECHNICAL', definition: 'Nierównowaga w akcji cenowej pozostawiająca lukę między knotami 1. i 3. świecy w sekwencji 3 świec.', visualType: 'CHART_FVG', example: 'Cena wróciła, aby wypełnić FVG przed kontynuacją.' },
         { id: 'hns', term: 'Głowa z Ramionami', category: 'PATTERNS', definition: 'Formacja odwrócenia z 3 szczytami. Zmiana trendu na spadkowy.', visualType: 'CHART_HEAD_SHOULDERS', example: 'Cena przebiła linię szyi w dół.' },
         { id: 'bullflag', term: 'Flaga Byka', category: 'PATTERNS', definition: 'Formacja kontynuacji. Impuls w górę, konsolidacja, wybicie.', visualType: 'CHART_BULL_FLAG', example: 'Konsolidacja po 10% wzroście.' },
         { id: 'doubletop', term: 'Podwójny Szczyt', category: 'PATTERNS', definition: 'Odwrócenie spadkowe. Cena dwukrotnie uderza w opór.', visualType: 'CHART_DOUBLE_TOP', example: 'Nieudane przebicie $70k.' },
@@ -136,6 +147,23 @@ const ChartPattern: React.FC<{ type: AcademyTerm['visualType'] }> = ({ type }) =
                 {o: 30, c: 65, h: 70, l: 25}, {o: 65, c: 40, h: 70, l: 35}, 
                 {o: 40, c: 70, h: 75, l: 35}, {o: 70, c: 10, h: 75, l: 5}
             ];
+            case 'CHART_OB': return [
+                {o: 80, c: 20, h: 85, l: 15}, {o: 20, c: 10, h: 25, l: 5}, // Down trend
+                {o: 10, c: 50, h: 55, l: 5}, {o: 50, c: 90, h: 95, l: 45}, // Strong impulse up
+                {o: 90, c: 60, h: 95, l: 55}, {o: 60, c: 15, h: 65, l: 10}, // Retest of OB
+                {o: 15, c: 80, h: 85, l: 10} // Bounce
+            ];
+            case 'CHART_FVG': return [
+                {o: 20, c: 40, h: 45, l: 15}, // Candle 1 (High at 45)
+                {o: 40, c: 80, h: 85, l: 35}, // Candle 2 (Large body)
+                {o: 80, c: 90, h: 95, l: 75}, // Candle 3 (Low at 75) -> Gap between 45 and 75
+                {o: 90, c: 60, h: 95, l: 55}  // Retracement filling gap
+            ];
+            case 'CHART_SMC': return [
+                {o: 50, c: 60, h: 65, l: 45}, {o: 60, c: 50, h: 65, l: 45}, // Liquidity build up
+                {o: 50, c: 20, h: 55, l: 15}, // Liquidity sweep (Stop hunt)
+                {o: 20, c: 80, h: 85, l: 15}, {o: 80, c: 90, h: 95, l: 75} // Real move
+            ];
             default: return [];
         }
     };
@@ -183,6 +211,35 @@ const ChartPattern: React.FC<{ type: AcademyTerm['visualType'] }> = ({ type }) =
                              </g>
                          );
                      })}
+                     
+                     {/* Add specific highlights for OB, FVG, SMC */}
+                     {type === 'CHART_OB' && (
+                         <g className="animate-fade-in" style={{ animationDelay: '1000ms' }}>
+                             {/* Highlight the OB candle (index 1) */}
+                             <rect x={(1 / 6) * 90 + 5 - 4} y={100 - 25} width="8" height={15} fill="rgba(0, 240, 255, 0.3)" />
+                             <line x1={0} y1={100 - 25} x2={100} y2={100 - 25} stroke="rgba(0, 240, 255, 0.5)" strokeDasharray="2" />
+                             <line x1={0} y1={100 - 10} x2={100} y2={100 - 10} stroke="rgba(0, 240, 255, 0.5)" strokeDasharray="2" />
+                             <text x="80" y={100 - 15} fill="#00F0FF" fontSize="4" fontWeight="bold">OB</text>
+                         </g>
+                     )}
+                     {type === 'CHART_FVG' && (
+                         <g className="animate-fade-in" style={{ animationDelay: '1000ms' }}>
+                             {/* Highlight the FVG gap between candle 0 high and candle 2 low */}
+                             <rect x={(1 / 3) * 90 + 5 - 4} y={100 - 75} width="8" height={30} fill="rgba(168, 85, 247, 0.3)" />
+                             <line x1={0} y1={100 - 75} x2={100} y2={100 - 75} stroke="rgba(168, 85, 247, 0.5)" strokeDasharray="2" />
+                             <line x1={0} y1={100 - 45} x2={100} y2={100 - 45} stroke="rgba(168, 85, 247, 0.5)" strokeDasharray="2" />
+                             <text x="80" y={100 - 60} fill="#a855f7" fontSize="4" fontWeight="bold">FVG</text>
+                         </g>
+                     )}
+                     {type === 'CHART_SMC' && (
+                         <g className="animate-fade-in" style={{ animationDelay: '1000ms' }}>
+                             {/* Highlight the liquidity sweep at candle 2 */}
+                             <line x1={0} y1={100 - 45} x2={100} y2={100 - 45} stroke="rgba(239, 68, 68, 0.5)" strokeDasharray="2" />
+                             <text x="5" y={100 - 47} fill="#ef4444" fontSize="4">OLD LOW</text>
+                             <circle cx={(2 / 4) * 90 + 5} cy={100 - 15} r="2" fill="none" stroke="#ef4444" strokeWidth="0.5" className="animate-ping" />
+                             <text x={(2 / 4) * 90 + 5 + 3} y={100 - 15} fill="#ef4444" fontSize="4" fontWeight="bold">SWEEP</text>
+                         </g>
+                     )}
                  </svg>
              </div>
 
@@ -218,13 +275,13 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
     const categories: AcademyTerm['category'][] = ['TECHNICAL', 'PATTERNS', 'PSYCHOLOGY', 'SECURITY'];
 
     return (
-        <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden overscroll-none touch-none">
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in touch-none" onClick={onClose}></div>
+        <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden overscroll-none">
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
             
             <div className="relative z-10 w-full max-w-lg bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[85dvh] animate-zoom-in">
                 
                 {/* Header */}
-                <div className="p-5 border-b border-brand-border bg-brand-card z-10 shrink-0 touch-none">
+                <div className="p-5 border-b border-brand-border bg-brand-card z-10 shrink-0">
                     <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-brand-purple/10 border border-brand-purple/30 flex items-center justify-center">

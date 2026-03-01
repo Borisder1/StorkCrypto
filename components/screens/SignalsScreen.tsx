@@ -231,7 +231,7 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
     }, [analysis, activeFilters, searchTerm, isSniperMode]);
 
     return (
-        <div className={`fixed inset-0 z-[110] flex flex-col overflow-hidden transition-all duration-700 ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}>
+        <div className={`fixed inset-0 z-[110] flex flex-col overflow-hidden transition-all duration-700 h-[100dvh] w-full ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}>
             <TacticalBackground />
             
             {isSniperMode && (

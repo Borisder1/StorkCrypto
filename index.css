@@ -29,8 +29,8 @@ input, textarea, .select-text {
 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
 .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(0, 240, 255, 0.2); border-radius: 4px; }
 
-.safe-area-pt { padding-top: env(safe-area-inset-top, 20px); }
-.safe-area-pb { padding-bottom: env(safe-area-inset-bottom, 20px); }
+.safe-area-pt { padding-top: max(1rem, env(safe-area-inset-top, 20px)); }
+.safe-area-pb { padding-bottom: max(1rem, env(safe-area-inset-bottom, 20px)); }
 
 /* Noise Texture reduced opacity for cleaner look */
 .noise-bg {

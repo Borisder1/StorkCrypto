@@ -43,7 +43,24 @@ export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set
                 }
             } 
 
-            // 3. TELEGRAM / OTHER (Placeholder)
+            // 3. TELEGRAM / OTHER
+            let username = 'GUEST_PILOT';
+            if (type === 'telegram') {
+                try {
+                    const tgUser = (window as any).Telegram?.WebApp?.initDataUnsafe?.user;
+                    if (tgUser) {
+                        userId = tgUser.id.toString();
+                        username = tgUser.username || tgUser.first_name || 'TG_PILOT';
+                        // isFullyAuthenticated = false; // We don't sync TG users to Supabase yet
+                    } else {
+                        // Fallback if not running inside Telegram
+                        userId = 'TG_' + Math.random().toString(36).substr(2, 5);
+                        username = 'WEB_PILOT';
+                    }
+                } catch (err) {
+                    console.error("Telegram Auth Error:", err);
+                }
+            }
 
             // 4. UPDATE STORE
             set(state => ({ 
@@ -51,6 +68,7 @@ export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set
                 userStats: {
                     ...state.userStats,
                     id: userId,
+                    username: username !== 'GUEST_PILOT' ? username : state.userStats.username,
                     role: isAdmin ? 'ADMIN' : 'USER',
                     subscriptionTier: isAdmin ? 'WHALE' : state.userStats.subscriptionTier
                 }

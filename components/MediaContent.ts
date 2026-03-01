@@ -14,6 +14,9 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
         { id: 'doublebottom', term: 'Double Bottom', category: 'PATTERNS', definition: 'Bullish reversal "W" shape. Price hits support twice and bounces.', visualType: 'CHART_DOUBLE_BOTTOM', example: 'Bounced off $3000 twice.' },
         { id: 'ascendingtriangle', term: 'Ascending Triangle', category: 'PATTERNS', definition: 'Bullish pattern. Flat top resistance, rising support.', visualType: 'CHART_ASC_TRIANGLE', example: 'Squeezing towards $100 breakout.' },
         { id: 'descendingtriangle', term: 'Descending Triangle', category: 'PATTERNS', definition: 'Bearish pattern. Flat bottom support, falling resistance.', visualType: 'CHART_DESC_TRIANGLE', example: 'Selling pressure increasing.' },
+        { id: 'smc', term: 'Smart Money Concepts (SMC)', category: 'PATTERNS', definition: 'Trading methodology tracking institutional order flow and liquidity.', visualType: 'CHART_SMC', example: 'Liquidity sweep before reversal.' },
+        { id: 'orderblock', term: 'Order Block (OB)', category: 'PATTERNS', definition: 'Specific price range where institutions accumulate or distribute.', visualType: 'CHART_OB', example: 'Price tapped the 4H bullish OB.' },
+        { id: 'fvg', term: 'Fair Value Gap (FVG)', category: 'PATTERNS', definition: 'Inefficiency in price delivery leaving a gap in the chart.', visualType: 'CHART_FVG', example: 'Price returned to fill the FVG.' },
         
         // TECHNICAL
         { id: 'rsi', term: 'RSI (Relative Strength)', category: 'TECHNICAL', definition: 'Momentum indicator measuring speed and change of price movements.', example: 'RSI > 70 is overbought.', visualType: 'NONE' },
@@ -48,6 +51,9 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
         { id: 'doublebottom', term: 'Подвійне Дно', category: 'PATTERNS', definition: 'Бичачий розворот "W". Ціна двічі відскакує від підтримки.', visualType: 'CHART_DOUBLE_BOTTOM', example: 'Відскік від $3000 двічі.' },
         { id: 'ascendingtriangle', term: 'Висхідний Трикутник', category: 'PATTERNS', definition: 'Бичачий патерн. Рівний верх, підсвищення низів.', visualType: 'CHART_ASC_TRIANGLE', example: 'Тиск до пробою $100.' },
         { id: 'descendingtriangle', term: 'Низхідний Трикутник', category: 'PATTERNS', definition: 'Ведмежий патерн. Рівне дно, зниження вершин.', visualType: 'CHART_DESC_TRIANGLE', example: 'Продавці тиснуть ціну вниз.' },
+        { id: 'smc', term: 'Smart Money Concepts (SMC)', category: 'PATTERNS', definition: 'Методологія торгівлі, що відстежує інституційні ордери та ліквідність.', visualType: 'CHART_SMC', example: 'Збір ліквідності перед розворотом.' },
+        { id: 'orderblock', term: 'Ордер Блок (OB)', category: 'PATTERNS', definition: 'Зона, де великі гравці накопичують або розподіляють позиції.', visualType: 'CHART_OB', example: 'Ціна протестувала бичачий OB на 4H.' },
+        { id: 'fvg', term: 'Імбаланс (FVG)', category: 'PATTERNS', definition: 'Неефективність у доставці ціни, що залишає розрив на графіку.', visualType: 'CHART_FVG', example: 'Ціна повернулася, щоб перекрити FVG.' },
 
         // ТЕХНІЧНИЙ
         { id: 'rsi', term: 'RSI (Індекс сили)', category: 'TECHNICAL', definition: 'Індикатор імпульсу, що вимірює швидкість зміни ціни.', example: 'RSI > 70 — перекупленість.', visualType: 'NONE' },
@@ -82,6 +88,9 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
         { id: 'doublebottom', term: 'Podwójne Dno', category: 'PATTERNS', definition: 'Odwrócenie wzrostowe "W". Odbicie od wsparcia.', visualType: 'CHART_DOUBLE_BOTTOM', example: 'Odbicie od $3000 dwa razy.' },
         { id: 'ascendingtriangle', term: 'Trójkąt Zwyżkujący', category: 'PATTERNS', definition: 'Formacja byka. Płaski opór, rosnące wsparcie.', visualType: 'CHART_ASC_TRIANGLE', example: 'Presja na przebicie $100.' },
         { id: 'descendingtriangle', term: 'Trójkąt Zniżkujący', category: 'PATTERNS', definition: 'Formacja niedźwiedzia. Płaskie wsparcie, spadający opór.', visualType: 'CHART_DESC_TRIANGLE', example: 'Presja sprzedażowa rośnie.' },
+        { id: 'smc', term: 'Smart Money Concepts (SMC)', category: 'PATTERNS', definition: 'Metodologia śledząca zlecenia instytucjonalne i płynność.', visualType: 'CHART_SMC', example: 'Zgarnięcie płynności przed odwróceniem.' },
+        { id: 'orderblock', term: 'Blok Zleceń (OB)', category: 'PATTERNS', definition: 'Strefa, w której instytucje akumulują lub dystrybuują pozycje.', visualType: 'CHART_OB', example: 'Cena przetestowała byczy OB na 4H.' },
+        { id: 'fvg', term: 'Luka Wartości Godziwej (FVG)', category: 'PATTERNS', definition: 'Nieskuteczność w dostarczaniu ceny, pozostawiająca lukę na wykresie.', visualType: 'CHART_FVG', example: 'Cena wróciła, aby wypełnić FVG.' },
         
         // TECHNICAL
         { id: 'rsi', term: 'RSI (Siła Względna)', category: 'TECHNICAL', definition: 'Wskaźnik mierzący prędkość zmian cen.', example: 'RSI > 70 to wykupienie.', visualType: 'NONE' },

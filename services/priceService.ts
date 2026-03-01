@@ -6,6 +6,29 @@ const COINCAP_API_URL = 'https://api.coincap.io/v2';
 // Free Fear & Greed API
 const FEAR_GREED_API_URL = 'https://api.alternative.me/fng/?limit=1';
 
+export interface OrderBookData {
+    bids: [number, number][]; // [price, quantity]
+    asks: [number, number][];
+}
+
+export const getOrderBook = async (ticker: string, limit: number = 20): Promise<OrderBookData | null> => {
+    try {
+        const symbol = `${ticker}USDT`;
+        const response = await fetch(`${BINANCE_API_URL}/depth?symbol=${symbol}&limit=${limit}`);
+        if (response.ok) {
+            const data = await response.json();
+            return {
+                bids: data.bids.map((b: string[]) => [parseFloat(b[0]), parseFloat(b[1])]),
+                asks: data.asks.map((a: string[]) => [parseFloat(a[0]), parseFloat(a[1])])
+            };
+        }
+        return null;
+    } catch (e) {
+        console.error("Failed to fetch order book", e);
+        return null;
+    }
+};
+
 export interface OHLCData {
     time: number;
     open: number;

@@ -35,7 +35,7 @@ const AnalyticsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }, [assets]);
 
     return (
-        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden">
+        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden h-[100dvh] w-full">
             <TacticalBackground />
             
             {/* Standardized Header */}

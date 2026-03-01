@@ -140,6 +140,7 @@ export interface NewsArticle {
     summary: string;
     sources?: { uri: string; title: string }[];
     sentimentMock?: 'POS' | 'NEG' | 'NEU';
+    impact?: 'HIGH' | 'MED' | 'LOW';
     isVerified?: boolean;
     isFud?: boolean;
 }
@@ -319,7 +320,7 @@ export interface AcademyTerm {
     visualType?: VisualType;
 }
 
-export type VisualType = 'NONE' | 'CHART_HEAD_SHOULDERS' | 'CHART_DOUBLE_TOP' | 'CHART_DOUBLE_BOTTOM' | 'CHART_BULL_FLAG' | 'CHART_CUP_HANDLE' | 'CHART_ASC_TRIANGLE' | 'CHART_DESC_TRIANGLE' | 'CHART_WEDGE_BULL' | 'CHART_WEDGE_BEAR' | 'CANDLE_DOJI';
+export type VisualType = 'NONE' | 'CHART_HEAD_SHOULDERS' | 'CHART_DOUBLE_TOP' | 'CHART_DOUBLE_BOTTOM' | 'CHART_BULL_FLAG' | 'CHART_CUP_HANDLE' | 'CHART_ASC_TRIANGLE' | 'CHART_DESC_TRIANGLE' | 'CHART_WEDGE_BULL' | 'CHART_WEDGE_BEAR' | 'CANDLE_DOJI' | 'CHART_OB' | 'CHART_FVG' | 'CHART_SMC';
 
 export interface AppSettings {
     language: Language;

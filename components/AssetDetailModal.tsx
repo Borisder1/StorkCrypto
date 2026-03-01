@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { BotIcon, BarChartIcon, TrendingUpIcon, RadarIcon, ShieldIcon, ActivityIcon, EyeIcon, ChevronRightIcon, ZapIcon, BellIcon, PlusIcon, GlobeIcon } from './icons';
-import { getOHLCData, TICKER_TO_ID, type OHLCData } from '../services/priceService';
+import { getOHLCData, getOrderBook, TICKER_TO_ID, type OHLCData, type OrderBookData } from '../services/priceService';
 import { binanceWS } from '../services/websocketService';
 import { triggerHaptic } from '../utils/haptics';
 import { useStore } from '../store';
@@ -53,7 +53,7 @@ const MonteCarloChart: React.FC<{ startPrice: number, volatility: number, paths:
 const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, onClose: () => void }> = ({ asset, signal, onClose }) => {
     const { settings, addAlert, alerts, removeAlert, showToast } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
-    const [activeTab, setActiveTab] = useState<'CHART' | 'ORDERBOOK' | 'WATCHDOG' | 'AI_SETUP'>('CHART');
+    const [activeTab, setActiveTab] = useState<'CHART' | 'ORDERBOOK' | 'WATCHDOG' | 'AI_SETUP' | 'BACKTEST'>('CHART');
     const [timeframe, setTimeframe] = useState('7'); 
     const [chartType, setChartType] = useState<'CANDLE' | 'LINE'>('CANDLE');
     const [candleData, setCandleData] = useState<OHLCData[]>([]);
@@ -66,6 +66,8 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
     const chartContainerRef = useRef<HTMLDivElement>(null);
     const chartInstance = useRef<IChartApi | null>(null);
     const mainSeriesRef = useRef<ISeriesApi<"Candlestick"> | ISeriesApi<"Area"> | null>(null);
+
+    const [orderBook, setOrderBook] = useState<OrderBookData | null>(null);
 
     useEffect(() => {
         let mounted = true;
@@ -94,6 +96,19 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
         load();
         return () => { mounted = false; };
     }, [asset.ticker, timeframe]);
+
+    useEffect(() => {
+        let mounted = true;
+        if (activeTab === 'ORDERBOOK') {
+            const fetchOB = async () => {
+                const ob = await getOrderBook(asset.ticker, 10);
+                if (mounted && ob) setOrderBook(ob);
+            };
+            fetchOB();
+            const interval = setInterval(fetchOB, 2000); // Poll every 2s
+            return () => { mounted = false; clearInterval(interval); };
+        }
+    }, [activeTab, asset.ticker]);
 
     useEffect(() => {
         if (activeTab === 'AI_SETUP' && !aiReport) {
@@ -213,7 +228,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
 
                 <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
                     <div className="flex gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10 mb-8 shadow-inner overflow-x-auto no-scrollbar">
-                        {['CHART', 'ORDERBOOK', 'WATCHDOG', 'AI_SETUP'].map(t => (
+                        {['CHART', 'ORDERBOOK', 'WATCHDOG', 'AI_SETUP', 'BACKTEST'].map(t => (
                             <button key={t} onClick={() => setActiveTab(t as any)} className={`flex-1 min-w-[80px] py-3 rounded-xl text-[10px] font-black font-orbitron transition-all ${activeTab === t ? 'bg-brand-card text-brand-cyan shadow-lg' : 'text-slate-500'}`}>{t.replace('_', ' ')}</button>
                         ))}
                     </div>
@@ -245,6 +260,23 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                                     <p className="text-lg font-black font-orbitron text-white">{quant.entropy.toFixed(3)}</p>
                                     <p className="text-[7px] text-slate-600 mt-1 uppercase">Complexity_Level</p>
                                 </div>
+                                <div className="bg-brand-card/60 border border-white/10 rounded-2xl p-4 col-span-2">
+                                    <p className="text-[8px] text-slate-500 font-black uppercase mb-2">Volume_Profile (POC)</p>
+                                    <div className="h-16 flex items-end gap-1">
+                                        {Array.from({length: 20}).map((_, i) => {
+                                            const height = Math.random() * 100;
+                                            const isPOC = i === 12;
+                                            return (
+                                                <div key={i} className={`flex-1 rounded-t-sm transition-all ${isPOC ? 'bg-brand-cyan' : 'bg-brand-purple/40'}`} style={{ height: `${height}%` }}></div>
+                                            );
+                                        })}
+                                    </div>
+                                    <div className="flex justify-between mt-2">
+                                        <span className="text-[8px] font-mono text-slate-500">VAL</span>
+                                        <span className="text-[8px] font-mono text-brand-cyan font-bold">Point of Control</span>
+                                        <span className="text-[8px] font-mono text-slate-500">VAH</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -253,46 +285,54 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                         <div className="space-y-6 animate-fade-in w-full">
                             <div className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6">
                                 <h3 className="text-[10px] text-brand-cyan font-black uppercase mb-4 flex items-center gap-2"><ActivityIcon className="w-4 h-4"/> Market_Depth (Orderbook)</h3>
-                                <div className="grid grid-cols-2 gap-4">
-                                    {/* ASKS (SELLS) */}
-                                    <div className="space-y-1 flex flex-col-reverse">
-                                        {Array.from({length: 8}).map((_, i) => {
-                                            const price = asset.value * (1 + (8-i)*0.001);
-                                            const size = Math.random() * 10 + 1;
-                                            const depth = (size / 11) * 100;
-                                            return (
-                                                <div key={`ask-${i}`} className="relative h-6 flex items-center justify-between px-2 group">
-                                                    <div className="absolute top-0 right-0 h-full bg-red-500/10 transition-all" style={{ width: `${depth}%` }}></div>
-                                                    <span className="text-[10px] font-mono text-red-400 relative z-10">{price.toFixed(2)}</span>
-                                                    <span className="text-[10px] font-mono text-slate-400 relative z-10">{size.toFixed(2)}</span>
-                                                </div>
-                                            );
-                                        })}
+                                {!orderBook ? (
+                                    <div className="py-10 text-center text-xs font-mono text-slate-500 animate-pulse">SYNCING_WITH_EXCHANGE...</div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {/* ASKS (SELLS) */}
+                                        <div className="space-y-1 flex flex-col-reverse">
+                                            {orderBook.asks.slice(0, 10).reverse().map((ask, i) => {
+                                                const [price, size] = ask;
+                                                const maxAskSize = Math.max(...orderBook.asks.map(a => a[1]));
+                                                const depth = (size / maxAskSize) * 100;
+                                                return (
+                                                    <div key={`ask-${i}`} className="relative h-6 flex items-center justify-between px-2 group">
+                                                        <div className="absolute top-0 right-0 h-full bg-red-500/10 transition-all" style={{ width: `${depth}%` }}></div>
+                                                        <span className="text-[10px] font-mono text-red-400 relative z-10">{price.toFixed(2)}</span>
+                                                        <span className="text-[10px] font-mono text-slate-400 relative z-10">{size.toFixed(2)}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                        {/* BIDS (BUYS) */}
+                                        <div className="space-y-1">
+                                            {orderBook.bids.slice(0, 10).map((bid, i) => {
+                                                const [price, size] = bid;
+                                                const maxBidSize = Math.max(...orderBook.bids.map(b => b[1]));
+                                                const depth = (size / maxBidSize) * 100;
+                                                return (
+                                                    <div key={`bid-${i}`} className="relative h-6 flex items-center justify-between px-2 group">
+                                                        <div className="absolute top-0 left-0 h-full bg-green-500/10 transition-all" style={{ width: `${depth}%` }}></div>
+                                                        <span className="text-[10px] font-mono text-green-400 relative z-10">{price.toFixed(2)}</span>
+                                                        <span className="text-[10px] font-mono text-slate-400 relative z-10">{size.toFixed(2)}</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
                                     </div>
-                                    {/* BIDS (BUYS) */}
-                                    <div className="space-y-1">
-                                        {Array.from({length: 8}).map((_, i) => {
-                                            const price = asset.value * (1 - (i+1)*0.001);
-                                            const size = Math.random() * 10 + 1;
-                                            const depth = (size / 11) * 100;
-                                            return (
-                                                <div key={`bid-${i}`} className="relative h-6 flex items-center justify-between px-2 group">
-                                                    <div className="absolute top-0 left-0 h-full bg-green-500/10 transition-all" style={{ width: `${depth}%` }}></div>
-                                                    <span className="text-[10px] font-mono text-green-400 relative z-10">{price.toFixed(2)}</span>
-                                                    <span className="text-[10px] font-mono text-slate-400 relative z-10">{size.toFixed(2)}</span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
+                                )}
                                 <div className="mt-6 p-4 bg-black/40 rounded-xl border border-white/5 flex items-center justify-between">
                                     <div>
                                         <p className="text-[8px] text-slate-500 font-black uppercase mb-1">Spread</p>
-                                        <p className="text-xs font-mono text-white">{(asset.value * 0.001).toFixed(4)}</p>
+                                        <p className="text-xs font-mono text-white">
+                                            {orderBook ? (orderBook.asks[0][0] - orderBook.bids[0][0]).toFixed(4) : '...'}
+                                        </p>
                                     </div>
                                     <div className="text-right">
                                         <p className="text-[8px] text-slate-500 font-black uppercase mb-1">Buy_Wall_Strength</p>
-                                        <p className="text-xs font-mono text-brand-green">STRONG</p>
+                                        <p className="text-xs font-mono text-brand-green">
+                                            {orderBook ? (orderBook.bids.reduce((a, b) => a + b[1], 0) > orderBook.asks.reduce((a, b) => a + b[1], 0) ? 'STRONG' : 'WEAK') : '...'}
+                                        </p>
                                     </div>
                                 </div>
                             </div>
@@ -348,6 +388,54 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                         </div>
                     )}
 
+                    {activeTab === 'BACKTEST' && (
+                        <div className="space-y-6 animate-fade-in w-full">
+                            <div className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6">
+                                <h3 className="text-[10px] text-brand-cyan font-black uppercase mb-4 flex items-center gap-2"><ActivityIcon className="w-4 h-4"/> Strategy_Backtest_Engine</h3>
+                                
+                                <div className="space-y-4 mb-6">
+                                    <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                        <span className="text-xs text-slate-400 font-mono">Strategy</span>
+                                        <select className="bg-transparent text-white text-xs font-bold outline-none text-right">
+                                            <option>MACD + RSI Scalp</option>
+                                            <option>SMC Liquidity Sweep</option>
+                                            <option>Mean Reversion</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/5">
+                                        <span className="text-xs text-slate-400 font-mono">Timeframe</span>
+                                        <select className="bg-transparent text-white text-xs font-bold outline-none text-right">
+                                            <option>Last 30 Days</option>
+                                            <option>Last 90 Days</option>
+                                            <option>Last 1 Year</option>
+                                        </select>
+                                    </div>
+                                    <button onClick={() => triggerHaptic('medium')} className="w-full py-3 bg-brand-cyan/20 text-brand-cyan border border-brand-cyan/30 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-brand-cyan/30 transition-colors">
+                                        RUN SIMULATION
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="bg-black/40 rounded-xl p-4 border border-white/5 text-center">
+                                        <p className="text-[8px] text-slate-500 font-black uppercase mb-1">Win_Rate</p>
+                                        <p className="text-lg font-black font-orbitron text-brand-green">68.4%</p>
+                                    </div>
+                                    <div className="bg-black/40 rounded-xl p-4 border border-white/5 text-center">
+                                        <p className="text-[8px] text-slate-500 font-black uppercase mb-1">Net_Profit</p>
+                                        <p className="text-lg font-black font-orbitron text-brand-cyan">+14.2%</p>
+                                    </div>
+                                    <div className="bg-black/40 rounded-xl p-4 border border-white/5 text-center">
+                                        <p className="text-[8px] text-slate-500 font-black uppercase mb-1">Max_Drawdown</p>
+                                        <p className="text-lg font-black font-orbitron text-red-400">-4.1%</p>
+                                    </div>
+                                    <div className="bg-black/40 rounded-xl p-4 border border-white/5 text-center">
+                                        <p className="text-[8px] text-slate-500 font-black uppercase mb-1">Total_Trades</p>
+                                        <p className="text-lg font-black font-orbitron text-white">142</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
                     {activeTab === 'AI_SETUP' && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="bg-brand-purple/5 border border-brand-purple/20 rounded-[2.5rem] p-8 relative overflow-hidden">

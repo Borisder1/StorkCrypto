@@ -18,9 +18,10 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         activeBanners, addBanner, removeBanner
     } = useStore();
     
-    const [activeTab, setActiveTab] = useState<'SYSTEM' | 'FINANCE' | 'APPROVALS' | 'USERS' | 'BROADCAST' | 'CAMPAIGNS'>('SYSTEM');
+    const [activeTab, setActiveTab] = useState<'SYSTEM' | 'FINANCE' | 'APPROVALS' | 'USERS' | 'BROADCAST' | 'CAMPAIGNS' | 'ANALYTICS'>('SYSTEM');
     const [users, setUsers] = useState<any[]>([]);
     const [searchUser, setSearchUser] = useState('');
+    const [analytics, setAnalytics] = useState({ total: 0, pro: 0, whale: 0, free: 0 });
     
     // Broadcast State
     const [bcMessage, setBcMessage] = useState('');
@@ -42,12 +43,18 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
 
     useEffect(() => {
         if (activeTab === 'APPROVALS') fetchPendingSubscriptions();
-        if (activeTab === 'USERS') fetchAllUsers();
+        if (activeTab === 'USERS' || activeTab === 'ANALYTICS') fetchAllUsers();
     }, [activeTab]);
 
     const fetchAllUsers = async () => {
         const { data, error } = await supabase.from('profiles').select('*').order('last_active', { ascending: false });
-        if (data) setUsers(data);
+        if (data) {
+            setUsers(data);
+            const pro = data.filter(u => u.subscription_tier === 'PRO').length;
+            const whale = data.filter(u => u.subscription_tier === 'WHALE').length;
+            const free = data.filter(u => !u.subscription_tier || u.subscription_tier === 'FREE').length;
+            setAnalytics({ total: data.length, pro, whale, free });
+        }
     };
 
     const updateUserTierDirectly = async (userId: string, tier: string) => {
@@ -113,7 +120,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     const filteredUsers = (users || []).filter(u => u.id?.toLowerCase().includes(searchUser.toLowerCase()));
 
     return (
-        <div className="fixed inset-0 z-[300] bg-[#0a0a0a] font-mono flex flex-col text-white overflow-hidden">
+        <div className="fixed inset-0 z-[300] bg-[#0a0a0a] font-mono flex flex-col text-white overflow-hidden h-[100dvh] w-full">
             {/* Admin Grid Overlay */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[length:20px_20px] pointer-events-none"></div>
 
@@ -126,12 +133,39 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
             </div>
 
             <div className="flex border-b border-white/10 overflow-x-auto no-scrollbar bg-white/5 z-10">
-                {['SYSTEM', 'FINANCE', 'APPROVALS', 'BROADCAST', 'USERS', 'CAMPAIGNS'].map((tab) => (
+                {['SYSTEM', 'FINANCE', 'APPROVALS', 'BROADCAST', 'USERS', 'CAMPAIGNS', 'ANALYTICS'].map((tab) => (
                     <button key={tab} onClick={() => { setActiveTab(tab as any); triggerHaptic('light'); }} className={`px-6 py-4 text-[10px] font-black transition-colors border-r border-white/10 whitespace-nowrap uppercase ${activeTab === tab ? 'bg-white text-black' : 'hover:bg-white/10 text-slate-400'}`}>{tab}</button>
                 ))}
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 relative z-10 custom-scrollbar pb-32">
+                
+                {/* ANALYTICS TAB */}
+                {activeTab === 'ANALYTICS' && (
+                    <div className="space-y-6">
+                        <div className="border border-white/10 p-6 rounded-xl bg-black/40">
+                            <h3 className="text-white font-bold mb-6 flex items-center gap-2 uppercase"><BarChartIcon className="w-4 h-4 text-brand-cyan"/> System Analytics</h3>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-black/60 border border-white/10 p-4 rounded-xl text-center">
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Users</p>
+                                    <p className="text-2xl font-black text-white">{analytics.total}</p>
+                                </div>
+                                <div className="bg-purple-900/20 border border-purple-500/30 p-4 rounded-xl text-center">
+                                    <p className="text-[10px] text-purple-400 font-bold uppercase mb-1">Whale Tier</p>
+                                    <p className="text-2xl font-black text-purple-400">{analytics.whale}</p>
+                                </div>
+                                <div className="bg-cyan-900/20 border border-cyan-500/30 p-4 rounded-xl text-center">
+                                    <p className="text-[10px] text-cyan-400 font-bold uppercase mb-1">Pro Tier</p>
+                                    <p className="text-2xl font-black text-cyan-400">{analytics.pro}</p>
+                                </div>
+                                <div className="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Free Tier</p>
+                                    <p className="text-2xl font-black text-slate-300">{analytics.free}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 
                 {/* CAMPAIGNS TAB */}
                 {activeTab === 'CAMPAIGNS' && (

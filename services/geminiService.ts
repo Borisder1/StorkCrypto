@@ -119,8 +119,18 @@ const generateFallbackSignals = (metrics: AssetMetrics[]): AgentAnalysis => {
 };
 
 export const getLatestCryptoNews = async (language: string = 'en'): Promise<NewsArticle[]> => {
-    const prompt = `Search Google for top 5 crypto news now. Return JSON array: [{headline, summary, sources: [{uri, title}]}]`;
+    const prompt = `Search Google for top 5 latest crypto news. Return JSON array: [{headline, summary, sentimentMock: "POS"|"NEG"|"NEU", impact: "HIGH"|"MED"|"LOW", sources: [{uri, title}]}]`;
     return await safeGenerate(prompt, { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] });
+};
+
+export const getAIAgentAnalysis = async (agentType: 'SNIPER' | 'WHALE' | 'GUARDIAN', language: string): Promise<string> => {
+    let persona = '';
+    if (agentType === 'SNIPER') persona = 'You are an aggressive day-trader AI looking for high-risk, high-reward scalping opportunities based on momentum.';
+    if (agentType === 'WHALE') persona = 'You are an analytical on-chain tracker AI looking for smart money movements and institutional accumulation.';
+    if (agentType === 'GUARDIAN') persona = 'You are a conservative portfolio manager AI focused on capital preservation and long-term macro trends.';
+    
+    const prompt = `${persona} Search Google for the current crypto market conditions and provide a concise, tactical 3-paragraph analysis from your unique perspective. ${getLanguageInstruction(language)}`;
+    return await safeGenerate(prompt, { tools: [{ googleSearch: {} }] }) || "Analysis unavailable.";
 };
 
 export const createChatSession = (systemContext: string, language: string) => {

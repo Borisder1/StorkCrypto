@@ -30,7 +30,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }, [settings.language]);
 
     return (
-        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden">
+        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden h-[100dvh] w-full">
             <TacticalBackground />
             
             {/* Standardized Header */}
@@ -58,7 +58,19 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     <div key={index} className="p-5 bg-brand-card/40 backdrop-blur-md border border-white/5 rounded-[2rem] hover:border-brand-cyan/20 transition-all animate-fade-in-up">
                         <div className="flex justify-between items-start gap-4">
                             <div className="flex-1">
-                                <span className="text-[8px] font-black text-brand-cyan uppercase tracking-widest mb-2 block">SOURCE_0{index + 1}</span>
+                                <div className="flex items-center gap-2 mb-2">
+                                    <span className="text-[8px] font-black text-brand-cyan uppercase tracking-widest">SOURCE_0{index + 1}</span>
+                                    {article.sentimentMock && (
+                                        <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${article.sentimentMock === 'POS' ? 'bg-green-500/10 border-green-500/30 text-green-400' : article.sentimentMock === 'NEG' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-slate-500/10 border-slate-500/30 text-slate-400'}`}>
+                                            {article.sentimentMock}
+                                        </span>
+                                    )}
+                                    {article.impact && (
+                                        <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${article.impact === 'HIGH' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : article.impact === 'MED' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400' : 'bg-slate-500/10 border-slate-500/30 text-slate-400'}`}>
+                                            IMPACT: {article.impact}
+                                        </span>
+                                    )}
+                                </div>
                                 <h3 className="text-sm font-black text-white mb-2 leading-tight uppercase">{article.headline}</h3>
                                 <p className="text-[10px] text-slate-400 leading-relaxed font-mono opacity-80 line-clamp-3">{article.summary}</p>
                             </div>

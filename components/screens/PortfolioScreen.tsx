@@ -91,7 +91,7 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden animate-fade-in">
+        <div className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden animate-fade-in h-[100dvh] w-full">
             <TacticalBackground />
             
             <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
