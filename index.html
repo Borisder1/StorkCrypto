@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+    <meta name="theme-color" content="#020617">
+    <meta name="description" content="StorkCrypto: Premium Neural Terminal.">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="/manifest.json">
+    
+    <title>StorkCrypto</title>
+    <script>
+      window.process = window.process || { env: { NODE_ENV: 'development' } };
+      window.global = window; 
+
+      window.onload = function() {
+        setTimeout(function() {
+            const root = document.getElementById('root');
+            if (root && (root.innerHTML.trim() === '' || root.children.length === 0)) {
+                const debugInfo = document.createElement('div');
+                debugInfo.style.cssText = "position:fixed; inset:0; background:#020617; color:#ef4444; padding:20px; font-family:monospace; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;";
+                debugInfo.innerHTML = "<h1>TERMINAL ERROR</h1><button onclick='window.location.reload()'>REBOOT</button>";
+                document.body.appendChild(debugInfo);
+            }
+        }, 5000);
+      };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Fonts: Orbitron (Headers), JetBrains Mono (Data/Body) -->
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=JetBrains+Mono:ital,wght@0,400;0,500;0,700;0,800;1,400&display=swap&subset=latin,latin-ext,cyrillic" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="noise-bg"></div>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>

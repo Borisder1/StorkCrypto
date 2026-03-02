@@ -1,0 +1,42 @@
+{
+  "name": "storkcrypto",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "tsc --noEmit",
+    "preview": "vite preview",
+    "start:bot": "node bot.js"
+  },
+  "dependencies": {
+    "@google/genai": "1.38.0",
+    "@supabase/supabase-js": "2.39.7",
+    "@tonconnect/sdk": "3.0.2",
+    "@tonconnect/ui-react": "2.0.2",
+    "@types/node": "^22.14.0",
+    "@types/react": "^18.3.1",
+    "@types/react-dom": "^18.3.1",
+    "@vitejs/plugin-react": "^4.2.1",
+    "autoprefixer": "10.4.17",
+    "lightweight-charts": "4.1.1",
+    "node-telegram-bot-api": "^0.67.0",
+    "otpauth": "^9.5.0",
+    "postcss": "8.4.35",
+    "qrcode.react": "^4.2.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "2.12.2",
+    "tailwindcss": "3.4.1",
+    "typescript": "~5.3.3",
+    "vite": "^5.1.4",
+    "zustand": "^5.0.10"
+  },
+  "devDependencies": {},
+  "overrides": {
+    "tailwindcss": "3.4.1",
+    "postcss": "8.4.35",
+    "autoprefixer": "10.4.17"
+  }
+}

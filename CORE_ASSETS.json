@@ -1,0 +1,13 @@
+{
+  "project": "StorkCrypto",
+  "version": "7.0",
+  "core_visuals": {
+    "loading_screen": {
+      "file": "components/LoadingScreen.tsx",
+      "status": "IMMUTABLE_CONCEPT",
+      "features": ["Vertical orientation", "Energy Particles", "3D Depth", "Perspective: 1000px"]
+    },
+    "terminal_font": "Orbitron",
+    "data_font": "Space Mono"
+  }
+}

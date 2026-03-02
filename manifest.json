@@ -1,0 +1,40 @@
+{
+  "name": "StorkCrypto AI Terminal",
+  "short_name": "StorkCrypto",
+  "description": "Neural crypto portfolio tracker and AI market scanner.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://placehold.co/192x192/00F0FF/000000.png?text=STORK",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://placehold.co/512x512/00F0FF/000000.png?text=STORK",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Market Scanner",
+      "short_name": "Scanner",
+      "description": "Open AI Market Scanner",
+      "url": "/?tab=scanner",
+      "icons": [{ "src": "https://placehold.co/192x192/00F0FF/000000.png?text=SCAN", "sizes": "192x192" }]
+    },
+    {
+      "name": "My Portfolio",
+      "short_name": "Portfolio",
+      "description": "View Assets",
+      "url": "/?tab=portfolio",
+      "icons": [{ "src": "https://placehold.co/192x192/00F0FF/000000.png?text=PORT", "sizes": "192x192" }]
+    }
+  ]
+}
