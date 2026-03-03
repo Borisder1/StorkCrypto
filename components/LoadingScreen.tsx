@@ -76,7 +76,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
     const particles: EnergyParticle[] = [];
     let animationFrameId: number | null = null;
 
-    const word = t('app.name');
+    const word = 'STORKCRYPTO';
     const letterElements: Array<{
       element: HTMLDivElement;
       revealed: boolean;
@@ -269,7 +269,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           position: relative;
           margin: clamp(0px, 0.1vh, 2px) 0; /* Vertical spacing */
           font-family: 'Orbitron', monospace;
-          font-size: clamp(23px, 5.2vh, 37px); /* Increased by ~15% */
+          font-size: clamp(20px, 4.5vh, 32px); /* Reduced for compact view */
           font-weight: 900;
           width: 1.2em;
           height: 1.5em;
@@ -398,9 +398,9 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
       {/* Кнопка пропуску (відновлено) */}
       <button 
         onClick={onSkip}
-        className="absolute bottom-12 z-50 px-6 py-3 rounded-xl border border-[#00E5FF]/30 bg-[#00E5FF]/10 text-[#00E5FF] font-orbitron text-xs font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-[#00E5FF]/20 hover:border-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.5)] animate-pulse cursor-pointer backdrop-blur-sm shadow-[0_0_10px_rgba(0,229,255,0.2)]"
+        className="absolute bottom-12 z-50 px-5 py-2.5 rounded-xl border border-[#00E5FF]/50 bg-[#00E5FF]/10 text-[#00E5FF] font-orbitron text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-[#00E5FF]/20 hover:border-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.6)] animate-pulse cursor-pointer backdrop-blur-sm shadow-[0_0_10px_rgba(0,229,255,0.3)] active:scale-95"
       >
-        {t('loading.skip')}
+        SKIP_INIT &gt;&gt;
       </button>
     </div>
   );
