@@ -34,7 +34,7 @@ const AuthScreen: React.FC = () => {
     };
     
     // Побудова шляху з урахуванням BASE_URL для коректної роботи в підпапках (GitHub Pages)
-    const logoUrl = '/logo.jpg';
+    const logoUrl = './logo.jpg';
     const [imgError, setImgError] = useState(false);
 
     const t = (key: string) => getTranslation(settings.language, key);
