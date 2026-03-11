@@ -2,47 +2,45 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { NewsArticle, AgentAnalysis, AssetMetrics, TradingSignal } from '../types';
 import { supabase } from './supabaseClient';
 
-const USE_EDGE_FUNCTION = true; 
-
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
+const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
 
-const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, modelName: string = "gemini-3-flash-preview", history: any[] = []): Promise<any> => {
-    if (USE_EDGE_FUNCTION) {
-        try {
-            const { data, error } = await supabase.functions.invoke('ask-ai', {
-                body: { prompt, config, history }
-            });
-            if (error) throw error;
-            let resultText = data?.text || data;
-            if (typeof resultText === 'object' && resultText !== null) return resultText;
-            if (config.responseMimeType === 'application/json' && typeof resultText === 'string') return parseCleanJSON(resultText);
-            return resultText;
-        } catch (e) {
-            console.warn("[AI] Edge Function failed, falling back to local...", e);
-        }
-    }
+// Використовуємо наш новий бекенд (bot.js), який підключено до Kimi 2.5
+const BACKEND_URL = (import.meta as any).env?.VITE_BACKEND_URL || 'http://localhost:8080';
 
-    const ai = getAI();
+const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, modelName: string = "kimi", history: any[] = []): Promise<any> => {
     for (let i = 0; i < maxRetries; i++) {
         try {
-            const response = await ai.models.generateContent({ model: modelName, contents: prompt, config });
-            if (!response.text) throw new Error("Empty AI Response");
-            const responseText = response.text;
-            
-            // Extract Grounding Metadata if available
-            const sources = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
-            
-            if (config.responseMimeType === 'application/json') {
-                const parsed = parseCleanJSON(responseText);
-                if (parsed && sources.length > 0) parsed.sources = sources;
-                return parsed;
+            const response = await fetch(`${BACKEND_URL}/api/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt, config, history })
+            });
+
+            if (!response.ok) {
+                throw new Error(`Server responded with ${response.status}`);
             }
-            return responseText;
+
+            const data = await response.json();
+            
+            if (data.success && data.text) {
+                let resultText = data.text;
+                
+                // Якщо очікувався JSON, парсимо його
+                if (config.responseMimeType === 'application/json') {
+                    return parseCleanJSON(resultText);
+                }
+                
+                return resultText;
+            } else {
+                throw new Error(data.error || "Empty AI Response from Backend");
+            }
         } catch (e: any) {
-            if (e.status === 429 && i < maxRetries - 1) await delay(Math.pow(2, i) * 1000);
-            else if (i === maxRetries - 1) return null;
+            console.warn(`[AI Proxy] Attempt ${i+1} failed:`, e);
+            if (i < maxRetries - 1) {
+                await delay(Math.pow(2, i) * 1000);
+            }
         }
     }
     return null; 

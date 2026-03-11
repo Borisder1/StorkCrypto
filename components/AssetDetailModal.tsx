@@ -9,7 +9,7 @@ import { Asset, TradingSignal, PriceAlert } from '../types';
 import { createChart, ColorType, IChartApi, LineStyle, ISeriesApi } from 'lightweight-charts';
 import { getTranslation } from '../utils/translations';
 import { calculateZScore, calculateVolumeProfile, generateOrderHeatmap, calculateCumulativeDelta, calculateExhaustionIndex, calculateInstitutionalConviction, calculateSMA, calculateBollingerBands, runMonteCarloSimulation, calculateFractalDimension, calculateMarketEntropy, type VolumeBin, type OrderWall, type SimulationPath } from '../services/quantService';
-import { generateSpecificAssetAnalysis } from '../services/geminiService';
+import { fetchKimiAudit } from '../services/kimiService';
 
 const TIMEFRAMES = [
     { label: '1H', days: '0.04' },
@@ -113,12 +113,12 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
     useEffect(() => {
         if (activeTab === 'AI_SETUP' && !aiReport) {
             setAiLoading(true);
-            generateSpecificAssetAnalysis(asset.ticker, asset.value, asset.change, settings.language).then(res => {
+            fetchKimiAudit(asset.ticker).then(res => {
                 setAiReport(res);
                 setAiLoading(false);
             });
         }
-    }, [activeTab, asset.ticker, settings.language, aiReport]);
+    }, [activeTab, asset.ticker, aiReport]);
 
     // WebSocket Update Guard
     useEffect(() => {
@@ -439,13 +439,13 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                     {activeTab === 'AI_SETUP' && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="bg-brand-purple/5 border border-brand-purple/20 rounded-[2.5rem] p-8 relative overflow-hidden">
-                                <h4 className="text-[10px] text-brand-purple font-black uppercase mb-6 flex items-center gap-2"><BotIcon className="w-5 h-5"/> Live_Neural_Synthetics</h4>
-                                {aiLoading ? <div className="text-xs text-slate-500 animate-pulse font-mono">📡 LINKING_TO_GLOBAL_SEARCH...</div> : (
+                                <h4 className="text-[10px] text-brand-purple font-black uppercase mb-6 flex items-center gap-2"><BotIcon className="w-5 h-5"/> Live_Neural_Synthetics (Kimi 2.5)</h4>
+                                {aiLoading ? <div className="text-xs text-slate-500 animate-pulse font-mono">📡 LINKING_TO_KIMI_BACKEND...</div> : (
                                     <div className="space-y-4">
-                                        <p className="text-sm text-slate-200 font-mono leading-relaxed italic">"{aiReport}"</p>
+                                        <p className="text-sm text-slate-200 font-mono leading-relaxed whitespace-pre-wrap">{aiReport}</p>
                                         <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
                                             <GlobeIcon className="w-3 h-3 text-brand-cyan" />
-                                            <span className="text-[8px] text-slate-500 font-black uppercase">Verified via Google Search Grounding</span>
+                                            <span className="text-[8px] text-brand-cyan font-black uppercase">Verified via Nvidia Kimi 2.5 Intelligence Matrix</span>
                                         </div>
                                     </div>
                                 )}
