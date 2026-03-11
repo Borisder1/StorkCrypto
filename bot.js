@@ -14,7 +14,7 @@ import https from 'https';
 import http from 'http';
 
 // ВСТАВТЕ СЮДИ ТОКЕН ВАШОГО БОТА
-const token = process.env.TELEGRAM_BOT_TOKEN || '8501512462:AAFR_bSDLp3jiqKgDQnkimOAuwiWrA9xdWs'; 
+const token = process.env.TELEGRAM_BOT_TOKEN || '8501512462:AAFR_bSDLp3jiqKgDQnkimOAuwiWrA9xdWs';
 
 const bot = new TelegramBot(token, { polling: true });
 
@@ -35,7 +35,7 @@ const userIds = new Set();
 let lastPrice = 0;
 
 // Функція для отримання ціни BTC
-const getBTCPrice = (): Promise<number> => {
+const getBTCPrice = () => {
     return new Promise((resolve, reject) => {
         https.get('https://api.binance.com/api/v3/ticker/price?symbol=BTCUSDT', (resp) => {
             let data = '';
@@ -56,7 +56,7 @@ const getBTCPrice = (): Promise<number> => {
 const checkPrices = async () => {
     try {
         const currentPrice = await getBTCPrice();
-        
+
         // Якщо це перший запуск
         if (lastPrice === 0) {
             lastPrice = currentPrice;
@@ -66,17 +66,17 @@ const checkPrices = async () => {
 
         // Логіка сповіщення: якщо ціна змінилася на > 0.5%
         const change = ((currentPrice - lastPrice) / lastPrice) * 100;
-        
+
         if (Math.abs(change) > 0.5) {
             const emoji = change > 0 ? '🚀' : '🔻';
             const trend = change > 0 ? 'PUMP' : 'DUMP';
             const msg = `🚨 **SENTINEL ALERT: ${trend} DETECTED** 🚨\n\n` +
-                        `💰 **BTC Price:** $${currentPrice.toFixed(2)}\n` +
-                        `📊 **Change:** ${change > 0 ? '+' : ''}${change.toFixed(2)}%\n\n` +
-                        `⚡ *Market volatility is high. Stay alert, Pilot!*`;
-            
+                `💰 **BTC Price:** $${currentPrice.toFixed(2)}\n` +
+                `📊 **Change:** ${change > 0 ? '+' : ''}${change.toFixed(2)}%\n\n` +
+                `⚡ *Market volatility is high. Stay alert, Pilot!*`;
+
             console.log(`[SENTINEL] Triggered! Price: $${currentPrice.toFixed(2)} (${change.toFixed(2)}%)`);
-            
+
             // Розсилка всім активним користувачам
             let successCount = 0;
             for (const id of userIds) {
@@ -88,7 +88,7 @@ const checkPrices = async () => {
                 }
             }
             console.log(`[SENTINEL] Alert sent to ${successCount}/${userIds.size} users.`);
-            
+
             lastPrice = currentPrice; // Оновлюємо базову ціну
         }
     } catch (e) {
@@ -107,7 +107,7 @@ bot.on('message', async (msg) => {
     const chatId = msg.chat.id;
     const text = msg.text || '';
     const firstName = msg.from?.first_name || 'Pilot';
-    
+
     // Реєструємо користувача для розсилки
     if (!userIds.has(chatId)) {
         userIds.add(chatId);
@@ -130,7 +130,7 @@ bot.on('message', async (msg) => {
 
         await bot.sendMessage(chatId, welcomeMessage, { parse_mode: 'Markdown' });
     }
-    
+
     else if (text === '/status') {
         const statusMsg = `
 🟢 **SYSTEM STATUS: ONLINE**
@@ -141,7 +141,7 @@ bot.on('message', async (msg) => {
         `;
         await bot.sendMessage(chatId, statusMsg, { parse_mode: 'Markdown' });
     }
-    
+
     else if (text === '/price') {
         try {
             const price = await getBTCPrice();

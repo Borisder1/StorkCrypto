@@ -197,11 +197,11 @@ const en: Dictionary = {
     'market.fear_greed': 'FEAR_GREED',
     'market.load': 'LOAD',
     'market.phase': 'PHASE',
-    
+
     // Connectivity
     'connect.neural_status': 'Neural_Link_Status',
     'connect.nodes_active': 'NODES: 124_ACTIVE // LATENCY: 24ms',
-    
+
     // Info Modal
     'info.mining_title': 'Mining Vault',
     'info.mining_desc': 'Earn $STORK tokens passively. The neural network mines tokens based on your activity and level.',
@@ -209,19 +209,19 @@ const en: Dictionary = {
     'info.sentinel_desc': 'Autonomous market watchdog. It monitors price action and whale movements even when you are offline.',
     'info.whale_title': 'Whale Tracker',
     'info.whale_desc': 'Real-time detection of large institutional transfers on the blockchain.',
-    
+
     // Portfolio Widget
     'portfolio.net_liquidity': 'Net_Liquidity_Index',
     'portfolio.growth_24h': 'Growth_24h',
     'portfolio.rank_index': 'Rank_Index',
-    
+
     // Home Buttons
     'home.earning_stork': 'EARNING_STORK',
     'home.auto_monitor': 'AUTO_MONITOR',
     'home.swap_protocol': 'Swap_Protocol_V1',
     'home.beta': 'BETA',
     'home.pro': 'PRO',
-    'home.intel_feed': 'INTEL_FEED',
+
 
     // Customize Modal
     'customize.pro_feature': 'PRO Feature',
@@ -275,18 +275,7 @@ const en: Dictionary = {
     'profile.creator': 'Creator:',
     'profile.email': 'Email:',
     'profile.telegram': 'Telegram:',
-    'profile.web3': 'WEB3_CONNECT',
-    'profile.history': 'HISTORY',
-    'profile.connected': 'CONNECTED',
-    'profile.restricted': 'RESTRICTED',
-    'profile.disconnect': 'DISCONNECT',
-    'profile.backup': 'BACKUP_DATA',
-    'profile.logout': 'LOGOUT_SESSION',
-    'profile.preferences': 'PREFERENCES',
-    'profile.theme': 'THEME_COLOR',
-    'profile.language': 'LANGUAGE',
-    'profile.risk': 'RISK_PROFILE',
-    'profile.holdings': 'HOLDINGS',
+
     'portfolio.title': 'Vault_V8',
     'portfolio.secure_storage': 'SECURE_STORAGE',
     'portfolio.neural_demo': 'Neural (Demo)',
@@ -416,13 +405,7 @@ const en: Dictionary = {
     'cal.event.sentiment': 'Consumer Sentiment',
     'cal.time.tomorrow': 'Tomorrow',
     'cal.time.fri': 'Fri',
-    'scanner.title': 'Scanner_V8',
-    'scanner.status': 'Neural_Grid: ONLINE',
-    'scanner.list': 'LIST',
-    'scanner.heatmap': 'HEATMAP',
-    'scanner.globe': 'GLOBE',
-    'scanner.alpha': 'ALPHA',
-    'scanner.vol': 'Vol:',
+
     'analytics.title': 'Neural_Audit',
     'analytics.status': 'Matrix: STABLE',
     'analytics.optimal': 'OPTIMAL',
@@ -632,11 +615,11 @@ const ua: Dictionary = {
     'market.fear_greed': 'СТРАХ_ЖАДІБНІСТЬ',
     'market.load': 'НАВАНТАЖЕННЯ',
     'market.phase': 'ФАЗА',
-    
+
     // Connectivity
     'connect.neural_status': 'Статус_Нейрозв\'язку',
     'connect.nodes_active': 'ВУЗЛИ: 124_АКТИВНІ // ЗАТРИМКА: 24мс',
-    
+
     // Info Modal
     'info.mining_title': 'Майнінг Сховище',
     'info.mining_desc': 'Заробляйте токени $STORK пасивно. Нейромережа майнить токени на основі вашої активності та рівня.',
@@ -644,19 +627,19 @@ const ua: Dictionary = {
     'info.sentinel_desc': 'Автономний наглядач ринку. Моніторить цінові рухи та дії китів навіть коли ви офлайн.',
     'info.whale_title': 'Трекер Китів',
     'info.whale_desc': 'Виявлення великих інституційних переказів у блокчейні в реальному часі.',
-    
+
     // Portfolio Widget
     'portfolio.net_liquidity': 'Індекс_Ліквідності',
     'portfolio.growth_24h': 'Ріст_24г',
     'portfolio.rank_index': 'Ранг_Індекс',
-    
+
     // Home Buttons
     'home.earning_stork': 'ЗАРОБІТОК_STORK',
     'home.auto_monitor': 'АВТО_МОНІТОР',
     'home.swap_protocol': 'Протокол_Обміну_V1',
     'home.beta': 'БЕТА',
     'home.pro': 'PRO',
-    'home.intel_feed': 'СТРІЧКА_РОЗВІДКИ',
+
 
     // Customize Modal
     'customize.pro_feature': 'PRO Функція',
@@ -710,18 +693,7 @@ const ua: Dictionary = {
     'profile.creator': 'Творець:',
     'profile.email': 'Email:',
     'profile.telegram': 'Telegram:',
-    'profile.web3': 'WEB3_ПІДКЛЮЧЕННЯ',
-    'profile.history': 'ІСТОРІЯ',
-    'profile.connected': 'ПІДКЛЮЧЕНО',
-    'profile.restricted': 'ОБМЕЖЕНО',
-    'profile.disconnect': 'ВІДКЛЮЧИТИ',
-    'profile.backup': 'РЕЗЕРВНА_КОПІЯ',
-    'profile.logout': 'ВИЙТИ',
-    'profile.preferences': 'НАЛАШТУВАННЯ',
-    'profile.theme': 'КОЛІР_ТЕМИ',
-    'profile.language': 'МОВА',
-    'profile.risk': 'ПРОФІЛЬ_РИЗИКУ',
-    'profile.holdings': 'АКТИВИ',
+
     'portfolio.title': 'Сховище_V8',
     'portfolio.secure_storage': 'БЕЗПЕЧНЕ_ЗБЕРІГАННЯ',
     'portfolio.neural_demo': 'Нейро (Демо)',
@@ -851,13 +823,7 @@ const ua: Dictionary = {
     'cal.event.sentiment': 'Настрій Споживачів',
     'cal.time.tomorrow': 'Завтра',
     'cal.time.fri': 'Пт',
-    'scanner.title': 'Сканер_V8',
-    'scanner.status': 'Нейромережа: ОНЛАЙН',
-    'scanner.list': 'СПИСОК',
-    'scanner.heatmap': 'ТЕПЛОВА КАРТА',
-    'scanner.globe': 'ГЛОБУС',
-    'scanner.alpha': 'АЛЬФА',
-    'scanner.vol': 'Вол:',
+
     'analytics.title': 'Нейро_Аудит',
     'analytics.status': 'Матриця: СТАБІЛЬНА',
     'analytics.optimal': 'ОПТИМАЛЬНО',
@@ -1179,13 +1145,7 @@ const pl: Dictionary = {
     'cal.event.sentiment': 'Nastroje Konsumentów',
     'cal.time.tomorrow': 'Jutro',
     'cal.time.fri': 'Pt',
-    'scanner.title': 'Skaner_V8',
-    'scanner.status': 'Sieć_Neuronowa: ONLINE',
-    'scanner.list': 'LISTA',
-    'scanner.heatmap': 'MAPA CIEPŁA',
-    'scanner.globe': 'GLOB',
-    'scanner.alpha': 'ALFA',
-    'scanner.vol': 'Wol:',
+
     'analytics.title': 'Neuro_Audyt',
     'analytics.status': 'Macierz: STABILNA',
     'analytics.optimal': 'OPTYMALNIE',
