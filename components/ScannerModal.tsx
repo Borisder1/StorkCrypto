@@ -106,6 +106,7 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
     const [marketData, setMarketData] = useState<AssetMetrics[]>([]);
     const [activeStrategyId, setActiveStrategyId] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<'LIST' | 'HEATMAP'>('LIST');
+    const [subFilter, setSubFilter] = useState<'ALL' | 'GAINERS' | 'LOSERS' | 'VOLUME'>('ALL');
     const [selectedAsset, setSelectedAsset] = useState<any>(null);
     
     // Tab State: MARKET | ALPHA | GLOBE
@@ -128,9 +129,14 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
     useEffect(() => { performScan(); }, [activeTab]);
 
     const filteredData = useMemo(() => {
-        if (activeTab === 'ALPHA') return marketData.filter(m => Math.abs(m.change) > 5 || m.rsi > 70 || m.rsi < 35);
-        return marketData;
-    }, [marketData, activeTab]);
+        let sorted = [...marketData];
+        if (activeTab === 'ALPHA') sorted = sorted.filter(m => Math.abs(m.change) > 5 || m.rsi > 70 || m.rsi < 35);
+        
+        if (subFilter === 'GAINERS') sorted = sorted.filter(m => m.change > 0).sort((a,b) => b.change - a.change);
+        else if (subFilter === 'LOSERS') sorted = sorted.filter(m => m.change < 0).sort((a,b) => a.change - b.change);
+        else if (subFilter === 'VOLUME') sorted = sorted.sort((a,b) => parseFloat(b.volatility || '0') - parseFloat(a.volatility || '0'));
+        return sorted;
+    }, [marketData, activeTab, subFilter]);
 
     const totalHeight = filteredData.length * itemHeight;
     const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 1);
@@ -174,6 +180,15 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
                     <button onClick={() => setActiveTab('GLOBE')} className={`flex-1 py-3 rounded-xl text-[10px] font-black font-orbitron transition-all ${activeTab === 'GLOBE' ? 'bg-brand-card text-brand-cyan border border-brand-cyan/20 shadow-xl' : 'text-slate-500'}`}>{t('scanner.globe')}</button>
                 </div>
 
+                {activeTab !== 'GLOBE' && (
+                    <div className="flex gap-2 overflow-x-auto no-scrollbar py-1">
+                        <button onClick={() => setSubFilter('ALL')} className={`shrink-0 px-4 py-2 rounded-xl text-[9px] font-black font-orbitron uppercase border transition-all ${subFilter === 'ALL' ? 'bg-brand-cyan/10 border-brand-cyan text-brand-cyan' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>All</button>
+                        <button onClick={() => setSubFilter('GAINERS')} className={`shrink-0 px-4 py-2 rounded-xl text-[9px] font-black font-orbitron uppercase border transition-all ${subFilter === 'GAINERS' ? 'bg-green-500/10 border-green-500 text-green-500' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>Top Gainers</button>
+                        <button onClick={() => setSubFilter('LOSERS')} className={`shrink-0 px-4 py-2 rounded-xl text-[9px] font-black font-orbitron uppercase border transition-all ${subFilter === 'LOSERS' ? 'bg-red-500/10 border-red-500 text-red-500' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>Top Losers</button>
+                        <button onClick={() => setSubFilter('VOLUME')} className={`shrink-0 px-4 py-2 rounded-xl text-[9px] font-black font-orbitron uppercase border transition-all ${subFilter === 'VOLUME' ? 'bg-brand-purple/10 border-brand-purple text-brand-purple' : 'bg-transparent border-white/10 text-slate-500 hover:border-white/30'}`}>Volume Leaders</button>
+                    </div>
+                )}
+
                 {activeTab === 'GLOBE' ? (
                     <div className="h-[400px] relative rounded-3xl overflow-hidden border border-brand-cyan/20 bg-black/40 shadow-[0_0_50px_rgba(0,217,255,0.1)]">
                         <HolographicGlobe />
@@ -184,6 +199,12 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
                             data={filteredData} 
                             onItemClick={(coin) => { triggerHaptic('selection'); setSelectedAsset({ name: coin.ticker, ticker: coin.ticker, value: coin.price, change: coin.change }); }}
                         />
+                    </div>
+                ) : visibleItems.length === 0 ? (
+                    <div className="py-20 flex flex-col items-center justify-center opacity-70">
+                        <RadarIcon className="w-12 h-12 text-slate-500 mb-4 animate-pulse" />
+                        <p className="text-slate-400 font-black uppercase text-[10px] font-orbitron">{t('scanner.no_results_title') || 'NO SIGNALS DETECTED'}</p>
+                        <p className="text-slate-500 text-[9px] font-mono mt-2">{t('scanner.no_results_desc') || 'Try adjusting your filters'}</p>
                     </div>
                 ) : (
                     <div ref={containerRef} onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)} className="h-[500px] overflow-y-auto custom-scrollbar relative">

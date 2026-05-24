@@ -67,7 +67,7 @@ const MarketTicker: React.FC = React.memo(() => {
             <div className={`relative flex items-center gap-2 pl-6 pr-4 h-full shrink-0 z-20 bg-gradient-to-r from-[#020617] to-transparent`}>
                 <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5 backdrop-blur-sm">
                     <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${source === 'BINANCE' ? 'bg-green-500 shadow-[0_0_5px_#22c55e]' : 'bg-brand-cyan shadow-[0_0_5px_#00d9ff]'}`}></div>
-                    <span className="text-[8px] font-bold tracking-wider uppercase font-mono text-slate-300">
+                    <span className="text-[10px] font-bold tracking-wider uppercase font-mono text-slate-300">
                         {getSourceLabel()}
                     </span>
                 </div>
@@ -78,11 +78,11 @@ const MarketTicker: React.FC = React.memo(() => {
                 <div className="flex animate-marquee w-max items-center hover:[animation-play-state:paused] pointer-events-auto cursor-help">
                     {[...manipulatedData, ...manipulatedData].map((coin, idx) => (
                         <div key={`${coin.ticker}-${idx}`} className="flex items-center gap-2 mx-6 group">
-                            <span className="text-[10px] font-black text-slate-300 font-orbitron group-hover:text-white transition-colors">{coin.ticker}</span>
-                            <span className="text-[10px] font-mono text-brand-cyan/80">
+                            <span className="text-xs font-black text-slate-300 font-orbitron group-hover:text-white transition-colors">{coin.ticker}</span>
+                            <span className="text-xs font-mono text-brand-cyan/80">
                                 ${coin.price < 1 ? coin.price.toFixed(5) : coin.price.toLocaleString(undefined, {maximumFractionDigits: 2})}
                             </span>
-                            <span className={`text-[9px] font-bold ${coin.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
+                            <span className={`text-[12px] font-bold ${coin.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
                                 {coin.change >= 0 ? '▲' : '▼'}{Math.abs(coin.change).toFixed(1)}%
                             </span>
                         </div>

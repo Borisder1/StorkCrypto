@@ -236,11 +236,11 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
 
     return (
         <motion.div 
-            initial={{ opacity: 0, x: '100%' }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: '100%' }}
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className={`fixed inset-0 z-[110] flex flex-col overflow-hidden transition-all duration-700 h-[100dvh] w-full ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}
+            className={`fixed inset-0 z-[110] flex flex-col overflow-hidden transition-all duration-700 h-[100vh] w-full ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}
         >
             <TacticalBackground />
             

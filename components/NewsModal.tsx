@@ -61,12 +61,20 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 pb-32 relative z-10">
                 {loading ? Array.from({length:6}).map((_,i) => <Skeleton key={i} className="w-full h-28 rounded-[2rem]" />) : 
+                news.length === 0 ? (
+                    <div className="py-20 flex flex-col items-center justify-center opacity-70">
+                        <RadarIcon className="w-12 h-12 text-slate-500 mb-4 animate-pulse" />
+                        <p className="text-slate-400 font-black uppercase text-sm font-orbitron">{t('news.no_signals_title')}</p>
+                        <p className="text-slate-500 text-xs font-mono mt-2">{t('news.no_signals_desc')}</p>
+                    </div>
+                ) :
                 news.map((article, index) => (
                     <div key={index} className="p-5 bg-brand-card/40 backdrop-blur-md border border-white/5 rounded-[2rem] hover:border-brand-cyan/20 transition-all animate-fade-in-up">
                         <div className="flex justify-between items-start gap-4">
                             <div className="flex-1">
-                                <div className="flex items-center gap-2 mb-2">
+                                <div className="flex flex-wrap items-center gap-2 mb-2">
                                     <span className="text-[8px] font-black text-brand-cyan uppercase tracking-widest">{t('news.source')}{index + 1}</span>
+                                    {article.time && <span className="text-[8px] font-mono text-slate-500">{article.time}</span>}
                                     {article.sentimentMock && (
                                         <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${article.sentimentMock === 'POS' ? 'bg-green-500/10 border-green-500/30 text-green-400' : article.sentimentMock === 'NEG' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-slate-500/10 border-slate-500/30 text-slate-400'}`}>
                                             {article.sentimentMock}
@@ -77,6 +85,9 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                             {t('news.impact')} {article.impact}
                                         </span>
                                     )}
+                                    {article.tags && article.tags.map(tag => (
+                                        <span key={tag} className="text-[7px] font-black px-1.5 py-0.5 rounded border border-white/10 bg-white/5 text-slate-400 uppercase">#{tag}</span>
+                                    ))}
                                 </div>
                                 <h3 className="text-sm font-black text-white mb-2 leading-tight uppercase">{article.headline}</h3>
                                 <p className="text-[10px] text-slate-400 leading-relaxed font-mono opacity-80 line-clamp-3">{article.summary}</p>

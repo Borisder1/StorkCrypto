@@ -36,7 +36,9 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                         <button
                             key={item.id}
                             onClick={() => handleTabChange(item.id)}
-                            className={`relative flex flex-col items-center justify-end group flex-1 h-10 transition-all duration-300 ${isActive ? '-translate-y-1' : ''}`}
+                            aria-label={item.label}
+                            aria-current={isActive ? 'page' : undefined}
+                            className={`relative flex flex-col items-center justify-end group flex-1 h-10 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:rounded-lg ${isActive ? '-translate-y-1' : ''}`}
                         >
                             {/* Active Light Pillar */}
                             {isActive && (

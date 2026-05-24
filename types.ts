@@ -144,6 +144,8 @@ export interface NewsArticle {
     impact?: 'HIGH' | 'MED' | 'LOW';
     isVerified?: boolean;
     isFud?: boolean;
+    time?: string;
+    tags?: string[];
 }
 
 export interface InfluencerPost {

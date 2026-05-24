@@ -3,7 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --app-bg: #020617; 
+  --app-bg: var(--tg-theme-bg-color, #020617);
+  --app-text: var(--tg-theme-text-color, #ffffff);
+  --app-hint: var(--tg-theme-hint-color, #94a3b8);
+  --app-link: var(--tg-theme-link-color, #06b6d4);
+  --app-button: var(--tg-theme-button-color, #06b6d4);
+  --app-button-text: var(--tg-theme-button-text-color, #000000);
   --primary-color: #00F0FF;
   color-scheme: dark;
 }

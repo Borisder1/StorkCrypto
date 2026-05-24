@@ -62,11 +62,9 @@ const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, mo
             return resultText;
         }
 
-        // If in Local AI Studio preview, call Nvidia API directly via a CORS Proxy (since browsers block direct API calls without a backend)
+        // If in Local AI Studio preview, call Nvidia API via Vite Proxy
         const fallbackKey = import.meta.env.VITE_NVIDIA_API_KEY || "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";
-        const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://integrate.api.nvidia.com/v1/chat/completions');
-        
-        const response = await fetch(proxyUrl, {
+        const response = await fetch('/api/nvidia/v1/chat/completions', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -242,7 +240,7 @@ const generateFallbackSignals = (metrics: AssetMetrics[]): AgentAnalysis => {
 };
 
 export const getLatestCryptoNews = async (language: string = 'en'): Promise<NewsArticle[]> => {
-    const prompt = `Search Google for top 5 latest crypto news. Return JSON array: [{headline, summary, sentimentMock: "POS"|"NEG"|"NEU", impact: "HIGH"|"MED"|"LOW", sources: [{uri, title}]}]`;
+    const prompt = `Search Google for top 5 latest crypto news. Return JSON array: [{headline, summary, sentimentMock: "POS"|"NEG"|"NEU", impact: "HIGH"|"MED"|"LOW", sources: [{uri, title}], time: "HH:MM", tags: ["tag1", "tag2"]}]. ${getLanguageInstruction(language)}`;
     return await safeGenerate(prompt, { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] });
 };
 
