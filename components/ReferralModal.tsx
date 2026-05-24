@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { UserIcon, ShieldIcon } from './icons';
 import { getTranslation } from '../utils/translations';
@@ -27,10 +28,16 @@ const ReferralModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden touch-none">
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in touch-none" onClick={onClose}></div>
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden touch-none"
+        >
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-md touch-none" onClick={onClose}></div>
             
-            <div className="relative z-10 w-full max-w-sm bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(168,85,247,0.15)] animate-zoom-in">
+            <div className="relative z-10 w-full max-w-sm bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(168,85,247,0.15)]">
                 <div className="p-6 text-center bg-gradient-to-b from-brand-card to-brand-bg border-b border-white/5">
                     <div className="w-16 h-16 rounded-2xl bg-brand-purple/10 border border-brand-purple/30 flex items-center justify-center mx-auto mb-4 shadow-[0_0_20px_rgba(168,85,247,0.3)]">
                         <UserIcon className="w-8 h-8 text-brand-purple" />
@@ -58,7 +65,7 @@ const ReferralModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

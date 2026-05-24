@@ -1,5 +1,6 @@
 
 import React, { useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
 import { ActivityIcon } from './icons';
@@ -28,10 +29,21 @@ const CalendarModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden touch-none">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden touch-none"
+        >
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in touch-none" onClick={onClose}></div>
             
-            <div className="relative z-10 w-full max-w-sm bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[85dvh] animate-zoom-in">
+            <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="relative z-10 w-full max-w-sm bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[85dvh]"
+            >
                 <div className="p-5 border-b border-brand-border bg-brand-card flex justify-between items-center shrink-0">
                     <h2 className="font-orbitron font-bold text-lg text-white">{t('cal.title')}</h2>
                     <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white">✕</button>
@@ -55,8 +67,8 @@ const CalendarModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                         </div>
                     ))}
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

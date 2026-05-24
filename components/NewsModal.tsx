@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { type NewsArticle } from '../types';
 import { getLatestCryptoNews, playAudio } from '../services/geminiService';
 import { LinkIcon, PlayIcon, ChevronRightIcon, RadarIcon } from './icons';
@@ -30,7 +31,13 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }, [settings.language]);
 
     return (
-        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden h-[100dvh] w-full">
+        <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[120] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full"
+        >
             <TacticalBackground />
             
             {/* Standardized Header */}
@@ -89,7 +96,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                     </div>
                 ))}
             </div>
-        </div>
+        </motion.div>
     );
 };
 

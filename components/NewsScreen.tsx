@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { type NewsArticle, type InfluencerPost } from '../types';
 import { getLatestCryptoNews, playAudio } from '../services/geminiService';
 import { LinkIcon, PlayIcon, InfoIcon, ActivityIcon, RadarIcon, GlobeIcon, FileTextIcon, UserIcon, ShieldIcon } from './icons';
@@ -102,7 +103,13 @@ const NewsScreen: React.FC = () => {
     };
 
     return (
-        <div className="p-4 md:p-6 pb-40 min-h-screen bg-[#020617] relative flex flex-col animate-fade-in overflow-x-hidden">
+        <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 100 }}
+            className="p-4 md:p-6 pb-40 min-h-screen bg-[#020617] relative flex flex-col overflow-x-hidden"
+        >
             <TacticalBackground />
             
             {/* Header Area */}
@@ -185,7 +192,7 @@ const NewsScreen: React.FC = () => {
             </div>
             {showInfo && <InfoModal title="INTEL_GRID" description="Neural network aggregating global crypto sentiment." features={["Real-time NLP Analysis", "Sentiment Scoring", "Source Verification"]} onClose={() => setShowInfo(false)} />}
             <button onClick={() => setShowInfo(true)} className="fixed bottom-24 right-4 z-40 w-10 h-10 bg-brand-card/80 backdrop-blur border border-white/10 rounded-full flex items-center justify-center text-slate-400 hover:text-white shadow-lg"><InfoIcon className="w-5 h-5" /></button>
-        </div>
+        </motion.div>
     );
 };
 

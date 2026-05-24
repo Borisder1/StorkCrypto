@@ -38,6 +38,8 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     setShowReferral: (show) => set({ showReferral: show }),
     showAirdrop: false,
     setShowAirdrop: (show) => set({ showAirdrop: show }),
+    showLeaderboard: false,
+    setShowLeaderboard: (show) => set({ showLeaderboard: show }),
     
     claimMining: async () => {
         const state = get();
@@ -176,14 +178,44 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     addChatMessage: (msg) => set(state => ({ chatHistory: [...state.chatHistory, msg] })),
     clearChat: () => set({ chatHistory: [] }),
     strategies: [],
-    saveStrategy: (s) => set(state => ({ strategies: [...state.strategies, s] })),
+    saveStrategy: (s) => {
+        set(state => ({ strategies: [...state.strategies, s] }));
+        get().updateQuestProgress('TRADE', 1);
+    },
     deleteStrategy: (id) => set(state => ({ strategies: state.strategies.filter(s => s.id !== id) })),
     alerts: [],
     addAlert: (a) => set(state => ({ alerts: [...state.alerts, a] })),
     removeAlert: (id) => set(state => ({ alerts: state.alerts.filter(a => a.id !== id) })),
-    quests: [],
-    claimQuestReward: (id) => {},
-    updateQuestProgress: (type, amount) => {}, 
+    quests: [
+        { id: 'q1', type: 'TRADE', title: 'First Trade', description: 'Run a simulation using paper trading.', rewardXp: 100, progress: 0, target: 1, isClaimed: false },
+        { id: 'q2', type: 'SCAN', title: 'Market Scanner', description: 'Scan the market using the Neural terminal.', rewardXp: 50, progress: 0, target: 5, isClaimed: false },
+        { id: 'q3', type: 'SOCIAL', title: 'Invite Friends', description: 'Invite a friend to use the application.', rewardXp: 200, progress: 0, target: 1, isClaimed: false }
+    ],
+    claimQuestReward: (id) => {
+        const state = get();
+        const quest = state.quests.find(q => q.id === id);
+        if (quest && quest.progress >= quest.target && !quest.isClaimed) {
+            get().grantXp(quest.rewardXp, `Quest Completed: ${quest.title}`);
+            if (get().showToast) get().showToast(`Quest Completed: ${quest.title}`);
+            set(s => ({
+                quests: s.quests.map(q => q.id === id ? { ...q, isClaimed: true } : q)
+            }));
+        }
+    },
+    updateQuestProgress: (type, amount) => {
+        set(s => ({
+            quests: s.quests.map(q => {
+                if (q.type === type && !q.isClaimed) {
+                    const newProgress = Math.min(q.target, q.progress + amount);
+                    if (newProgress >= q.target && q.progress < q.target) {
+                        if (get().showToast) setTimeout(() => get().showToast(`Quest Ready: ${q.title}`), 500);
+                    }
+                    return { ...q, progress: newProgress };
+                }
+                return q;
+            })
+        }));
+    },
     copiedTraders: [],
     copyTrader: (trader, config) => {},
     stopCopying: (id) => {},
@@ -273,5 +305,7 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     setShowAdInquiry: (show) => set({ showAdInquiry: show }),
     fetchPendingSubscriptions: async () => {},
     adminBroadcast: null,
-    sendBroadcast: (message, type) => { set({ adminBroadcast: { message, type, id: Date.now().toString() } }); }
+    sendBroadcast: (message, type) => { set({ adminBroadcast: { message, type, id: Date.now().toString() } }); },
+    marketRegime: 'UNKNOWN',
+    updateMarketRegime: (regime) => set({ marketRegime: regime })
 });

@@ -1,5 +1,6 @@
 
 import React, { useMemo, useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import FuturisticCard from './FuturisticCard';
 import { ShieldIcon, TrendingUpIcon, InfoIcon, ChevronRightIcon, ActivityIcon } from './icons';
 import { useStore } from '../store';
@@ -35,7 +36,13 @@ const AnalyticsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }, [assets]);
 
     return (
-        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden h-[100dvh] w-full">
+        <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[120] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full"
+        >
             <TacticalBackground />
             
             {/* Standardized Header */}
@@ -103,7 +110,7 @@ const AnalyticsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 features={[t('analytics.feat.correlation'), t('analytics.feat.heatmap'), t('analytics.feat.health')]} 
                 onClose={() => setShowInfo(false)} 
             />}
-        </div>
+        </motion.div>
     );
 };
 

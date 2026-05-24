@@ -1,17 +1,55 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useStore } from '../store';
 import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
+import { binanceWS } from '../services/websocketService';
+import { strategyMemoryService } from '../services/strategyMemoryService';
+import { detectMarketRegime } from '../services/quantService';
 
 // THE HEARTBEAT ENGINE
 // Simulates a living ecosystem by updating copy trading PnL and generating events.
 const SimulationManager: React.FC = () => {
-    const { copiedTraders, updateCopiedTraderPnL, showToast, settings } = useStore();
+    const { copiedTraders, updateCopiedTraderPnL, showToast, settings, updateMarketRegime } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
+    const lastEvaluationTime = useRef<number>(0);
+    const priceHistory = useRef<number[]>([]);
 
     useEffect(() => {
         if (!settings.isAuthenticated) return;
+
+        // Subscribe to real-time prices for AI Strategy Memory evaluation
+        const unsubscribeWS = binanceWS.subscribe((data) => {
+            const now = Date.now();
+            
+            // Collect BTC price for market regime detection
+            if (data['BTC']) {
+                priceHistory.current.push(data['BTC'].price);
+                if (priceHistory.current.length > 50) {
+                    priceHistory.current.shift(); // Keep last 50 prices
+                }
+            }
+
+            // Evaluate pending signals every 60 seconds
+            if (now - lastEvaluationTime.current > 60000) {
+                const currentPrices: Record<string, number> = {};
+                Object.keys(data).forEach(ticker => {
+                    currentPrices[ticker] = data[ticker].price;
+                });
+                
+                if (Object.keys(currentPrices).length > 0) {
+                    strategyMemoryService.evaluatePendingSignals(currentPrices).catch(console.error);
+                    lastEvaluationTime.current = now;
+                }
+
+                // Update Market Regime
+                if (priceHistory.current.length >= 20) {
+                    detectMarketRegime(priceHistory.current).then(regime => {
+                        updateMarketRegime(regime);
+                    }).catch(console.error);
+                }
+            }
+        });
 
         // Interval for Trader PnL Updates (Every 8 seconds)
         const pnlInterval = setInterval(() => {
@@ -46,7 +84,10 @@ const SimulationManager: React.FC = () => {
 
         }, 8000);
 
-        return () => clearInterval(pnlInterval);
+        return () => {
+            clearInterval(pnlInterval);
+            unsubscribeWS();
+        };
     }, [copiedTraders, settings.isAuthenticated]);
 
     return null; // Invisible component

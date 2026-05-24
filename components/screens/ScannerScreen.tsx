@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { RadarIcon, SearchIcon, FilterIcon, PlusIcon, BarChartIcon, InfoIcon, ChevronRightIcon, ZapIcon, GlobeIcon } from '../icons';
 import { useStore } from '../../store';
 import { getTranslation } from '../../utils/translations';
@@ -99,7 +100,13 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
     const visibleItems = filteredData.slice(startIndex, endIndex);
 
     return (
-        <div className="fixed inset-0 z-[120] bg-brand-bg flex flex-col animate-fade-in overflow-hidden h-[100dvh] w-full">
+        <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[120] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full"
+        >
             <TacticalBackground />
             
             <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
@@ -156,7 +163,7 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
 
             {selectedAsset && <AssetDetailModal asset={selectedAsset} onClose={() => setSelectedAsset(null)} />}
             {showInfo && <InfoModal title={t('scanner.info_title')} description={t('scanner.info_desc')} features={[t('scanner.info_feat_1'), t('scanner.info_feat_2'), t('scanner.info_feat_3')]} onClose={() => setShowInfo(false)} />}
-        </div>
+        </motion.div>
     );
 };
 

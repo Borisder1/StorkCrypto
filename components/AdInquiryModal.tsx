@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion } from 'motion/react';
 import { useStore } from '../store';
 import { ShieldIcon, SendIcon, BarChartIcon } from './icons';
 import { getTranslation } from '../utils/translations';
@@ -52,8 +53,19 @@ const AdInquiryModal: React.FC<AdInquiryModalProps> = ({ onClose }) => {
 
     if (success) {
         return (
-            <div className="fixed inset-0 z-[160] flex items-center justify-center bg-black/90 backdrop-blur-md animate-fade-in p-6">
-                <div className="bg-brand-card border border-green-500 rounded-3xl p-8 text-center max-w-sm w-full animate-zoom-in">
+            <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[160] flex items-center justify-center bg-black/90 backdrop-blur-md p-6"
+            >
+                <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.9, opacity: 0 }}
+                    transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                    className="bg-brand-card border border-green-500 rounded-3xl p-8 text-center max-w-sm w-full"
+                >
                     <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-green-500 shadow-[0_0_30px_#22c55e]">
                         <ShieldIcon className="w-10 h-10 text-green-500" />
                     </div>
@@ -67,16 +79,27 @@ const AdInquiryModal: React.FC<AdInquiryModalProps> = ({ onClose }) => {
                     >
                         {t('common.close').toUpperCase()}
                     </button>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
         );
     }
 
     return (
-        <div className="fixed inset-0 z-[160] flex items-end sm:items-center justify-center">
-            <div className="absolute inset-0 bg-black/90 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[160] flex items-end sm:items-center justify-center"
+        >
+            <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose}></div>
             
-            <div className="relative z-10 w-full sm:max-w-md bg-[#0a0e1a] rounded-t-3xl sm:rounded-2xl border-t sm:border border-brand-border shadow-2xl flex flex-col max-h-[90vh] animate-slide-up-mobile sm:animate-zoom-in">
+            <motion.div 
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="relative z-10 w-full sm:max-w-md bg-[#0a0e1a] rounded-t-3xl sm:rounded-2xl border-t sm:border border-brand-border shadow-2xl flex flex-col max-h-[90vh]"
+            >
                 
                 {/* Header */}
                 <div className="p-5 border-b border-brand-border bg-brand-card flex justify-between items-center shrink-0">
@@ -161,8 +184,8 @@ const AdInquiryModal: React.FC<AdInquiryModalProps> = ({ onClose }) => {
                         {loading ? t('ad.form.sending') : <><SendIcon className="w-4 h-4"/> {t('ad.form.submit')}</>}
                     </button>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

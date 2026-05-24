@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { type ChatMessage } from '../../types';
 import { BotIcon, SendIcon, ShieldIcon, PieChartIcon, ActivityIcon } from '../icons';
 import { createChatSession, auditContract, getLatestCryptoNews } from '../../services/geminiService';
@@ -7,7 +8,7 @@ import { useStore } from '../../store';
 import { triggerHaptic } from '../../utils/haptics';
 
 const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-    const { settings, chatHistory, addChatMessage, setIsAIChatOpen, assets, userStats, wallet } = useStore();
+    const { settings, chatHistory, addChatMessage, setIsAIChatOpen, assets, userStats, wallet, marketRegime } = useStore();
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [isAuditMode, setIsAuditMode] = useState(false);
@@ -50,10 +51,10 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             4. Use emojis sparingly but effectively (🦅, 🛡️, 🚀).
             `;
 
-            chatSession.current = createChatSession(systemPrompt, settings.language);
+            chatSession.current = createChatSession(systemPrompt, settings.language, marketRegime);
         };
         initSession();
-    }, [assets, userStats, isAuditMode, settings.language, wallet.isConnected]);
+    }, [assets, userStats, isAuditMode, settings.language, wallet.isConnected, marketRegime]);
 
     useEffect(() => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -86,7 +87,13 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#020617] relative animate-fade-in font-mono">
+        <motion.div 
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[200] flex flex-col h-full bg-[#020617] relative font-mono"
+        >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-brand-cyan/20 bg-[#050b14]">
                  <div className="flex items-center gap-3">
@@ -172,7 +179,7 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </button>
                 </div>
             </div>
-        </div>
+        </motion.div>
     );
 };
 

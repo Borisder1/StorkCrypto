@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { StorkIcon, TelegramIcon, LinkIcon, ActivityIcon, ShieldIcon, BotIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -89,10 +90,21 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
+        >
             <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose}></div>
 
-            <div className="relative z-10 w-full sm:max-w-md bg-brand-bg rounded-t-[2.5rem] sm:rounded-[2.5rem] border-t sm:border border-white/10 shadow-[0_-10px_60px_rgba(139,92,246,0.3)] flex flex-col max-h-[90vh] overflow-hidden">
+            <motion.div 
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="relative z-10 w-full sm:max-w-md bg-brand-bg rounded-t-[2.5rem] sm:rounded-[2.5rem] border-t sm:border border-white/10 shadow-[0_-10px_60px_rgba(139,92,246,0.3)] flex flex-col max-h-[90vh] overflow-hidden"
+            >
                 
                 <div className="shrink-0 px-6 py-5 text-center border-b border-white/5 relative bg-brand-card/50">
                     <button onClick={onClose} className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/5 text-slate-400 flex items-center justify-center hover:bg-white/10 transition-colors">✕</button>
@@ -194,8 +206,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                         </div>
                     )}
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

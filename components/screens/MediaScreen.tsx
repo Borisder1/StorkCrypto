@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../../store';
 import { getTranslation } from '../../utils/translations';
 import { BookIcon, SearchIcon, ChevronRightIcon, ShieldIcon } from '../icons';
@@ -27,7 +28,13 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     });
 
     return (
-        <div className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full">
+        <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full"
+        >
             <TacticalBackground />
             
             <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
@@ -104,7 +111,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             </div>
 
             {activeQuizTerm && <QuizModal term={activeQuizTerm} onClose={() => setActiveQuizTerm(null)} />}
-        </div>
+        </motion.div>
     );
 };
 

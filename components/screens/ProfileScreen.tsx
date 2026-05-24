@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { ShieldIcon, ChevronRightIcon, ActivityIcon, FileTextIcon, LinkIcon, BarChartIcon, BotIcon, ZapIcon, GlobeIcon, MoonIcon, StorkIcon, VolumeIcon, VolumeXIcon } from '../icons';
+import { motion } from 'motion/react';
+import { ShieldIcon, ChevronRightIcon, ActivityIcon, FileTextIcon, LinkIcon, BarChartIcon, BotIcon, ZapIcon, GlobeIcon, MoonIcon, StorkIcon, VolumeIcon, VolumeXIcon, BrainIcon } from '../icons';
 import { useStore } from '../../store';
 import { getTranslation } from '../../utils/translations';
 import { soundscapes } from '../../utils/audio';
 import { walletService } from '../../services/walletService';
+import { strategyMemoryService } from '../../services/strategyMemoryService';
 import WalletConnectModal from '../WalletConnectModal';
 import TransactionHistoryModal from '../TransactionHistoryModal';
 import AdminDashboard from '../AdminDashboard'; 
@@ -16,6 +18,7 @@ import { TacticalBackground } from '../TacticalBackground';
 import UpgradeBanner from '../UpgradeBanner';
 
 import TwoFactorModal from '../TwoFactorModal';
+import QuestWidget from '../QuestWidget';
 
 const StatItem: React.FC<{ label: string; value: string; sub: string; color: string }> = ({ label, value, sub, color }) => (
     <div className="bg-brand-card/40 backdrop-blur-xl shadow-inner border border-white/5 rounded-3xl p-4 flex flex-col items-center justify-center text-center h-28 group hover:border-white/20 transition-all">
@@ -26,7 +29,7 @@ const StatItem: React.FC<{ label: string; value: string; sub: string; color: str
 );
 
 const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-    const { settings, updateSettings, userStats, updateUserStats, assets, exportData, wallet, disconnectWallet, logout, showAdInquiry, setShowAdInquiry, showToast, checkTrialStatus, hasProAccess, redeemXpForPro } = useStore();
+    const { settings, updateSettings, userStats, updateUserStats, assets, exportData, wallet, disconnectWallet, logout, showAdInquiry, setShowAdInquiry, showToast, checkTrialStatus, hasProAccess, redeemXpForPro, setShowLeaderboard } = useStore();
     const [avatarUrl, setAvatarUrl] = useState<string | null>(userStats.avatarUrl || localStorage.getItem('stork_user_avatar'));
     
     // Modals state
@@ -36,6 +39,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const [showSubscription, setShowSubscription] = useState(false);
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showTwoFactor, setShowTwoFactor] = useState(false);
+    const [strategyStats, setStrategyStats] = useState<Record<string, { wins: number, total: number }>>({});
     
     const t = (key: string) => getTranslation(settings.language, key);
     const deviceId = userStats.id;
@@ -43,6 +47,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     // Ensure trial status is current
     useEffect(() => {
         checkTrialStatus();
+        strategyMemoryService.getStrategyStats().then(setStrategyStats).catch(console.error);
     }, []);
 
     // NEW: Handle saving the selected avatar
@@ -119,7 +124,13 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     }, [userStats]);
 
     return (
-        <div className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden animate-fade-in transition-colors duration-500 h-[100dvh] w-full">
+        <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden transition-colors duration-500 h-[100dvh] w-full"
+        >
             <TacticalBackground />
             
             <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
@@ -145,7 +156,12 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-8 pb-32 relative z-10">
                 
                 {/* --- PUMPED UP HERO SECTION --- */}
-                <div className="relative mb-8">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.1 }}
+                    className="relative mb-8"
+                >
                     {/* Holographic Card Background */}
                     <div className="absolute inset-0 bg-brand-card/60 backdrop-blur-xl border border-white/10 rounded-[3rem] shadow-2xl overflow-hidden">
                         <div className="absolute top-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/30 to-transparent"></div>
@@ -206,13 +222,48 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                             </div>
                         </button>
                     </div>
-                </div>
+                </motion.div>
 
                 {/* --- UPGRADE BANNER (Logic inside handles visibility) --- */}
-                <UpgradeBanner />
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.2 }}
+                >
+                    <UpgradeBanner />
+                </motion.div>
+
+                {/* --- LEADERBOARD BUTTON --- */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.25 }}
+                    className="mb-8"
+                >
+                    <button 
+                        onClick={() => { triggerHaptic('selection'); setShowLeaderboard(true); }}
+                        className="w-full bg-brand-card/60 backdrop-blur-xl border border-brand-purple/30 rounded-[2.5rem] p-5 shadow-[0_0_20px_rgba(139,92,246,0.1)] flex items-center justify-between hover:border-brand-purple hover:bg-brand-purple/10 transition-all active:scale-95"
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl bg-brand-purple/20 border border-brand-purple/30 flex items-center justify-center">
+                                <ShieldIcon className="w-6 h-6 text-brand-purple" />
+                            </div>
+                            <div className="text-left">
+                                <h3 className="text-sm font-black text-white font-orbitron uppercase tracking-widest">GLOBAL TOP</h3>
+                                <p className="text-[10px] text-brand-purple font-mono uppercase mt-1">Operator Leaderboard</p>
+                            </div>
+                        </div>
+                        <ChevronRightIcon className="w-5 h-5 text-slate-500" />
+                    </button>
+                </motion.div>
 
                 {/* --- SUBSCRIPTION STATUS DETAIL (Always Visible in Profile) --- */}
-                <div className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.3 }}
+                    className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden"
+                >
                     <div className="flex justify-between items-center mb-4">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-orbitron flex items-center gap-2">
                             <ZapIcon className={`w-4 h-4 ${subData.isTrial ? 'text-brand-green' : subData.isPaid ? 'text-brand-purple' : 'text-slate-600'}`} /> 
@@ -238,15 +289,76 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     
                     {/* Allow managing plan even if paid */}
                     <button onClick={() => setShowSubscription(true)} className="mt-4 w-full py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-slate-400 hover:text-white transition-all">{t('profile.manage_plan')}</button>
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-2 gap-4 mb-8">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.4 }}
+                    className="grid grid-cols-2 gap-4 mb-8"
+                >
                     <StatItem label={t('profile.generated')} value={userStats.signalsGenerated.toString()} sub={t('profile.signals_v8')} color="text-brand-cyan" />
                     <StatItem label={t('profile.holdings')} value={assets.length.toString()} sub={t('profile.assets_tracked')} color="text-brand-purple" />
-                </div>
+                </motion.div>
+
+                {/* --- AI STRATEGY MEMORY (Self-Learning) --- */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.5 }}
+                    className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden"
+                >
+                    <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-orbitron flex items-center gap-2 mb-6">
+                        <BrainIcon className="w-4 h-4 text-brand-cyan" /> Neural_Feedback_Loop
+                    </h3>
+                    
+                    {Object.keys(strategyStats).length === 0 ? (
+                        <div className="py-6 text-center border border-dashed border-white/10 rounded-2xl opacity-50">
+                            <p className="text-[10px] font-mono text-slate-400 uppercase">Awaiting signal resolution...</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {Object.entries(strategyStats).map(([key, data]) => {
+                                const winRate = (data.wins / data.total) * 100;
+                                const [asset, strategy] = key.split('_');
+                                return (
+                                    <div key={key} className="bg-black/40 border border-white/5 rounded-xl p-3 flex items-center justify-between">
+                                        <div>
+                                            <p className="text-xs font-bold text-white font-orbitron">{asset}</p>
+                                            <p className="text-[8px] text-slate-500 font-mono uppercase">{strategy}</p>
+                                        </div>
+                                        <div className="text-right">
+                                            <p className={`text-sm font-black font-mono ${winRate >= 50 ? 'text-brand-green' : 'text-brand-danger'}`}>
+                                                {winRate.toFixed(1)}%
+                                            </p>
+                                            <p className="text-[8px] text-slate-500 font-mono uppercase">
+                                                {data.wins}W / {data.total - data.wins}L
+                                            </p>
+                                        </div>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                    )}
+                </motion.div>
+
+                {/* --- DAILY MISSIONS --- */}
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.55 }}
+                    className="mb-8"
+                >
+                    <QuestWidget />
+                </motion.div>
 
                 {/* --- SECURITY SECTION --- */}
-                <div className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.6 }}
+                    className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden"
+                >
                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-orbitron flex items-center gap-2 mb-6">
                         <ShieldIcon className="w-4 h-4 text-brand-purple" /> {t('profile.security')}
                     </h3>
@@ -269,10 +381,15 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                             {settings.twoFactorEnabled ? t('profile.on') : t('profile.off')}
                         </div>
                     </button>
-                </div>
+                </motion.div>
 
                 {/* --- SETTINGS RESTORED --- */}
-                <div className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.7 }}
+                    className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden"
+                >
                     <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-orbitron flex items-center gap-2 mb-6">
                         <ShieldIcon className="w-4 h-4 text-brand-purple" /> {t('profile.preferences')}
                     </h3>
@@ -402,9 +519,14 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                             </div>
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden group">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.8 }}
+                    className="bg-brand-card/40 border border-white/5 rounded-[2.5rem] p-6 mb-8 shadow-inner relative overflow-hidden group"
+                >
                     <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity"><ActivityIcon className="w-20 h-20 text-brand-cyan" /></div>
                     <div className="flex justify-between items-center mb-6">
                         <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] font-orbitron flex items-center gap-2">
@@ -448,19 +570,29 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                              )}
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
-                <div className="grid grid-cols-1 gap-3">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 0.9 }}
+                    className="grid grid-cols-1 gap-3"
+                >
                     <button onClick={exportData} className="w-full py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-white hover:bg-white/10 transition-all flex items-center justify-center gap-3 tracking-[0.2em] group shadow-xl">
                         <FileTextIcon className="w-4 h-4 text-slate-500 group-hover:text-white" /> {t('profile.backup')}
                     </button>
                     <button onClick={logout} className="w-full py-5 border border-dashed border-red-500/30 rounded-2xl text-[10px] font-black uppercase text-red-500/70 hover:text-red-500 hover:bg-red-500/5 transition-all tracking-[0.2em] mt-2 shadow-inner">
                         {t('profile.logout')}
                     </button>
-                </div>
+                </motion.div>
 
                 {/* --- ABOUT US SECTION --- */}
-                <div className="mt-8 bg-black/40 border border-white/5 rounded-3xl p-6 text-center">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.4, delay: 1.0 }}
+                    className="mt-8 bg-black/40 border border-white/5 rounded-3xl p-6 text-center"
+                >
                     <div className="w-12 h-12 rounded-full bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center mx-auto mb-4">
                         <StorkIcon className="w-6 h-6 text-brand-cyan" />
                     </div>
@@ -479,7 +611,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                             <a href="https://t.me/storkcrypto" target="_blank" rel="noopener noreferrer" className="font-bold text-brand-purple hover:underline">@storkcrypto</a>
                         </p>
                     </div>
-                </div>
+                </motion.div>
             </div>
 
             {showWalletModal && <WalletConnectModal onClose={() => setShowWalletModal(false)} />}
@@ -489,7 +621,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             {showAdInquiry && <AdInquiryModal onClose={() => setShowAdInquiry(false)} />}
             {showAvatarModal && <AvatarSelectionModal onClose={() => setShowAvatarModal(false)} onSelect={handleAvatarUpdate} />}
             {showTwoFactor && <TwoFactorModal onClose={() => setShowTwoFactor(false)} />}
-        </div>
+        </motion.div>
     );
 };
 

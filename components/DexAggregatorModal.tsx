@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { triggerHaptic } from '../utils/haptics';
 import { TacticalBackground } from './TacticalBackground';
 import { GlobeIcon, ChevronRightIcon, ZapIcon, ActivityIcon } from './icons';
@@ -13,7 +14,13 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
     const [amount, setAmount] = useState('');
 
     return (
-        <div className="fixed inset-0 z-[150] bg-brand-bg flex flex-col animate-fade-in overflow-hidden h-[100dvh] w-full">
+        <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[150] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full"
+        >
             <TacticalBackground />
             
             <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
@@ -87,7 +94,7 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                 </div>
 
             </div>
-        </div>
+        </motion.div>
     );
 };
 

@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
 
@@ -50,9 +51,6 @@ interface LoadingScreenProps {
 }
 
 export function LoadingScreen({ onSkip }: LoadingScreenProps) {
-  const { settings } = useStore();
-  const t = (key: string) => getTranslation(settings?.language || 'en', key);
-
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lettersWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -246,7 +244,12 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
   }, []);
 
   return (
-    <div className="fixed inset-0 z-[9999] bg-[#0a0a14] flex flex-col items-center justify-center overflow-hidden">
+    <motion.div 
+        initial={{ opacity: 1 }}
+        exit={{ opacity: 0, scale: 1.05 }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
+        className="fixed inset-0 z-[9999] bg-[#0a0a14] flex flex-col items-center justify-center overflow-hidden"
+    >
       {/* 🎨 Анімований фоновий грід */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute inset-0" style={{
@@ -269,7 +272,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           position: relative;
           margin: clamp(0px, 0.1vh, 2px) 0; /* Vertical spacing */
           font-family: 'Orbitron', monospace;
-          font-size: clamp(20px, 4.5vh, 32px); /* Reduced for compact view */
+          font-size: clamp(18px, 4vh, 28px); /* Reduced size */
           font-weight: 900;
           width: 1.2em;
           height: 1.5em;
@@ -398,10 +401,13 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
       {/* Кнопка пропуску (відновлено) */}
       <button 
         onClick={onSkip}
-        className="absolute bottom-12 z-50 px-5 py-2.5 rounded-xl border border-[#00E5FF]/50 bg-[#00E5FF]/10 text-[#00E5FF] font-orbitron text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-[#00E5FF]/20 hover:border-[#00E5FF] hover:shadow-[0_0_20px_rgba(0,229,255,0.6)] animate-pulse cursor-pointer backdrop-blur-sm shadow-[0_0_10px_rgba(0,229,255,0.3)] active:scale-95"
+        className="absolute bottom-12 z-50 px-4 py-2 rounded-lg border border-[#00E5FF] bg-[#00E5FF]/10 text-[#00E5FF] font-orbitron text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-[#00E5FF]/20 hover:shadow-[0_0_25px_rgba(0,229,255,0.8)] cursor-pointer backdrop-blur-md shadow-[0_0_15px_rgba(0,229,255,0.5)] active:scale-95 group"
       >
-        SKIP_INIT &gt;&gt;
+        <span className="relative z-10 flex items-center gap-2">
+          SKIP_INIT <span className="group-hover:translate-x-1 transition-transform duration-300">&gt;&gt;</span>
+        </span>
+        <div className="absolute inset-0 rounded-lg bg-[#00E5FF]/20 blur-md -z-10 group-hover:animate-pulse"></div>
       </button>
-    </div>
+    </motion.div>
   );
 }

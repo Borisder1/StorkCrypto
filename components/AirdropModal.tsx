@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { PickaxeIcon, TimerIcon, GiftIcon, ShieldIcon, TelegramIcon, LinkIcon, ChevronRightIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -106,7 +107,13 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-md flex flex-col items-center animate-fade-in overflow-hidden">
+        <motion.div 
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-md flex flex-col items-center overflow-hidden"
+        >
             
             {/* Header */}
             <div className="w-full p-6 border-b border-white/5 flex justify-between items-center bg-brand-card/50 relative z-10 shrink-0">
@@ -210,7 +217,7 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                 </div>
 
             </div>
-        </div>
+        </motion.div>
     );
 };
 

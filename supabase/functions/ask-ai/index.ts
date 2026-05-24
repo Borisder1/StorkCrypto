@@ -6,8 +6,6 @@
 // 4. supabase functions deploy ask-ai
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-// Fixed: Using the correct @google/genai SDK as per guidelines
-import { GoogleGenAI } from "https://esm.sh/@google/genai";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,38 +21,58 @@ serve(async (req) => {
   try {
     const { prompt, config, history } = await req.json();
     
-    // Fixed: Always initialize with GoogleGenAI and obtain API key from process.env.API_KEY
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    // Забираємо ключ безпечно з середовища Supabase (НЕ З ФРОНТЕНДУ Cloudflare)
+    const NVIDIA_API_KEY = Deno.env.get('NVIDIA_API_KEY');
 
-    let textResponse = '';
+    if (!NVIDIA_API_KEY) {
+        throw new Error("Missing NVIDIA_API_KEY environment variable in Supabase Secrets");
+    }
+
+    let messages = [];
+
+    // Формуємо контекст. NVIDIA використовує OpenAI-сумісний формат (role: system/user/assistant)
+    if (config?.systemInstruction) {
+        messages.push({ role: 'system', content: config.systemInstruction });
+    }
 
     if (history && history.length > 0) {
-      // Fixed: Using ai.chats.create for conversational tasks
-      const chat = ai.chats.create({
-        model: config?.model || 'gemini-3-flash-preview',
-        history: history.map((h: any) => ({
-          role: h.role === 'model' ? 'model' : 'user',
-          parts: [{ text: h.text }],
-        })),
-        config: {
-            maxOutputTokens: config?.maxOutputTokens || 500,
-        }
-      });
-      
-      const result = await chat.sendMessage({ message: prompt });
-      // Fixed: Access result.text property directly
-      textResponse = result.text || "NO_DATA_PACKET";
-    } else {
-      // Fixed: Using ai.models.generateContent directly for single prompt mode
-      const response = await ai.models.generateContent({
-        model: config?.model || 'gemini-3-flash-preview',
-        contents: prompt,
-        config: {
-          maxOutputTokens: config?.maxOutputTokens || 500,
-        }
-      });
-      // Fixed: Access response.text property directly
-      textResponse = response.text || "NO_DATA_PACKET";
+      messages.push(...history.map((h: any) => ({
+        role: h.role === 'model' ? 'assistant' : 'user',
+        content: h.text
+      })));
+    }
+    
+    messages.push({ role: 'user', content: prompt });
+
+    // Робимо запит до безкоштовного API NVIDIA
+    const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${NVIDIA_API_KEY}`
+        },
+        body: JSON.stringify({
+            model: "moonshotai/kimi-k2-thinking",
+            messages: messages,
+            temperature: config?.temperature || 0.7,
+            top_p: 0.9,
+            max_tokens: config?.maxOutputTokens || 2048,
+            stream: false // Використовуємо stream: false для простоти інтеграції в існуючу архітектуру
+        })
+    });
+
+    if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`NVIDIA API Error: ${errorData}`);
+    }
+
+    const data = await response.json();
+    let textResponse = data.choices?.[0]?.message?.content || "NO_DATA_PACKET";
+
+    // Якщо увімкнене мислення (reasoning) в цій моделі, ми можемо додати його як <thinking>
+    const reasoning = data.choices?.[0]?.message?.reasoning_content;
+    if (reasoning) {
+        textResponse = `<thinking>\n${reasoning}\n</thinking>\n${textResponse}`;
     }
 
     return new Response(JSON.stringify({ text: textResponse }), {

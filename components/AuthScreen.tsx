@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { StorkIcon, TelegramIcon, ShieldIcon, UserIcon, ChevronRightIcon } from './icons';
 import { useStore } from '../store';
 import { triggerHaptic } from '../utils/haptics';
@@ -34,7 +35,7 @@ const AuthScreen: React.FC = () => {
     };
     
     // Побудова шляху з урахуванням BASE_URL для коректної роботи в підпапках (GitHub Pages)
-    const logoUrl = '/logo.png';
+    const logoUrl = `${import.meta.env.BASE_URL}logo.jpg`;
     const [imgError, setImgError] = useState(false);
 
     const t = (key: string) => getTranslation(settings.language, key);
@@ -54,7 +55,13 @@ const AuthScreen: React.FC = () => {
     };
 
     return (
-        <div className="fixed inset-0 z-[100] bg-[#020617] flex flex-col overflow-hidden h-[100dvh] w-full">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="fixed inset-0 z-[100] bg-[#020617] flex flex-col overflow-hidden h-[100dvh] w-full"
+        >
             <div className="absolute inset-0 bg-cyber-grid bg-[length:40px_40px] opacity-10"></div>
             
             <div className="flex-1 overflow-y-auto custom-scrollbar w-full flex flex-col items-center justify-center p-6">
@@ -153,7 +160,7 @@ const AuthScreen: React.FC = () => {
                     </div>
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 };
 

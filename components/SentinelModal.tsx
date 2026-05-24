@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { useStore } from '../store';
 import { ShieldIcon, RadarIcon, ZapIcon, BellIcon, NewspaperIcon, TimerIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -36,10 +37,21 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center">
-            <div className="absolute inset-0 bg-black/95 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center"
+        >
+            <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose}></div>
             
-            <div className="relative z-10 w-full sm:max-w-md bg-brand-bg border-t sm:border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] animate-slide-up-mobile">
+            <motion.div 
+                initial={{ y: '100%' }}
+                animate={{ y: 0 }}
+                exit={{ y: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="relative z-10 w-full sm:max-w-md bg-brand-bg border-t sm:border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh]"
+            >
                 
                 <div className="p-6 border-b border-white/5 bg-brand-card/50 flex justify-between items-center shrink-0">
                     <div className="flex items-center gap-3">
@@ -157,8 +169,8 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
                         {t('sentinel.update')}
                     </button>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

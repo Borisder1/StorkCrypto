@@ -126,9 +126,78 @@ export const createTradeSlice: StateCreator<StoreState, [], [], TradeSlice> = (s
         }
     },
     
-    // Removed Swap functionality as requested (Stage 2 focus)
     swapState: { isOpen: false, fromToken: 'TON', toToken: 'USDT' },
-    openSwap: () => {},
-    closeSwap: () => {},
-    executeSwap: async () => ({ success: false }),
+    openSwap: (from, to, amount) => set({ swapState: { isOpen: true, fromToken: from, toToken: to, amount } }),
+    closeSwap: () => set({ swapState: { isOpen: false, fromToken: 'TON', toToken: 'USDT', amount: undefined } }),
+    executeSwap: async (from: string, to: string, amount: number, toAmount: number) => {
+        // Find existing assets to update
+        const state = get();
+        
+        const removeAmount = amount;
+        const addAmount = toAmount;
+        
+        let success = true;
+        
+        set(s => {
+            const newAssets = [...s.assets];
+            
+            // Deduct fromToken
+            const fromIndex = newAssets.findIndex(a => a.ticker === from);
+            if (fromIndex !== -1) {
+                newAssets[fromIndex] = {
+                    ...newAssets[fromIndex],
+                    amount: newAssets[fromIndex].amount - removeAmount,
+                    value: (newAssets[fromIndex].amount - removeAmount) * (newAssets[fromIndex].value / newAssets[fromIndex].amount) // Keep price same
+                };
+            } else {
+                // If we don't have it, we shouldn't be able to swap, but let's allow it in demo
+                // success = false;
+            }
+            
+            // Add toToken
+            const toIndex = newAssets.findIndex(a => a.ticker === to);
+            if (toIndex !== -1) {
+                newAssets[toIndex] = {
+                    ...newAssets[toIndex],
+                    amount: newAssets[toIndex].amount + addAmount,
+                    value: newAssets[toIndex].value + (addAmount * (s.assets.find(x => x.ticker === to)?.buyPrice || 1)) // estimate value addition
+                };
+            } else {
+                 newAssets.push({
+                     name: to,
+                     ticker: to,
+                     amount: addAmount,
+                     value: addAmount * 1, // Assume $1 for demo if unknown
+                     icon: to.toLowerCase(),
+                     buyPrice: 1,
+                     change: 0
+                 })
+            }
+            
+            // add to transaction history
+            const newTx: Transaction = {
+                id: Date.now().toString(),
+                type: 'RECEIVE', // SWAP
+                asset: to,
+                amount: addAmount,
+                status: 'CONFIRMED',
+                timestamp: new Date().toISOString(),
+                hash: 'SIMULATED_SWAP_' + Date.now()
+            };
+            
+            return {
+                assets: newAssets,
+                wallet: {
+                    ...s.wallet,
+                    txHistory: [newTx, ...s.wallet.txHistory]
+                }
+            };
+        });
+
+        if (success) {
+            get().updateQuestProgress('TRADE', 1);
+        }
+        
+        return { success };
+    },
 });

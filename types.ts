@@ -397,6 +397,8 @@ export interface AppSlice {
     
     showAirdrop: boolean;
     setShowAirdrop: (show: boolean) => void;
+    showLeaderboard: boolean;
+    setShowLeaderboard: (show: boolean) => void;
     claimMining: () => void;
     completeAirdropTask: (taskId: string) => void;
     
@@ -476,6 +478,8 @@ export interface AppSlice {
     
     adminBroadcast: { message: string; type: 'INFO' | 'ALERT' | 'SUCCESS'; id: string } | null;
     sendBroadcast: (message: string, type: 'INFO' | 'ALERT' | 'SUCCESS') => void;
+    marketRegime: string;
+    updateMarketRegime: (regime: string) => void;
 }
 
 export type StoreState = AuthSlice & TradeSlice & AppSlice;

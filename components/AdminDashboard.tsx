@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { ShieldIcon, ActivityIcon, UserIcon, BarChartIcon, LinkIcon, ZapIcon, SearchIcon, TrendingUpIcon, BellIcon, SendIcon, PlusIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -120,7 +121,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
     const filteredUsers = (users || []).filter(u => u.id?.toLowerCase().includes(searchUser.toLowerCase()));
 
     return (
-        <div className="fixed inset-0 z-[300] bg-[#0a0a0a] font-mono flex flex-col text-white overflow-hidden h-[100dvh] w-full">
+        <motion.div 
+            initial={{ opacity: 0, y: '100%' }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[300] bg-[#0a0a0a] font-mono flex flex-col text-white overflow-hidden h-[100dvh] w-full"
+        >
             {/* Admin Grid Overlay */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[length:20px_20px] pointer-events-none"></div>
 
@@ -354,7 +361,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     </div>
                 )}
             </div>
-        </div>
+        </motion.div>
     );
 };
 

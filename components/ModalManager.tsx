@@ -1,4 +1,5 @@
 import React, { Suspense, lazy } from 'react';
+import { AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import ErrorBoundary from './ErrorBoundary';
 import ReferralModal from './ReferralModal';
@@ -10,6 +11,7 @@ import SubscriptionModal from './SubscriptionModal';
 import AdInquiryModal from './AdInquiryModal';
 import AirdropModal from './AirdropModal';
 import SentinelModal from './SentinelModal';
+import LeaderboardModal from './LeaderboardModal';
 
 // Lazy Loaded Heavy Components
 const ScannerModal = lazy(() => import('./ScannerModal'));
@@ -35,7 +37,9 @@ const ModalManager: React.FC = () => {
         showAirdrop,
         setShowAirdrop,
         showSentinel,
-        setShowSentinel
+        setShowSentinel,
+        showLeaderboard,
+        setShowLeaderboard
     } = useStore();
 
     const goHome = () => navigateTo('home');
@@ -45,32 +49,35 @@ const ModalManager: React.FC = () => {
             <ErrorBoundary>
                 {/* Full Screen Screens (Z-110) */}
                 <div className="relative z-[110]">
-                    {activeTab === 'portfolio' && <PortfolioScreen onClose={goHome} />}
-                    {activeTab === 'signals' && <SignalsScreen onClose={goHome} />}
-                    {activeTab === 'profile' && <ProfileScreen onClose={goHome} />}
-                    {activeTab === 'media' && <MediaScreen onClose={goHome} />}
-                    
-                    {activeTab === 'scanner' && <ScannerModal onClose={goHome} />}
-                    {activeTab === 'analytics' && <AnalyticsModal onClose={goHome} />}
-                    {activeTab === 'news' && <NewsModal onClose={goHome} />}
+                    <AnimatePresence mode="wait">
+                        {activeTab === 'portfolio' && <PortfolioScreen key="portfolio" onClose={goHome} />}
+                        {activeTab === 'signals' && <SignalsScreen key="signals" onClose={goHome} />}
+                        {activeTab === 'profile' && <ProfileScreen key="profile" onClose={goHome} />}
+                        {activeTab === 'media' && <MediaScreen key="media" onClose={goHome} />}
+                        
+                        {activeTab === 'scanner' && <ScannerModal key="scanner" onClose={goHome} />}
+                        {activeTab === 'analytics' && <AnalyticsModal key="analytics" onClose={goHome} />}
+                        {activeTab === 'news' && <NewsModal key="news" onClose={goHome} />}
+                    </AnimatePresence>
                 </div>
                 
                 {/* Secondary Modals (Z-150+) */}
                 <div className="relative z-[150]">
-                    {showReferral && <ReferralModal onClose={() => setShowReferral(false)} />}
-                    {showCalendar && <CalendarModal onClose={() => setShowCalendar(false)} />}
-                    {isSubscriptionOpen && <SubscriptionModal onClose={() => setSubscriptionOpen(false)} />}
-                    {showAdInquiry && <AdInquiryModal onClose={() => setShowAdInquiry(false)} />}
-                    {showAirdrop && <AirdropModal onClose={() => setShowAirdrop(false)} />}
-                    {showSentinel && <SentinelModal onClose={() => setShowSentinel(false)} />}
+                    <AnimatePresence>
+                        {showReferral && <ReferralModal key="referral" onClose={() => setShowReferral(false)} />}
+                        {showCalendar && <CalendarModal key="calendar" onClose={() => setShowCalendar(false)} />}
+                        {isSubscriptionOpen && <SubscriptionModal key="subscription" onClose={() => setSubscriptionOpen(false)} />}
+                        {showAdInquiry && <AdInquiryModal key="adinquiry" onClose={() => setShowAdInquiry(false)} />}
+                        {showAirdrop && <AirdropModal key="airdrop" onClose={() => setShowAirdrop(false)} />}
+                        {showSentinel && <SentinelModal key="sentinel" onClose={() => setShowSentinel(false)} />}
+                        {showLeaderboard && <LeaderboardModal key="leaderboard" onClose={() => setShowLeaderboard(false)} />}
+                    </AnimatePresence>
                 </div>
 
                 {/* AI Chat (Top Layer Z-200) */}
-                {isAIChatOpen && (
-                    <div className="fixed inset-0 z-[200] bg-brand-bg animate-slide-up-mobile">
-                        <ChatScreen onClose={() => setIsAIChatOpen(false)} />
-                    </div>
-                )}
+                <AnimatePresence>
+                    {isAIChatOpen && <ChatScreen key="chat" onClose={() => setIsAIChatOpen(false)} />}
+                </AnimatePresence>
             </ErrorBoundary>
         </Suspense>
     );

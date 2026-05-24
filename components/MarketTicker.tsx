@@ -1,5 +1,6 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
+import { motion } from 'motion/react';
 import { getCryptoPrices, MASTER_ASSET_LIST } from '../services/priceService';
 import { useStore } from '../store';
 import { MarketPriceMap } from '../types';
@@ -53,7 +54,12 @@ const MarketTicker: React.FC = React.memo(() => {
     };
 
     return (
-        <div className="fixed top-0 left-0 w-full h-9 z-[80] flex items-center overflow-hidden pointer-events-none select-none border-b border-white/5">
+        <motion.div 
+            initial={{ y: -50, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ type: 'spring', damping: 20, stiffness: 100, delay: 0.2 }}
+            className="fixed top-0 left-0 w-full h-9 z-[80] flex items-center overflow-hidden pointer-events-none select-none border-b border-white/5"
+        >
             {/* Glass Background */}
             <div className="absolute inset-0 bg-[#020617]/60 backdrop-blur-md"></div>
             
@@ -85,7 +91,7 @@ const MarketTicker: React.FC = React.memo(() => {
             </div>
             
             <div className="absolute top-0 right-0 w-12 h-full bg-gradient-to-l from-[#020617] to-transparent z-10"></div>
-        </div>
+        </motion.div>
     );
 });
 

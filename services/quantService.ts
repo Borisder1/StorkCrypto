@@ -64,6 +64,16 @@ self.onmessage = function(e) {
                 // Optimized for mobile: limit iterations to prevent main thread freezing on older Androids
                 result = runMonteCarloSimulation(payload.startPrice, payload.volatility, payload.steps, Math.min(payload.simulations, 50));
                 break;
+            case 'MARKET_REGIME':
+                if (payload.prices) {
+                    result = detectMarketRegimeString(payload.prices);
+                } else {
+                    result = detectMarketRegime(payload.candles);
+                }
+                break;
+            case 'ORDER_BOOK_IMBALANCE':
+                result = calculateOBI(payload.bids, payload.asks);
+                break;
             case 'SMA':
                 result = calculateSMA(payload.data, payload.period);
                 break;
@@ -81,6 +91,78 @@ self.onmessage = function(e) {
         self.postMessage({ id, error: error.message, status: 'ERROR' });
     }
 };
+
+// Market Regime Detection (Simplified HMM / Trend-Vol)
+function detectMarketRegimeString(prices) {
+    if (!prices || prices.length < 20) return 'UNKNOWN';
+    
+    // Calculate returns
+    const returns = [];
+    for (let i = 1; i < prices.length; i++) {
+        returns.push((prices[i] - prices[i-1]) / prices[i-1]);
+    }
+    
+    // Calculate mean return (Trend)
+    const meanReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
+    
+    // Calculate volatility (StdDev of returns)
+    const variance = returns.reduce((a, b) => a + Math.pow(b - meanReturn, 2), 0) / returns.length;
+    const volatility = Math.sqrt(variance);
+    
+    // Thresholds (arbitrary for simulation)
+    const trendThreshold = 0.001; // 0.1% per period
+    const volThreshold = 0.005;   // 0.5% per period
+    
+    let trend = 'SIDEWAYS';
+    if (meanReturn > trendThreshold) trend = 'BULL';
+    else if (meanReturn < -trendThreshold) trend = 'BEAR';
+    
+    let vol = 'QUIET';
+    if (volatility > volThreshold) vol = 'VOLATILE';
+    
+    return \`\${trend}_\${vol}\`;
+}
+
+// Order Book Imbalance (OBI)
+function calculateOBI(bids, asks) {
+    // bids and asks are arrays of { price, size }
+    if (!bids || !asks || bids.length === 0 || asks.length === 0) return 0;
+    
+    const bidVolume = bids.reduce((sum, b) => sum + b.size, 0);
+    const askVolume = asks.reduce((sum, a) => sum + a.size, 0);
+    
+    if (bidVolume + askVolume === 0) return 0;
+    
+    // OBI = (Bid Vol - Ask Vol) / (Bid Vol + Ask Vol)
+    // Range: -1 (all asks) to +1 (all bids)
+    return (bidVolume - askVolume) / (bidVolume + askVolume);
+}
+
+// Market Regime Detection (Trend & Volatility)
+function detectMarketRegime(candles) {
+    if (!candles || candles.length < 20) return { regime: 'UNKNOWN', volatilityPct: 0, sma20: 0, confidence: 0 };
+    let sum = 0;
+    for(let i = candles.length - 20; i < candles.length; i++) sum += candles[i].close;
+    const sma20 = sum / 20;
+    
+    let sumSq = 0;
+    for(let i = candles.length - 20; i < candles.length; i++) sumSq += Math.pow(candles[i].close - sma20, 2);
+    const stdDev = Math.sqrt(sumSq / 20);
+    const volatilityPct = stdDev / sma20;
+    
+    const currentPrice = candles[candles.length - 1].close;
+    const isUptrend = currentPrice > sma20;
+    
+    let regime = 'UNKNOWN';
+    if (volatilityPct > 0.05) {
+        regime = isUptrend ? 'VOLATILE_BULL' : 'VOLATILE_BEAR';
+    } else if (volatilityPct < 0.015) {
+        regime = 'QUIET_RANGING';
+    } else {
+        regime = isUptrend ? 'BULL_TREND' : 'BEAR_TREND';
+    }
+    return { regime, volatilityPct, sma20, confidence: Math.max(0, 100 - (volatilityPct * 500)) };
+}
 
 // Linear Regression for Trend Lines
 function calculateLinearRegression(data) {
@@ -294,6 +376,9 @@ export const runMonteCarloSimulation = (startPrice: number, volatility: number, 
 export const calculateSMA = (data: any[], period: number = 20): Promise<any[]> => runAsyncMath('SMA', { data, period });
 export const calculateBollingerBands = (data: any[], period: number = 20, stdDev: number = 2): Promise<any[]> => runAsyncMath('BOLLINGER', { data, period, stdDev });
 export const calculateLinearRegression = (data: number[]): Promise<{ slope: number, intercept: number, startPoint: number, endPoint: number }> => runAsyncMath('REGRESSION', { data });
+export const calculateMarketRegime = (candles: any[]): Promise<{ regime: string, volatilityPct: number, sma20: number, confidence: number }> => runAsyncMath('MARKET_REGIME', { candles });
+export const detectMarketRegime = (prices: number[]): Promise<string> => runAsyncMath('MARKET_REGIME', { prices });
+export const calculateOBI = (bids: {price: number, size: number}[], asks: {price: number, size: number}[]): Promise<number> => runAsyncMath('ORDER_BOOK_IMBALANCE', { bids, asks });
 
 export const calculateZScore = (currentPrice: number, history: number[]): number => {
     const n = history.length;

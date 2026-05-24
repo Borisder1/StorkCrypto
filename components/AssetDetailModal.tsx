@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { BotIcon, BarChartIcon, TrendingUpIcon, RadarIcon, ShieldIcon, ActivityIcon, EyeIcon, ChevronRightIcon, ZapIcon, BellIcon, PlusIcon, GlobeIcon } from './icons';
 import { getOHLCData, getOrderBook, TICKER_TO_ID, type OHLCData, type OrderBookData } from '../services/priceService';
 import { binanceWS } from '../services/websocketService';
@@ -9,7 +10,7 @@ import { Asset, TradingSignal, PriceAlert } from '../types';
 import { createChart, ColorType, IChartApi, LineStyle, ISeriesApi } from 'lightweight-charts';
 import { getTranslation } from '../utils/translations';
 import { calculateZScore, calculateVolumeProfile, generateOrderHeatmap, calculateCumulativeDelta, calculateExhaustionIndex, calculateInstitutionalConviction, calculateSMA, calculateBollingerBands, runMonteCarloSimulation, calculateFractalDimension, calculateMarketEntropy, type VolumeBin, type OrderWall, type SimulationPath } from '../services/quantService';
-import { fetchKimiAudit } from '../services/kimiService';
+import { generateSpecificAssetAnalysis } from '../services/geminiService';
 
 const TIMEFRAMES = [
     { label: '1H', days: '0.04' },
@@ -60,6 +61,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
     const [quant, setQuant] = useState({ fdi: 1.5, entropy: 0.5, exhaustion: null as any, conviction: null as any });
     const [aiReport, setAiReport] = useState<any>(null);
     const [aiLoading, setAiLoading] = useState(false);
+    const [monteCarloPaths, setMonteCarloPaths] = useState<SimulationPath[]>([]);
     
     const [alertPrice, setAlertPrice] = useState<string>('');
 
@@ -113,12 +115,21 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
     useEffect(() => {
         if (activeTab === 'AI_SETUP' && !aiReport) {
             setAiLoading(true);
-            fetchKimiAudit(asset.ticker).then(res => {
+            generateSpecificAssetAnalysis(asset.ticker, asset.value, asset.change, settings.language).then(res => {
                 setAiReport(res);
                 setAiLoading(false);
             });
         }
-    }, [activeTab, asset.ticker, aiReport]);
+        if (activeTab === 'AI_SETUP' && monteCarloPaths.length === 0) {
+            // Estimate volatility from recent candles if available, else default to 5%
+            const volatility = candleData.length > 0 
+                ? (Math.max(...candleData.slice(-10).map(c => c.high)) - Math.min(...candleData.slice(-10).map(c => c.low))) / asset.value 
+                : 0.05;
+            runMonteCarloSimulation(asset.value, Math.max(0.02, volatility), 20, 50).then(paths => {
+                setMonteCarloPaths(paths);
+            });
+        }
+    }, [activeTab, asset.ticker, settings.language, aiReport, asset.value, candleData, monteCarloPaths.length]);
 
     // WebSocket Update Guard
     useEffect(() => {
@@ -210,9 +221,20 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
     const assetAlerts = alerts.filter(a => a.asset === asset.ticker);
 
     return (
-        <div className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4"
+        >
             <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose}></div>
-            <div className="relative z-10 w-full md:w-[650px] h-[95vh] bg-brand-bg border-t md:border border-white/10 rounded-t-[3rem] md:rounded-[3rem] flex flex-col shadow-2xl overflow-hidden">
+            <motion.div 
+                initial={{ y: '100%', opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                exit={{ y: '100%', opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="relative z-10 w-full md:w-[650px] h-[95vh] bg-brand-bg border-t md:border border-white/10 rounded-t-[3rem] md:rounded-[3rem] flex flex-col shadow-2xl overflow-hidden"
+            >
                 <div className="p-6 border-b border-white/5 bg-brand-card/95 flex justify-between items-center relative">
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center p-3 shadow-inner">
@@ -439,18 +461,18 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                     {activeTab === 'AI_SETUP' && (
                         <div className="space-y-6 animate-fade-in">
                             <div className="bg-brand-purple/5 border border-brand-purple/20 rounded-[2.5rem] p-8 relative overflow-hidden">
-                                <h4 className="text-[10px] text-brand-purple font-black uppercase mb-6 flex items-center gap-2"><BotIcon className="w-5 h-5"/> Live_Neural_Synthetics (Kimi 2.5)</h4>
-                                {aiLoading ? <div className="text-xs text-slate-500 animate-pulse font-mono">📡 LINKING_TO_KIMI_BACKEND...</div> : (
+                                <h4 className="text-[10px] text-brand-purple font-black uppercase mb-6 flex items-center gap-2"><BotIcon className="w-5 h-5"/> Live_Neural_Synthetics</h4>
+                                {aiLoading ? <div className="text-xs text-slate-500 animate-pulse font-mono">📡 LINKING_TO_GLOBAL_SEARCH...</div> : (
                                     <div className="space-y-4">
-                                        <p className="text-sm text-slate-200 font-mono leading-relaxed whitespace-pre-wrap">{aiReport}</p>
+                                        <p className="text-sm text-slate-200 font-mono leading-relaxed italic">"{aiReport}"</p>
                                         <div className="flex items-center gap-2 mt-4 pt-4 border-t border-white/5">
                                             <GlobeIcon className="w-3 h-3 text-brand-cyan" />
-                                            <span className="text-[8px] text-brand-cyan font-black uppercase">Verified via Nvidia Kimi 2.5 Intelligence Matrix</span>
+                                            <span className="text-[8px] text-slate-500 font-black uppercase">Verified via Google Search Grounding</span>
                                         </div>
                                     </div>
                                 )}
                             </div>
-                            <MonteCarloChart startPrice={asset.value} volatility={0.05} paths={[]} />
+                            <MonteCarloChart startPrice={asset.value} volatility={0.05} paths={monteCarloPaths} takeProfit={asset.value * 1.05} stopLoss={asset.value * 0.95} />
                         </div>
                     )}
                 </div>
@@ -472,8 +494,8 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.195-.054-.304-.346-.11l-6.4 4.024-2.76-.86c-.6-.185-.61-.6.125-.89l10.736-4.136c.5-.186.94.11.725.918z"/></svg>
                     </button>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

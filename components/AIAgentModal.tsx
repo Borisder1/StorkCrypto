@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
+import { motion } from 'motion/react';
 import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
 import { TacticalBackground } from './TacticalBackground';
@@ -29,7 +29,7 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
         setLoading(true);
         setAnalysis(null);
         try {
-            const result = await getAIAgentAnalysis(agent, settings.language);
+            const result = await getAIAgentAnalysis(agent, settings.language, useStore.getState().marketRegime);
             setAnalysis(result);
         } catch (e) {
             setAnalysis("Failed to connect to AI Core. Please try again.");
@@ -48,8 +48,14 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
         { id: 'GUARDIAN', name: 'Guardian', icon: ShieldIcon, color: 'text-brand-success', bg: 'bg-brand-success/10', border: 'border-brand-success/30', desc: 'Conservative macro & risk management' }
     ] as const;
 
-    const modalContent = (
-        <div className="fixed inset-0 z-[300] bg-brand-bg flex flex-col animate-fade-in overflow-hidden h-[100dvh] w-full">
+    return (
+        <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 z-[300] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full"
+        >
             <TacticalBackground />
             
             {/* Header */}
@@ -129,10 +135,8 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
                 </div>
 
             </div>
-        </div>
+        </motion.div>
     );
-
-    return createPortal(modalContent, document.body);
 };
 
 export default AIAgentModal;

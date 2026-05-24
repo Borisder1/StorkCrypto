@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { useTonConnectUI } from '@tonconnect/ui-react';
 import { ShieldIcon, TelegramIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -21,10 +22,21 @@ const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[120] grid place-items-center p-4 overflow-hidden overscroll-none touch-none">
+        <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[120] grid place-items-center p-4 overflow-hidden overscroll-none touch-none"
+        >
             <div className="fixed inset-0 bg-black/95 backdrop-blur-md animate-fade-in touch-none" onClick={onClose}></div>
             
-            <div className="relative z-10 w-full max-w-sm bg-[#020617] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_80px_rgba(0,217,255,0.15)] flex flex-col animate-zoom-in">
+            <motion.div 
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                className="relative z-10 w-full max-w-sm bg-[#020617] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_80px_rgba(0,217,255,0.15)] flex flex-col"
+            >
                 
                 {/* Header Section */}
                 <div className="p-8 text-center bg-brand-card/40 border-b border-white/5 relative overflow-hidden">
@@ -66,8 +78,8 @@ const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose }) => {
                         <ActivityIcon className="w-3 h-3 text-brand-green" /> Data_Encryption_Active
                     </p>
                 </div>
-            </div>
-        </div>
+            </motion.div>
+        </motion.div>
     );
 };
 

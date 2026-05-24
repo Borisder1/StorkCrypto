@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { type AgentAnalysis, type TradingSignal, Asset } from '../../types';
 import { generateTradingSignals } from '../../services/geminiService';
 import { scanMarket } from '../../services/priceService';
@@ -156,7 +157,7 @@ const HybridSignalCard = React.memo(({
 });
 
 export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-    const { settings, userStats, setSubscriptionOpen } = useStore();
+    const { settings, userStats, setSubscriptionOpen, marketRegime, updateQuestProgress } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
     
     const [analysis, setAnalysis] = useState<AgentAnalysis | null>(null);
@@ -173,7 +174,7 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
         setLoading(true);
         try {
             const realMetrics = await scanMarket(); 
-            const result = await generateTradingSignals(settings, realMetrics);
+            const result = await generateTradingSignals(settings, realMetrics, marketRegime);
             if (result) {
                 if (forceHighConfidence) {
                     const alphaSignal: TradingSignal = {
@@ -192,13 +193,14 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
                     result.signals = [alphaSignal, ...result.signals];
                 }
                 setAnalysis(result);
+                updateQuestProgress('SCAN', 1);
             }
         } catch (e) {
             console.error("Terminal refresh failed", e);
         } finally {
             setLoading(false);
         }
-    }, [settings]);
+    }, [settings, marketRegime]);
 
     useEffect(() => {
         refreshTerminal(isSniperMode);
@@ -233,7 +235,13 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
     }, [analysis, activeFilters, searchTerm, isSniperMode]);
 
     return (
-        <div className={`fixed inset-0 z-[110] flex flex-col overflow-hidden transition-all duration-700 h-[100dvh] w-full ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}>
+        <motion.div 
+            initial={{ opacity: 0, x: '100%' }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className={`fixed inset-0 z-[110] flex flex-col overflow-hidden transition-all duration-700 h-[100dvh] w-full ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}
+        >
             <TacticalBackground />
             
             {isSniperMode && (
@@ -274,7 +282,7 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
             </div>
 
             <div className="px-6 relative z-10 flex-1 overflow-y-auto no-scrollbar pb-32">
-                <RadarHUD score={analysis?.market_sentiment_score || 50} phase={analysis?.market_phase || t('signals.scanning_short')} loading={loading} t={t} />
+                <RadarHUD score={analysis?.market_sentiment_score || 50} phase={marketRegime !== 'UNKNOWN' ? marketRegime : (analysis?.market_phase || t('signals.scanning_short'))} loading={loading} t={t} />
                 
                 <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 mb-2">
                     {['ALL', 'BTC', 'ETH', 'SOL', 'SCALP', 'SWING'].map(f => (
@@ -313,7 +321,7 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
 
             {selectedSignalAsset && <AssetDetailModal asset={selectedSignalAsset} signal={selectedSignal} onClose={() => { setSelectedSignalAsset(null); setSelectedSignal(null); }} />}
             {showInfo && <InfoModal title={t('signals.info_title')} description={t('signals.info_desc')} features={[t('signals.info_feat_1'), t('signals.info_feat_2'), t('signals.info_feat_3')]} onClose={() => setShowInfo(false)} />}
-        </div>
+        </motion.div>
     );
 };
 
