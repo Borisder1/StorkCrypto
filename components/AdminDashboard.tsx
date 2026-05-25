@@ -6,6 +6,7 @@ import { ShieldIcon, ActivityIcon, UserIcon, BarChartIcon, LinkIcon, ZapIcon, Se
 import { triggerHaptic } from '../utils/haptics';
 import { supabase } from '../services/supabaseClient';
 import { AirdropTask, BannerConfig } from '../types';
+import { getTranslation } from '../utils/translations';
 
 interface AdminDashboardProps {
     onClose: () => void;
@@ -18,6 +19,8 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         partnerTasks, addPartnerTask, removePartnerTask,
         activeBanners, addBanner, removeBanner
     } = useStore();
+    
+    const t = (key: string) => getTranslation(settings.language, key);
     
     const [activeTab, setActiveTab] = useState<'SYSTEM' | 'FINANCE' | 'APPROVALS' | 'USERS' | 'BROADCAST' | 'CAMPAIGNS' | 'ANALYTICS'>('SYSTEM');
     const [users, setUsers] = useState<any[]>([]);
@@ -134,14 +137,16 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
             <div className="p-4 border-b border-red-500/30 bg-red-950/20 flex justify-between items-center shrink-0 z-10">
                 <div className="flex items-center gap-2">
                     <div className="bg-red-500 text-white p-1 rounded-md"><ShieldIcon className="w-5 h-5" /></div>
-                    <h1 className="font-bold text-lg tracking-widest uppercase text-white">Admin_Central_v9</h1>
+                    <h1 className="font-bold text-lg tracking-widest uppercase text-white">{t('admin.title')}</h1>
                 </div>
-                <button onClick={onClose} className="px-4 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white text-xs font-bold transition-all uppercase rounded-lg">Exit Terminal</button>
+                <button onClick={onClose} className="px-4 py-2 border border-red-500 text-red-500 hover:bg-red-500 hover:text-white text-xs font-bold transition-all uppercase rounded-lg">{t('admin.exit')}</button>
             </div>
 
             <div className="flex border-b border-white/10 overflow-x-auto no-scrollbar bg-white/5 z-10">
                 {['SYSTEM', 'FINANCE', 'APPROVALS', 'BROADCAST', 'USERS', 'CAMPAIGNS', 'ANALYTICS'].map((tab) => (
-                    <button key={tab} onClick={() => { setActiveTab(tab as any); triggerHaptic('light'); }} className={`px-6 py-4 text-[10px] font-black transition-colors border-r border-white/10 whitespace-nowrap uppercase ${activeTab === tab ? 'bg-white text-black' : 'hover:bg-white/10 text-slate-400'}`}>{tab}</button>
+                    <button key={tab} onClick={() => { setActiveTab(tab as any); triggerHaptic('light'); }} className={`px-6 py-4 text-[10px] font-black transition-colors border-r border-white/10 whitespace-nowrap uppercase ${activeTab === tab ? 'bg-white text-black' : 'hover:bg-white/10 text-slate-400'}`}>
+                        {t(`admin.${tab.toLowerCase()}`)}
+                    </button>
                 ))}
             </div>
 
@@ -151,22 +156,22 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                 {activeTab === 'ANALYTICS' && (
                     <div className="space-y-6">
                         <div className="border border-white/10 p-6 rounded-xl bg-black/40">
-                            <h3 className="text-white font-bold mb-6 flex items-center gap-2 uppercase"><BarChartIcon className="w-4 h-4 text-brand-cyan"/> System Analytics</h3>
+                            <h3 className="text-white font-bold mb-6 flex items-center gap-2 uppercase"><BarChartIcon className="w-4 h-4 text-brand-cyan"/> {t('admin.system_analytics')}</h3>
                             <div className="grid grid-cols-2 gap-4">
                                 <div className="bg-black/60 border border-white/10 p-4 rounded-xl text-center">
-                                    <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">Total Users</p>
+                                    <p className="text-[10px] text-slate-500 font-bold uppercase mb-1">{t('admin.total_users')}</p>
                                     <p className="text-2xl font-black text-white">{analytics.total}</p>
                                 </div>
                                 <div className="bg-purple-900/20 border border-purple-500/30 p-4 rounded-xl text-center">
-                                    <p className="text-[10px] text-purple-400 font-bold uppercase mb-1">Whale Tier</p>
+                                    <p className="text-[10px] text-purple-400 font-bold uppercase mb-1">{t('admin.whale_tier')}</p>
                                     <p className="text-2xl font-black text-purple-400">{analytics.whale}</p>
                                 </div>
                                 <div className="bg-cyan-900/20 border border-cyan-500/30 p-4 rounded-xl text-center">
-                                    <p className="text-[10px] text-cyan-400 font-bold uppercase mb-1">Pro Tier</p>
+                                    <p className="text-[10px] text-cyan-400 font-bold uppercase mb-1">{t('admin.pro_tier')}</p>
                                     <p className="text-2xl font-black text-cyan-400">{analytics.pro}</p>
                                 </div>
                                 <div className="bg-white/5 border border-white/10 p-4 rounded-xl text-center">
-                                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">Free Tier</p>
+                                    <p className="text-[10px] text-slate-400 font-bold uppercase mb-1">{t('admin.free_tier')}</p>
                                     <p className="text-2xl font-black text-slate-300">{analytics.free}</p>
                                 </div>
                             </div>
@@ -179,13 +184,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                     <div className="space-y-8">
                         {/* Task Manager */}
                         <div className="border border-white/10 p-6 rounded-xl bg-black/40">
-                            <h3 className="text-white font-bold mb-4 flex items-center gap-2 uppercase"><ActivityIcon className="w-4 h-4 text-brand-green"/> Partner Tasks (Airdrop)</h3>
+                            <h3 className="text-white font-bold mb-4 flex items-center gap-2 uppercase"><ActivityIcon className="w-4 h-4 text-brand-green"/> {t('admin.partner_tasks')}</h3>
                             <div className="grid grid-cols-3 gap-2 mb-4">
                                 <input type="text" value={newTaskTitle} onChange={e=>setNewTaskTitle(e.target.value)} placeholder="Title" className="col-span-3 bg-black border border-white/20 p-2 rounded text-xs text-white" />
                                 <input type="text" value={newTaskLink} onChange={e=>setNewTaskLink(e.target.value)} placeholder="Link" className="col-span-2 bg-black border border-white/20 p-2 rounded text-xs text-white" />
                                 <input type="number" value={newTaskReward} onChange={e=>setNewTaskReward(e.target.value)} placeholder="Reward" className="col-span-1 bg-black border border-white/20 p-2 rounded text-xs text-white" />
                             </div>
-                            <button onClick={handleAddTask} className="w-full py-3 bg-green-600 hover:bg-green-500 text-black font-black uppercase text-xs rounded shadow-lg flex items-center justify-center gap-2"><PlusIcon className="w-4 h-4"/> Add Task</button>
+                            <button onClick={handleAddTask} className="w-full py-3 bg-green-600 hover:bg-green-500 text-black font-black uppercase text-xs rounded shadow-lg flex items-center justify-center gap-2"><PlusIcon className="w-4 h-4"/> {t('admin.add_task')}</button>
                             
                             <div className="mt-4 space-y-2">
                                 {partnerTasks.map(t => (
@@ -199,13 +204,13 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
 
                         {/* Banner Manager */}
                         <div className="border border-white/10 p-6 rounded-xl bg-black/40">
-                            <h3 className="text-white font-bold mb-4 flex items-center gap-2 uppercase"><BarChartIcon className="w-4 h-4 text-brand-purple"/> Ad Banners</h3>
+                            <h3 className="text-white font-bold mb-4 flex items-center gap-2 uppercase"><BarChartIcon className="w-4 h-4 text-brand-purple"/> {t('admin.ad_banners')}</h3>
                             <div className="grid grid-cols-2 gap-2 mb-4">
                                 <input type="text" value={newBannerTitle} onChange={e=>setNewBannerTitle(e.target.value)} placeholder="Main Title" className="bg-black border border-white/20 p-2 rounded text-xs text-white" />
                                 <input type="text" value={newBannerSub} onChange={e=>setNewBannerSub(e.target.value)} placeholder="Subtitle" className="bg-black border border-white/20 p-2 rounded text-xs text-white" />
                                 <input type="text" value={newBannerLink} onChange={e=>setNewBannerLink(e.target.value)} placeholder="Link" className="col-span-2 bg-black border border-white/20 p-2 rounded text-xs text-white" />
                             </div>
-                            <button onClick={handleAddBanner} className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-black uppercase text-xs rounded shadow-lg flex items-center justify-center gap-2"><PlusIcon className="w-4 h-4"/> Add Banner</button>
+                            <button onClick={handleAddBanner} className="w-full py-3 bg-purple-600 hover:bg-purple-500 text-white font-black uppercase text-xs rounded shadow-lg flex items-center justify-center gap-2"><PlusIcon className="w-4 h-4"/> {t('admin.add_banner')}</button>
                             
                             <div className="mt-4 space-y-2">
                                 {activeBanners.map(b => (
@@ -222,11 +227,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                 {activeTab === 'SYSTEM' && (
                     <div className="space-y-6">
                         <div className="border border-white/10 p-6 rounded-xl bg-black/50">
-                            <h3 className="text-brand-cyan font-bold mb-4 flex items-center gap-2 uppercase"><ActivityIcon className="w-4 h-4"/> Global_Protocols</h3>
+                            <h3 className="text-brand-cyan font-bold mb-4 flex items-center gap-2 uppercase"><ActivityIcon className="w-4 h-4"/> {t('admin.global_protocols')}</h3>
                             <div className="space-y-4">
                                 <div className="flex justify-between items-center p-4 bg-white/5 rounded-lg border border-white/5">
-                                    <span className="text-xs font-bold">Maintenance Mode</span>
-                                    <button onClick={() => toggleMaintenance(!maintenanceMode)} className={`px-4 py-2 text-[10px] font-black rounded border ${maintenanceMode ? 'border-red-500 bg-red-500 text-white shadow-[0_0_15px_#ef4444]' : 'border-white/20 text-slate-400'}`}>{maintenanceMode ? 'ACTIVE' : 'DISABLED'}</button>
+                                    <span className="text-xs font-bold">{t('admin.maintenance_mode')}</span>
+                                    <button onClick={() => toggleMaintenance(!maintenanceMode)} className={`px-4 py-2 text-[10px] font-black rounded border ${maintenanceMode ? 'border-red-500 bg-red-500 text-white shadow-[0_0_15px_#ef4444]' : 'border-white/20 text-slate-400'}`}>{maintenanceMode ? t('admin.active') : t('admin.disabled')}</button>
                                 </div>
                             </div>
                         </div>
@@ -236,7 +241,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                 {activeTab === 'BROADCAST' && (
                     <div className="space-y-6">
                         <div className="border border-white/10 p-6 rounded-xl bg-black/40">
-                            <h3 className="text-white font-bold mb-6 flex items-center gap-2 uppercase"><BellIcon className="w-4 h-4 text-brand-purple"/> Global_Broadcast_Unit</h3>
+                            <h3 className="text-white font-bold mb-6 flex items-center gap-2 uppercase"><BellIcon className="w-4 h-4 text-brand-purple"/> {t('admin.global_broadcast')}</h3>
                             
                             <div className="space-y-4">
                                 <div className="flex gap-2">
@@ -254,7 +259,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                 <textarea 
                                     value={bcMessage}
                                     onChange={(e) => setBcMessage(e.target.value)}
-                                    placeholder="Type systemic message..."
+                                    placeholder={t('admin.type_message')}
                                     className="w-full h-32 bg-black border border-white/20 rounded-xl p-4 text-xs font-mono text-white focus:border-brand-cyan outline-none resize-none"
                                 />
                                 
@@ -262,7 +267,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                     onClick={handleSendBroadcast}
                                     className="w-full py-4 bg-brand-cyan text-black font-black uppercase text-xs rounded-xl hover:bg-white transition-all flex items-center justify-center gap-2"
                                 >
-                                    <SendIcon className="w-4 h-4" /> Transmit Signal
+                                    <SendIcon className="w-4 h-4" /> {t('admin.transmit')}
                                 </button>
                             </div>
                         </div>
@@ -277,7 +282,7 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                                 type="text" 
                                 value={searchUser}
                                 onChange={(e) => setSearchUser(e.target.value)}
-                                placeholder="Search by Device ID..."
+                                placeholder={t('admin.search_placeholder')}
                                 className="w-full bg-white/5 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-xs text-white outline-none focus:border-white/30"
                             />
                         </div>
@@ -307,20 +312,20 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                 {activeTab === 'FINANCE' && (
                     <div className="space-y-6">
                         <div className="border border-white/10 p-6 rounded-xl bg-black/40">
-                            <h3 className="text-white font-bold mb-6 flex items-center gap-2 uppercase"><LinkIcon className="w-4 h-4"/> Treasury_Config</h3>
+                            <h3 className="text-white font-bold mb-6 flex items-center gap-2 uppercase"><LinkIcon className="w-4 h-4"/> {t('admin.treasury_config')}</h3>
                             <div className="mb-6">
-                                <label className="text-[10px] uppercase text-slate-500 mb-2 block font-black">Deposit Wallet (Admin Receiver)</label>
+                                <label className="text-[10px] uppercase text-slate-500 mb-2 block font-black">{t('admin.deposit_wallet')}</label>
                                 <input type="text" value={adminWallet} onChange={(e) => setAdminWallet(e.target.value)} className="w-full bg-black border border-white/20 p-4 rounded-lg text-white text-xs focus:outline-none focus:border-brand-cyan font-mono" placeholder="UQ..." />
                             </div>
                             <div className="grid grid-cols-2 gap-4 mb-6">
-                                <div><label className="text-[10px] uppercase text-cyan-500 mb-2 block font-black">PRO Price ($)</label><input type="number" value={proPrice} onChange={(e) => setProPrice(e.target.value)} className="w-full bg-black border border-white/20 p-4 rounded-lg text-white text-xs focus:outline-none" /></div>
-                                <div><label className="text-[10px] uppercase text-purple-500 mb-2 block font-black">WHALE Price ($)</label><input type="number" value={whalePrice} onChange={(e) => setWhalePrice(e.target.value)} className="w-full bg-black border border-white/20 p-4 rounded-lg text-white text-xs focus:outline-none" /></div>
+                                <div><label className="text-[10px] uppercase text-cyan-500 mb-2 block font-black">{t('admin.pro_price')}</label><input type="number" value={proPrice} onChange={(e) => setProPrice(e.target.value)} className="w-full bg-black border border-white/20 p-4 rounded-lg text-white text-xs focus:outline-none" /></div>
+                                <div><label className="text-[10px] uppercase text-purple-500 mb-2 block font-black">{t('admin.whale_price')}</label><input type="number" value={whalePrice} onChange={(e) => setWhalePrice(e.target.value)} className="w-full bg-black border border-white/20 p-4 rounded-lg text-white text-xs focus:outline-none" /></div>
                             </div>
                             <div className="mb-6">
-                                <label className="text-[10px] uppercase text-green-500 mb-2 block font-black">XP Cost per Day (PRO)</label>
+                                <label className="text-[10px] uppercase text-green-500 mb-2 block font-black">{t('admin.xp_cost')}</label>
                                 <input type="number" value={xpCost} onChange={(e) => setXpCost(e.target.value)} className="w-full bg-black border border-white/20 p-4 rounded-lg text-white text-xs focus:outline-none" />
                             </div>
-                            <button onClick={handleUpdateFinance} className="w-full py-4 bg-white text-black font-black hover:bg-slate-200 transition-colors uppercase text-xs rounded-lg shadow-lg">Commit Financials</button>
+                            <button onClick={handleUpdateFinance} className="w-full py-4 bg-white text-black font-black hover:bg-slate-200 transition-colors uppercase text-xs rounded-lg shadow-lg">{t('admin.commit_financials')}</button>
                         </div>
                     </div>
                 )}
@@ -328,11 +333,11 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
                 {activeTab === 'APPROVALS' && (
                     <div className="space-y-4">
                         <div className="flex justify-between items-center mb-4">
-                            <h3 className="text-white font-bold flex items-center gap-2 uppercase"><ZapIcon className="w-4 h-4"/> Live_Queue</h3>
-                            <button onClick={() => fetchPendingSubscriptions()} className="text-[8px] border border-white/20 px-3 py-1 hover:bg-white/10 uppercase rounded">Refresh DB</button>
+                            <h3 className="text-white font-bold flex items-center gap-2 uppercase"><ZapIcon className="w-4 h-4"/> {t('admin.live_queue')}</h3>
+                            <button onClick={() => fetchPendingSubscriptions()} className="text-[8px] border border-white/20 px-3 py-1 hover:bg-white/10 uppercase rounded">{t('admin.refresh_db')}</button>
                         </div>
                         {(!settings?.pendingSubRequests || settings.pendingSubRequests.length === 0) ? (
-                            <p className="text-slate-500 text-xs italic text-center py-10 border border-dashed border-white/10 rounded-xl">No active requests in grid.</p>
+                            <p className="text-slate-500 text-xs italic text-center py-10 border border-dashed border-white/10 rounded-xl">{t('admin.no_requests')}</p>
                         ) : (
                             settings.pendingSubRequests.map(req => (
                                 <div key={req.id} className={`p-4 border rounded-xl flex flex-col gap-3 ${req.status === 'PENDING' ? 'border-yellow-500/50 bg-yellow-500/5' : req.status === 'APPROVED' ? 'border-green-500/50 bg-green-500/5 opacity-50' : 'border-red-500/50 bg-red-500/5 opacity-50'}`}>

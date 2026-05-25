@@ -263,12 +263,57 @@ const ChartPattern: React.FC<{ type: AcademyTerm['visualType'] }> = ({ type }) =
     );
 };
 
+const QUIZZES: Record<Language, Record<string, { question: string; options: string[]; answer: string }>> = {
+    en: {
+        rsi: { question: "Is RSI > 70 considered Overbought or Oversold?", options: ["Overbought", "Oversold"], answer: "Overbought" },
+        macd: { question: "What does a Golden Cross suggest?", options: ["Bullish Entry", "Bearish Exit"], answer: "Bullish Entry" },
+        ob: { question: "What does Order Block (OB) act as?", options: ["Strong Support/Resistance", "Irrelevant Price Point"], answer: "Strong Support/Resistance" },
+        fvg: { question: "What does FVG represent in price action?", options: ["Price Imbalance / Gap", "Perfect Volume Balance"], answer: "Price Imbalance / Gap" },
+        hns: { question: "Head & Shoulders is what type of pattern?", options: ["Reversal", "Continuation"], answer: "Reversal" },
+        bullflag: { question: "Bull Flag signals potential movement in which direction?", options: ["Upward Continuation", "Downward Reversal"], answer: "Upward Continuation" },
+        fomo: { question: "What does FOMO stand for?", options: ["Fear Of Missing Out", "Future Options Market Order"], answer: "Fear Of Missing Out" },
+        fud: { question: "What does FUD usually cause in traders?", options: ["Panic Selling", "Rational Hodling"], answer: "Panic Selling" },
+        seedphrase: { question: "Who should you share your seed phrase with?", options: ["Nobody", "StorkCrypto Support"], answer: "Nobody" },
+        coldwallet: { question: "Where does a Cold Wallet store private keys?", options: ["Offline on Hardware", "Online in Cloud"], answer: "Offline on Hardware" }
+    },
+    ua: {
+        rsi: { question: "Показник RSI > 70 означає Перекупленість чи Перепроданість?", options: ["Перекупленість", "Перепроданість"], answer: "Перекупленість" },
+        macd: { question: "На що вказує 'Золотий хрест'?", options: ["Вхід у лонг", "Вихід з позиції"], answer: "Вхід у лонг" },
+        ob: { question: "Чим виступає Ордер Блок (OB)?", options: ["Підтримкою/Опором", "Жодним чином не впливає"], answer: "Підтримкою/Опором" },
+        fvg: { question: "Що таке Імбаланс (FVG)?", options: ["Неефективність ціни / Розрив", "Рівномірний розподіл купівель"], answer: "Неефективність ціни / Розрив" },
+        hns: { question: "Який тип патерну 'Голова і Плечі'?", options: ["Патерн розвороту", "Патерн продовження тренду"], answer: "Патерн розвороту" },
+        bullflag: { question: "Бичачий Прапор сигналізує про:", options: ["Продовження росту", "Розворот тренду вниз"], answer: "Продовження росту" },
+        fomo: { question: "Що означає FOMO?", options: ["Страх втраченої вигоди", "Швидке виконання ордерів"], answer: "Страх втраченої вигоди" },
+        fud: { question: "Що зазвичай провокує FUD?", options: ["Панічні продажі", "Раціональне тримання"], answer: "Панічні продажі" },
+        seedphrase: { question: "Кому можна повідомляти сід-фразу?", options: ["Нікому", "Службі підтримки"], answer: "Нікому" },
+        coldwallet: { question: "Де зберігаються ключі холодного гаманця?", options: ["Офлайн в пристрої", "Онлайн у хмарі"], answer: "Офлайн в пристрої" }
+    },
+    pl: {
+        rsi: { question: "Czy RSI > 70 oznacza wykupienie czy wyprzedanie?", options: ["Wykupienie", "Wyprzedanie"], answer: "Wykupienie" },
+        macd: { question: "Co sugeruje Złoty Krzyż?", options: ["Wejście (wzrost)", "Wyjście (spadek)"], answer: "Wejście (wzrost)" },
+        ob: { question: "Czym jest Order Block (OB)?", options: ["Silnym wsparciem/oporem", "Nieistotnym punktem"], answer: "Silnym wsparciem/oporem" },
+        fvg: { question: "Co reprezentuje FVG?", options: ["Luka cenowa / nierównowaga", "Idealny wolumen"], answer: "Luka cenowa / nierównowaga" },
+        hns: { question: "Formacja Głowy i Ramion jest formacją:", options: ["Odwrócenia", "Kontynuacji"], answer: "Odwrócenia" },
+        bullflag: { question: "Flaga Byka to formacja:", options: ["Kontynuacji trendu", "Odwrócenia trendu"], answer: "Kontynuacji trendu" },
+        fomo: { question: "Co oznacza FOMO?", options: ["Strach przed pominięciem", "Szybka analiza rynku"], answer: "Strach przed pominięciem" },
+        fud: { question: "Co zazwyczaj wywołuje FUD?", options: ["Paniczną sprzedaż", "Spokojne trzymanie"], answer: "Paniczną sprzedaż" },
+        seedphrase: { question: "Komu możesz podać frazę seed?", options: ["Nikomu", "Pomocy technicznej"], answer: "Nikomu" },
+        coldwallet: { question: "Gdzie są zapisane klucze zimnego portfela?", options: ["Offline", "Online w chmurze"], answer: "Offline" }
+    }
+};
+
 const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
-    const { settings } = useStore();
+    const { settings, addXp, showToast } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [filter, setFilter] = useState<'ALL' | AcademyTerm['category']>('ALL');
     const [search, setSearch] = useState('');
+    
+    // Quiz state variables
+    const [quizActiveId, setQuizActiveId] = useState<string | null>(null);
+    const [quizSelectedOption, setQuizSelectedOption] = useState<string | null>(null);
+    const [quizCorrect, setQuizCorrect] = useState<boolean | null>(null);
+    const [quizCompletedIds, setQuizCompletedIds] = useState<Record<string, boolean>>({});
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -391,19 +436,68 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                                             <p className="text-[10px] text-brand-cyan uppercase font-bold mb-1">Ex:</p>
                                             <p className="text-xs text-slate-300 italic">"{item.example}"</p>
                                         </div>
-                                        <button 
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                const answer = window.prompt(`Quiz for ${item.term}:\nWhat is the main takeaway? (Type anything to pass for now)`);
-                                                if (answer) {
-                                                    useStore.getState().addXp(50);
-                                                    alert('Correct! You earned 50 XP.');
-                                                }
-                                            }}
-                                            className="w-full py-2 bg-brand-purple/20 hover:bg-brand-purple/40 border border-brand-purple/50 rounded-lg text-xs font-bold text-brand-purple transition-colors"
-                                        >
-                                            TAKE QUIZ (+50 XP)
-                                        </button>
+                                        {quizCompletedIds[item.id] ? (
+                                            <div className="w-full p-3 rounded-lg border border-brand-success/30 bg-brand-success/10 text-brand-success text-center text-xs font-black uppercase flex items-center justify-center gap-2 animate-pulse">
+                                                <span>✓</span> {settings.language === 'ua' ? 'ПРОЙДЕНО (+50 XP ОТРИМАНО)' : settings.language === 'pl' ? 'UKOŃCZONE (+50 XP OTRZYMANE)' : 'COMPLETED (+50 XP COLLECTED)'}
+                                            </div>
+                                        ) : quizActiveId === item.id ? (
+                                            <div 
+                                                className="w-full p-4 rounded-xl border border-white/10 bg-black/40 space-y-3"
+                                                onClick={(e) => e.stopPropagation()}
+                                            >
+                                                <p className="text-xs font-bold text-slate-300">
+                                                    {QUIZZES[settings.language]?.[item.id]?.question || 
+                                                     QUIZZES['en']?.[item.id]?.question || 
+                                                     (settings.language === 'ua' ? "Чи ви зрозуміли визначення цього терміну?" : settings.language === 'pl' ? "Czy rozumiesz to pojęcie?" : "Do you understand the core definition of this term?")}
+                                                </p>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {(QUIZZES[settings.language]?.[item.id]?.options || 
+                                                      QUIZZES['en']?.[item.id]?.options || 
+                                                      (settings.language === 'ua' ? ["Так, зрозумів", "Ні, ще читаю"] : settings.language === 'pl' ? ["Tak, rozumiem", "Nie do końca"] : ["Yes, completely", "Not yet"])).map((opt) => (
+                                                        <button
+                                                            key={opt}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation();
+                                                                const correctAns = QUIZZES[settings.language]?.[item.id]?.answer || 
+                                                                                   QUIZZES['en']?.[item.id]?.answer ||
+                                                                                   opt; // generic default always passes
+                                                                                   
+                                                                if (opt === correctAns || opt.startsWith("Yes") || opt.startsWith("Так") || opt.startsWith("Tak")) {
+                                                                    addXp(50);
+                                                                    setQuizCompletedIds(prev => ({ ...prev, [item.id]: true }));
+                                                                    setQuizActiveId(null);
+                                                                    showToast(settings.language === 'ua' ? 'Вірно! +50 XP додано.' : settings.language === 'pl' ? 'Prawidłowo! +50 XP dodane.' : 'Correct! +50 XP added.');
+                                                                } else {
+                                                                    setQuizCorrect(false);
+                                                                    showToast(settings.language === 'ua' ? 'Невірно! Спробуйте ще раз.' : settings.language === 'pl' ? 'Niewłaściwa odpowiedź. Spróbuj ponownie.' : 'Incorrect! Try again.');
+                                                                    setTimeout(() => setQuizCorrect(null), 1500);
+                                                                }
+                                                            }}
+                                                            className="py-2.5 px-3 rounded-lg bg-white/5 border border-white/10 text-[10px] text-white hover:bg-brand-purple/10 hover:border-brand-purple/40 font-bold transition-all text-center leading-tight active:scale-95"
+                                                        >
+                                                            {opt}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                                {quizCorrect === false && (
+                                                    <p className="text-[9px] text-brand-danger text-center animate-bounce uppercase font-bold">
+                                                        {settings.language === 'ua' ? 'Спробуйте іншу відповідь!' : settings.language === 'pl' ? 'Spróbuj ponownie!' : 'Try a different option!'}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        ) : (
+                                            <button 
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setQuizActiveId(item.id);
+                                                    setQuizSelectedOption(null);
+                                                    setQuizCorrect(null);
+                                                }}
+                                                className="w-full py-3 bg-brand-purple hover:bg-brand-purple/80 text-white font-black uppercase text-xs rounded-xl shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2"
+                                            >
+                                                ⚡ {settings.language === 'ua' ? 'ЗАПУСТИТИ КВІЗ (+50 XP)' : settings.language === 'pl' ? 'URUCHOM QUIZ (+50 XP)' : 'START QUIZ (+50 XP)'}
+                                            </button>
+                                        )}
                                     </div>
                                 )}
                             </div>

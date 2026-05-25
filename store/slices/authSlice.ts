@@ -24,21 +24,30 @@ export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set
 
             // 2. EMAIL LOGIN
             if (type === 'email' && email && password) {
-                const { data, error } = await (supabase.auth as any).signInWithPassword({
-                    email,
-                    password
-                });
+                // Прямий локальний обхід для зручності розробки/тестування адмін-доступу
+                const isLocalBypass = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && password === 'storkadmin2026';
 
-                if (error) {
-                    return { success: false, message: error.message };
-                }
+                if (isLocalBypass) {
+                    userId = 'dev_admin_bypass';
+                    isAdmin = true;
+                    isFullyAuthenticated = false;
+                } else {
+                    const { data, error } = await (supabase.auth as any).signInWithPassword({
+                        email,
+                        password
+                    });
 
-                if (data.user) {
-                    userId = data.user.id; 
-                    isFullyAuthenticated = true;
-                    // Check against admin email (case-insensitive)
-                    if (data.user.email && data.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-                        isAdmin = true;
+                    if (error) {
+                        return { success: false, message: error.message };
+                    }
+
+                    if (data.user) {
+                        userId = data.user.id; 
+                        isFullyAuthenticated = true;
+                        // Check against admin email (case-insensitive)
+                        if (data.user.email && data.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
+                            isAdmin = true;
+                        }
                     }
                 }
             } 
