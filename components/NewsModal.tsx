@@ -22,7 +22,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             setLoading(true);
             try {
                 const data = await getLatestCryptoNews(settings.language);
-                setNews(data);
+                setNews(data || []);
             } catch(e){} finally { setLoading(false); }
         };
         fetch();

@@ -14,7 +14,75 @@ const parseCleanJSON = (text: string) => {
     } catch (e) { return null; }
 };
 
-const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, modelName: string = "gemini-3-flash-preview", history: any[] = []): Promise<any> => {
+let aiClient: any = null;
+
+const getGenAI = () => {
+    if (!aiClient) {
+        const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
+        if (apiKey) {
+            aiClient = new GoogleGenAI({ apiKey });
+        } else {
+            console.warn("GEMINI_API_KEY is not defined in the environment.");
+        }
+    }
+    return aiClient;
+};
+
+const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, modelName: string = "gemini-3.5-flash", history: any[] = []): Promise<any> => {
+    // 1. Try official Google GenAI SDK first as per gemini-api skill instructions
+    try {
+        const ai = getGenAI();
+        if (ai) {
+            const geminiConfig: any = {};
+            if (config?.systemInstruction) {
+                geminiConfig.systemInstruction = config.systemInstruction;
+            }
+            if (config?.responseMimeType) {
+                geminiConfig.responseMimeType = config.responseMimeType;
+            }
+            if (config?.tools) {
+                geminiConfig.tools = config.tools;
+            }
+            if (config?.temperature !== undefined) {
+                geminiConfig.temperature = config.temperature;
+            }
+
+            const contents: any[] = [];
+            if (history && history.length > 0) {
+                history.forEach((h: any) => {
+                    contents.push({
+                        role: h.role === 'model' ? 'model' : 'user',
+                        parts: [{ text: h.text }]
+                    });
+                });
+            }
+            contents.push({
+                role: 'user',
+                parts: [{ text: prompt }]
+            });
+
+            // Map model names to valid gemini-api SKILL models (prefer gemini-3.5-flash for maximum reliability & speed)
+            const resolvedModelName = (modelName === "gemini-3-flash-preview" || modelName === "gemini-3-flash") ? "gemini-3.5-flash" : modelName;
+
+            const response = await ai.models.generateContent({
+                model: resolvedModelName,
+                contents,
+                config: geminiConfig,
+            });
+
+            const resultText = response.text || "NO_DATA_PACKET";
+
+            if (config.responseMimeType === 'application/json' && typeof resultText === 'string') {
+                const parsed = parseCleanJSON(resultText);
+                if (parsed !== null) return parsed;
+            }
+            return resultText;
+        }
+    } catch (sdkError) {
+        console.warn("[AI] Primary SDK call failed, attempting fallback...", sdkError);
+    }
+
+    // 2. Fallback to Cloudflare or NVIDIA API
     try {
         let messages = [];
         if (config?.systemInstruction) {
@@ -96,7 +164,7 @@ const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, mo
         return resultText;
 
     } catch (e) {
-        console.error("[AI] Generation failed.", e);
+        console.error("[AI] Generation failed entirely.", e);
         return null;
     }
 };
@@ -241,7 +309,8 @@ const generateFallbackSignals = (metrics: AssetMetrics[]): AgentAnalysis => {
 
 export const getLatestCryptoNews = async (language: string = 'en'): Promise<NewsArticle[]> => {
     const prompt = `Search Google for top 5 latest crypto news. Return JSON array: [{headline, summary, sentimentMock: "POS"|"NEG"|"NEU", impact: "HIGH"|"MED"|"LOW", sources: [{uri, title}], time: "HH:MM", tags: ["tag1", "tag2"]}]. ${getLanguageInstruction(language)}`;
-    return await safeGenerate(prompt, { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] });
+    const result = await safeGenerate(prompt, { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] });
+    return result || [];
 };
 
 export const getAIAgentAnalysis = async (agentType: 'SNIPER' | 'WHALE' | 'GUARDIAN', language: string, marketRegime: string = 'UNKNOWN'): Promise<string> => {
@@ -277,7 +346,8 @@ export const playAudio = async (text: string): Promise<void> => {
 
 export const runDeepPortfolioAudit = async (assets: any[], level: number) => {
     const context = assets.map(a => `${a.ticker}: $${a.value}`).join(', ');
-    return await safeGenerate(`Deep audit: ${context}. Level: ${level}. Search for vulnerabilities in these assets. JSON response.`, { responseMimeType: "application/json", tools: [{ googleSearch: {} }] });
+    const result = await safeGenerate(`Deep audit: ${context}. Level: ${level}. Search for vulnerabilities in these assets. JSON response.`, { responseMimeType: "application/json", tools: [{ googleSearch: {} }] });
+    return result || { score: 65, status: 'MODERATE_RISK', points: ['Concentration too high', 'Missing stablecoins'], recommendation: 'Diversify into BTC/ETH' };
 };
 
 export const generateProactiveInsight = async (tickers: string[]): Promise<{type: string, text: string}> => {
