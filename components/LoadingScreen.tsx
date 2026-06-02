@@ -51,6 +51,7 @@ interface LoadingScreenProps {
 }
 
 export function LoadingScreen({ onSkip }: LoadingScreenProps) {
+  const { settings } = useStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lettersWrapperRef = useRef<HTMLDivElement>(null);
   const progressBarRef = useRef<HTMLDivElement>(null);
@@ -404,7 +405,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         className="absolute bottom-12 z-50 px-4 py-2 rounded-lg border border-[#00E5FF] bg-[#00E5FF]/10 text-[#00E5FF] font-orbitron text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-[#00E5FF]/20 hover:shadow-[0_0_25px_rgba(0,229,255,0.8)] cursor-pointer backdrop-blur-md shadow-[0_0_15px_rgba(0,229,255,0.5)] active:scale-95 group"
       >
         <span className="relative z-10 flex items-center gap-2">
-          SKIP_INIT <span className="group-hover:translate-x-1 transition-transform duration-300">&gt;&gt;</span>
+          {getTranslation(settings?.language || 'en', 'loading.skip').replace(' >>', '')} <span className="group-hover:translate-x-1 transition-transform duration-300">&gt;&gt;</span>
         </span>
         <div className="absolute inset-0 rounded-lg bg-[#00E5FF]/20 blur-md -z-10 group-hover:animate-pulse"></div>
       </button>

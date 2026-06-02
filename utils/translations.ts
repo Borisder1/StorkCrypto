@@ -6,6 +6,9 @@ type Dictionary = Record<string, string>;
 const en: Dictionary = {
     'app.name': 'STORKCRYPTO',
     'loading.skip': 'SKIP_INIT >>',
+    'summary.initializing': 'Initializing neural scan...',
+    'summary.decrypting': 'Decrypting market signals...',
+    'summary.stable_pulse': 'Market pulse stable. Monitoring whale movements.',
     'nav.home': 'Home',
     'nav.signals': 'Terminal',
     'nav.scanner': 'Scanner',
@@ -456,6 +459,9 @@ const en: Dictionary = {
 const ua: Dictionary = {
     'app.name': 'СТОРККРИПТО',
     'loading.skip': 'ПРОПУСТИТИ >>',
+    'summary.initializing': 'Ініціалізація нейросканування...',
+    'summary.decrypting': 'Дешифрування ринкових сигналів...',
+    'summary.stable_pulse': 'Стабільний пульс ринку. Моніторинг активності китів.',
     'nav.home': 'ГОЛОВНА',
     'nav.signals': 'ТЕРМІНАЛ',
     'nav.scanner': 'СКАНЕР',
@@ -906,6 +912,9 @@ const ua: Dictionary = {
 const pl: Dictionary = {
     'app.name': 'STORKCRYPTO',
     'loading.skip': 'POMIŃ >>',
+    'summary.initializing': 'Inicjowanie skanowania neuronowego...',
+    'summary.decrypting': 'Deszyfrowanie sygnałów rynkowych...',
+    'summary.stable_pulse': 'Stablina aktywność rynku. Monitorowanie ruchów wielorybów.',
     'nav.home': 'Główna',
     'nav.signals': 'Terminal',
     'nav.scanner': 'Skaner',

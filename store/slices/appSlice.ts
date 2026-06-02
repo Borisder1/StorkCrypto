@@ -243,6 +243,33 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
         let id = getDeviceId();
         if (tgUser?.id) id = `tg_${tgUser.id}`;
         
+        // Auto-detect language if current language is still 'en' (default)
+        const currentLang = get().settings.language;
+        if (currentLang === 'en') {
+            let detectedLang: 'en' | 'ua' | 'pl' = 'en';
+            
+            const tgLang = tgUser?.language_code || (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.language_code;
+            if (tgLang) {
+                if (['uk', 'ru', 'be', 'kk'].some(lang => tgLang.startsWith(lang))) {
+                    detectedLang = 'ua';
+                } else if (tgLang.startsWith('pl')) {
+                    detectedLang = 'pl';
+                }
+            } else if (typeof navigator !== 'undefined') {
+                const navLang = navigator.language?.toLowerCase();
+                if (navLang) {
+                    if (['uk', 'ru', 'be', 'kk', 'ua'].some(lang => navLang.startsWith(lang))) {
+                        detectedLang = 'ua';
+                    } else if (navLang.startsWith('pl')) {
+                        detectedLang = 'pl';
+                    }
+                }
+            }
+            if (detectedLang !== 'en') {
+                set(state => ({ settings: { ...state.settings, language: detectedLang } }));
+            }
+        }
+        
         try {
             const { data: profile } = await supabase.from('profiles').select('*').eq('id', id).maybeSingle();
 

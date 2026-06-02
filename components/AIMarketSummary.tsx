@@ -3,8 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { BotIcon, ActivityIcon, TrendingUpIcon } from './icons';
 import { generateProactiveInsight } from '../services/geminiService';
 import { triggerHaptic } from '../utils/haptics';
+import { useStore } from '../store';
+import { getTranslation } from '../utils/translations';
 
 export const AIMarketSummary: React.FC = () => {
+    const { settings } = useStore();
+    const t = (key: string) => getTranslation(settings?.language || 'en', key);
+
     const [summary, setSummary] = useState<string>('Initializing neural scan...');
     const [loading, setLoading] = useState(true);
 
@@ -29,6 +34,17 @@ export const AIMarketSummary: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
+    // Helper to format/translate default backdrops
+    const renderSummary = () => {
+        if (loading) {
+            return t('summary.decrypting');
+        }
+        if (summary === 'Market pulse stable. Monitoring whale movements.' || summary === 'Initializing neural scan...') {
+            return t('summary.stable_pulse');
+        }
+        return summary;
+    };
+
     return (
         <div className="bg-brand-cyan/5 border border-brand-cyan/20 rounded-2xl p-4 mb-6 flex items-start gap-3 relative overflow-hidden group">
             <div className="absolute top-0 right-0 w-24 h-24 bg-brand-cyan/5 blur-2xl rounded-full -mr-10 -mt-10"></div>
@@ -44,7 +60,7 @@ export const AIMarketSummary: React.FC = () => {
                     </div>
                 </div>
                 <p className="text-[10px] text-slate-300 font-mono leading-relaxed italic">
-                    {loading ? 'Decrypting market signals...' : summary}
+                    {renderSummary()}
                 </p>
             </div>
         </div>
