@@ -106,6 +106,16 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
     // Help Modal State
     const [infoModalState, setInfoModalState] = useState<{open: boolean, title: string, desc: string, features: string[]} | null>(null);
 
+    const [showDisclaimer, setShowDisclaimer] = useState(() => {
+        return localStorage.getItem('stork_disclaimer_accepted') !== 'true';
+    });
+
+    const dismissDisclaimer = () => {
+        triggerHaptic('medium');
+        localStorage.setItem('stork_disclaimer_accepted', 'true');
+        setShowDisclaimer(false);
+    };
+
     const [showCustomize, setShowCustomize] = useState(false);
     const [showDex, setShowDex] = useState(false);
     const [showAIAgents, setShowAIAgents] = useState(false);
@@ -203,6 +213,49 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                         </div>
                     </button>
                 </div>
+
+                {/* EDUCATIONAL DISCLAIMER BANNER */}
+                <AnimatePresence>
+                    {showDisclaimer && (
+                        <motion.div
+                            initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            animate={{ opacity: 1, height: 'auto', marginBottom: 16 }}
+                            exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                            className="overflow-hidden relative z-30"
+                        >
+                            <div className="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-4 relative group shadow-[0_0_20px_rgba(245,158,11,0.05)]">
+                                <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/5 blur-xl rounded-full -mr-6 -mt-6"></div>
+                                <div className="flex gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-amber-500/15 border border-amber-500/30 flex items-center justify-center shrink-0">
+                                        <ShieldIcon className="w-4 h-4 text-amber-500" />
+                                    </div>
+                                    <div className="flex-1">
+                                        <div className="flex justify-between items-center mb-1">
+                                            <span className="text-[9px] font-black font-orbitron tracking-widest text-amber-500 uppercase">
+                                                ⚠ {t('disclaimer.title')}
+                                            </span>
+                                            <button 
+                                                onClick={dismissDisclaimer}
+                                                className="text-slate-500 hover:text-white transition-colors text-xs p-1"
+                                            >
+                                                ✕
+                                            </button>
+                                        </div>
+                                        <p className="text-[10px] text-slate-300 font-sans leading-relaxed">
+                                            {t('disclaimer.text')}
+                                        </p>
+                                        <button
+                                            onClick={dismissDisclaimer}
+                                            className="mt-3 w-full py-2 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-400 font-black text-[9px] uppercase tracking-wider rounded-xl transition-all"
+                                        >
+                                            {t('disclaimer.dismiss')}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {settings.dashboardConfig?.showMarketSummary !== false && (
                     <motion.div
@@ -413,12 +466,18 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                 </div>
 
                 {/* Dashboard Customization Button */}
-                <div className="mt-12 flex justify-center">
+                <div className="mt-12 flex flex-col items-center gap-3">
                     <button 
                         onClick={() => setShowCustomize(true)}
                         className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-slate-400 hover:text-white transition-all shadow-lg"
                     >
                         {t('home.customize')}
+                    </button>
+                    <button 
+                        onClick={() => { triggerHaptic('light'); setShowDisclaimer(true); }}
+                        className="text-[8px] font-mono uppercase text-slate-500 hover:text-amber-500 transition-colors tracking-widest flex items-center gap-1 mt-1"
+                    >
+                        ⚠ {t('disclaimer.title')}
                     </button>
                 </div>
              </div>

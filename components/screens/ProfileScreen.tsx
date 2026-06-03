@@ -597,6 +597,9 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <StorkIcon className="w-6 h-6 text-brand-cyan" />
                     </div>
                     <h3 className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] font-orbitron mb-4">{t('profile.about')}</h3>
+                    <p className="text-[10px] text-slate-400 text-left leading-relaxed mb-4 p-4 rounded-2xl bg-black/50 border border-white/5 font-sans">
+                        {t('disclaimer.text')}
+                    </p>
                     <div className="space-y-3 text-xs font-mono text-slate-300">
                         <p className="flex justify-between items-center border-b border-white/5 pb-2">
                             <span className="text-slate-500">{t('profile.creator')}</span> 

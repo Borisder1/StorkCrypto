@@ -454,6 +454,9 @@ const en: Dictionary = {
     'admin.no_requests': 'No active requests in grid.',
     'admin.transmit': 'Transmit Signal',
     'admin.type_message': 'Type systemic message...',
+    'disclaimer.title': 'ANALYTICAL_COMPANION',
+    'disclaimer.text': 'STORKCRYPTO is an advanced analytical companion and helper tool for real-time market data monitoring and secure trading strategy practice. Since this is an analytical and assistant toolkit rather than a financial or brokerage service, we do NOT provide financial, trading, or investment advice. While trading operates inside a virtual demo network, future upgrades plan to offer direct real-wallet Web3 integrations. Any transactions involving real funds (once connected) are executed solely at the user\'s own risk and personal accountability; the platform assumes zero liability for your financial decisions or general asset safety.',
+    'disclaimer.dismiss': 'ACKNOWLEDGE & INITIALIZE',
 };
 
 const ua: Dictionary = {
@@ -907,6 +910,9 @@ const ua: Dictionary = {
     'admin.no_requests': 'Немає активних запитів у мережі.',
     'admin.transmit': 'Транслювати Сигнал',
     'admin.type_message': 'Введіть системне повідомлення...',
+    'disclaimer.title': 'АНАЛІТИЧНИЙ_КОМПАНЬЙОН',
+    'disclaimer.text': 'STORKCRYPTO — це високотехнологічний аналітичний інструмент та помічник для відстеження ринкових даних та безпечного аналізу торгових стратегій. Платформа діє як інформаційно-допоміжний інструмент, а не як фінансова чи інвестиційна установа, тому ми НЕ надаємо фінансові чи інвестиційні поради. На поточному етапі всі операції здійснюються у віртуальному демо-середовищі, проте в майбутніх оновленнях заплановано пряме Web3-підключення реальних гаманців. Будь-які майбутні операції з реальними активами (після їх підключення) виконуються виключно під вашу власну відповідальність та ризик; сервіс не несе жодної відповідальності за фінансові результати або безпеку коштів.',
+    'disclaimer.dismiss': 'ЗРОЗУМІЛО >> ПЕРЕЙТИ',
 };
 
 const pl: Dictionary = {
@@ -1266,6 +1272,9 @@ const pl: Dictionary = {
     'admin.no_requests': 'Brak aktywnych zgłoszeń w sieci.',
     'admin.transmit': 'Wyślij sygnał',
     'admin.type_message': 'Wpisz wiadomość systemową...',
+    'disclaimer.title': 'ASYS_ANALITYCZNY',
+    'disclaimer.text': 'STORKCRYPTO to zaawansowane narzędzie analityczne i pomocnik do monitorowania rynku w czasie rzeczywistym oraz bezpiecznej analizy strategii handlowych. Ponieważ platforma działa jako narzędzie wspomagające, a nie instytucja finansowa, NIE udzielamy porad finansowych ani inwestycyjnych. Obecnie transakcje odbywają się w wirtualnym środowisku demo, jednak przyszłe aktualizacje przewidują integrację z prawdziwymi portfelami Web3. Wszelkie przyszłe operacje z użyciem prawdziwych aktywów (po ich podłączeniu) są wykonywane wyłącznie na własne ryzyko i odpowiedzialność; platforma nie ponosi odpowiedzialności za decyzje finansowe ani bezpieczeństwo środków.',
+    'disclaimer.dismiss': 'ROZUMIEM >> DALEJ',
 };
 
 export const getTranslation = (lang: Language, key: string): string => {
