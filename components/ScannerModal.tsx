@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { RadarIcon, SearchIcon, FilterIcon, PlusIcon, BarChartIcon, InfoIcon, ChevronRightIcon, ZapIcon, GlobeIcon } from './icons';
 import { useStore } from '../store';
@@ -52,11 +52,11 @@ const HeatmapGrid: React.FC<{ data: AssetMetrics[], onItemClick: (a: AssetMetric
     );
 };
 
-const ScannerListItem = React.memo(({ coin, onAssetClick, style, isAlpha, t }: { 
-    coin: AssetMetrics, onAssetClick: (c: AssetMetrics) => void, style?: React.CSSProperties, isAlpha?: boolean, t: (key: string) => string
+const ScannerListItem = React.memo(({ coin, onAssetClick, isAlpha, t }: { 
+    coin: AssetMetrics, onAssetClick: (c: AssetMetrics) => void, isAlpha?: boolean, t: (key: string) => string
 }) => {
     return (
-        <div onClick={() => onAssetClick(coin)} style={style} className="absolute w-full px-1">
+        <div onClick={() => onAssetClick(coin)} className="w-full px-1">
             <div className={`relative overflow-hidden rounded-xl h-[80px] transition-all cursor-pointer active:scale-[0.98] group ${isAlpha ? 'bg-brand-purple/5 border-l-2 border-l-brand-purple border-y border-r border-white/5' : 'bg-[#0a0f1e]/60 border-b border-white/5 hover:bg-white/5'}`}>
                 <div className="absolute inset-0 bg-gradient-to-r from-brand-cyan/0 via-brand-cyan/5 to-brand-cyan/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 pointer-events-none"></div>
 
@@ -111,10 +111,6 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
     
     // Tab State: MARKET | ALPHA | GLOBE
     const [activeTab, setActiveTab] = useState<'MARKET' | 'ALPHA' | 'GLOBE'>('MARKET');
-    const [scrollTop, setScrollTop] = useState(0);
-    const containerRef = useRef<HTMLDivElement>(null);
-    const itemHeight = 84; 
-    const windowHeight = 600; 
 
     const performScan = async () => {
         if (activeTab === 'GLOBE') return;
@@ -137,11 +133,6 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
         else if (subFilter === 'VOLUME') sorted = sorted.sort((a,b) => parseFloat(b.volatility || '0') - parseFloat(a.volatility || '0'));
         return sorted;
     }, [marketData, activeTab, subFilter]);
-
-    const totalHeight = filteredData.length * itemHeight;
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - 1);
-    const endIndex = Math.min(filteredData.length, Math.ceil((scrollTop + windowHeight) / itemHeight) + 1);
-    const visibleItems = filteredData.slice(startIndex, endIndex);
 
     return (
         <motion.div 
@@ -166,12 +157,12 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('scanner.status')}</p>
                     </div>
                 </div>
-                <button onClick={performScan} disabled={scanning || activeTab === 'GLOBE'} className="w-8 h-8 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan">
+                <button onClick={performScan} disabled={scanning || activeTab === 'GLOBE'} className="w-8 h-8 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan font-black">
                     <SearchIcon className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
                 </button>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar relative z-10 p-4 space-y-6 pb-32">
+            <div className="flex-grow overflow-y-auto custom-scrollbar relative z-10 p-4 space-y-6 pb-32">
                 <UpgradeBanner />
                 
                 <div className="flex gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 shadow-inner shrink-0">
@@ -200,26 +191,23 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
                             onItemClick={(coin) => { triggerHaptic('selection'); setSelectedAsset({ name: coin.ticker, ticker: coin.ticker, value: coin.price, change: coin.change }); }}
                         />
                     </div>
-                ) : visibleItems.length === 0 ? (
+                ) : filteredData.length === 0 ? (
                     <div className="py-20 flex flex-col items-center justify-center opacity-70">
                         <RadarIcon className="w-12 h-12 text-slate-500 mb-4 animate-pulse" />
                         <p className="text-slate-400 font-black uppercase text-[10px] font-orbitron">{t('scanner.no_results_title') || 'NO SIGNALS DETECTED'}</p>
                         <p className="text-slate-500 text-[9px] font-mono mt-2">{t('scanner.no_results_desc') || 'Try adjusting your filters'}</p>
                     </div>
                 ) : (
-                    <div ref={containerRef} onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)} className="h-[500px] overflow-y-auto custom-scrollbar relative">
-                        <div style={{ height: `${totalHeight}px` }} className="relative">
-                            {visibleItems.map((coin, idx) => (
-                                <ScannerListItem 
-                                    key={coin.ticker} 
-                                    isAlpha={coin.change > 10 || coin.change < -10}
-                                    coin={coin} 
-                                    style={{ transform: `translateY(${(startIndex + idx) * itemHeight}px)` }}
-                                    onAssetClick={(c) => { triggerHaptic('selection'); setSelectedAsset({ name: c.ticker, ticker: c.ticker, value: c.price, change: c.change }); }}
-                                    t={t}
-                                />
-                            ))}
-                        </div>
+                    <div className="space-y-2.5">
+                        {filteredData.map((coin) => (
+                            <ScannerListItem 
+                                key={coin.ticker} 
+                                isAlpha={coin.change > 10 || coin.change < -10}
+                                coin={coin} 
+                                onAssetClick={(c) => { triggerHaptic('selection'); setSelectedAsset({ name: c.ticker, ticker: c.ticker, value: c.price, change: c.change }); }}
+                                t={t}
+                            />
+                        ))}
                     </div>
                 )}
             </div>

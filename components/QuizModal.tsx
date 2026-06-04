@@ -9,39 +9,109 @@ interface QuizModalProps {
     onClose: () => void;
 }
 
+const QUIZ_LANGS: Record<string, Record<string, string>> = {
+    'en': {
+        'title': 'TACTICAL DRILL',
+        'subject': 'SUBJECT',
+        'correct': 'CORRECT',
+        'failed': 'FAILED',
+        'xp_granted': '+50 XP GRANTED',
+        'resync': 'Resync Neural Link...',
+        'q_pattern': 'What does the "{term}" pattern typically indicate?',
+        'q_technical': 'How is {term} primarily used in trading?',
+        'q_other': 'Which statement about "{term}" is true?',
+        'opt_indecision': 'Market Indecision',
+        'opt_bullish': 'Bullish Movement',
+        'opt_bearish': 'Bearish Movement',
+        'opt_volume_only': 'Volume Decrease only',
+        'opt_tech_use': 'To measure momentum/trend',
+        'opt_tech_news': 'To predict exact news events',
+        'opt_tech_profit': 'To guarantee 100% profit',
+        'opt_other_irrelevant': 'It is irrelevant in crypto.',
+        'opt_other_risk': 'It helps manage risk or identify trends.',
+        'opt_other_guarantee': 'It is a guaranteed signal.'
+    },
+    'ua': {
+        'title': 'ТАКТИЧНЕ ТРЕНУВАННЯ',
+        'subject': 'ПРЕДМЕТ',
+        'correct': 'ПРАВИЛЬНО',
+        'failed': 'НЕПРАВИЛЬНО',
+        'xp_granted': '+50 XP НАРАХОВАНО',
+        'resync': 'Спробуйте ще раз пізніше...',
+        'q_pattern': 'Що зазвичай показує патерн "{term}" на графіку?',
+        'q_technical': 'Для чого в першу чергу використовується {term} трейдерами?',
+        'q_other': 'Яке твердження про "{term}" є правильним?',
+        'opt_indecision': 'Нерішучість ринку та баланс сил',
+        'opt_bullish': 'Висхідний (Бичачий) рух',
+        'opt_bearish': 'Низхідний (Ведмежий) рух',
+        'opt_volume_only': 'Лише зменшення обсягів торгів',
+        'opt_tech_use': 'Для вимірювання імпульсу, тренду або зон перекупленості/перепроданості',
+        'opt_tech_news': 'Для точного прогнозування світових новин',
+        'opt_tech_profit': 'Для гарантування 100% прибутку в кожній угоді',
+        'opt_other_irrelevant': 'Це не має значення для криптовалют.',
+        'opt_other_risk': 'Це допомагає контролювати ризики та виявляти ринкові тренди.',
+        'opt_other_guarantee': 'Це стовідсотковий грааль, який ніколи не помиляється.'
+    },
+    'pl': {
+        'title': 'TRENING TAKTYCZNY',
+        'subject': 'TEMAT',
+        'correct': 'DOSKONALE',
+        'failed': 'BŁĄD',
+        'xp_granted': 'OTRZYMANO +50 XP',
+        'resync': 'Zsynchronizuj ponownie...',
+        'q_pattern': 'Co zazwyczaj wskazuje formacja "{term}"?',
+        'q_technical': 'Jak {term} jest głównie używany w tradingu?',
+        'q_other': 'Które twierdzenie o "{term}" jest prawdziwe?',
+        'opt_indecision': 'Niezdecydowanie rynku',
+        'opt_bullish': 'Ruch wzrostowy (Byczy)',
+        'opt_bearish': 'Ruch spadkowe (Niedźwiedzi)',
+        'opt_volume_only': 'Tylko spadek wolumenu',
+        'opt_tech_use': 'Do pomiaru pędu lub trendu',
+        'opt_tech_news': 'Do przewidywania konkretnych wydarzeń informacyjnych',
+        'opt_tech_profit': 'Gwarantuje 100% zysku',
+        'opt_other_irrelevant': 'Jest mało istotny w krypto.',
+        'opt_other_risk': 'Pomaga zarządzać ryzykiem lub określić trendy.',
+        'opt_other_guarantee': 'Daje gwarantowane sygnały bez ryzyka.'
+    }
+};
+
 const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
-    const { grantXp } = useStore();
+    const { grantXp, settings } = useStore();
+    const lang = settings?.language || 'en';
+    const dict = QUIZ_LANGS[lang] || QUIZ_LANGS['en'];
+
     const [status, setStatus] = useState<'QUESTION' | 'SUCCESS' | 'FAILURE'>('QUESTION');
     const [timeLeft, setTimeLeft] = useState(15);
 
-    // Mock Question Generator (In production, this would be AI generated or DB driven)
+    // Question Generator based on localized database
     const generateQuestion = (t: AcademyTerm) => {
         if (t.category === 'PATTERNS') {
+            const isBullWord = t.term.includes('Bull') || t.term.includes('Bottom') || t.term.includes('Cup') || t.term.includes('Бичачий') || t.term.includes('Дно') || t.term.includes('Чашка') || t.term.includes('Flaga') || t.term.includes('Wstęgi');
             return {
-                q: `What does the "${t.term}" pattern typically indicate?`,
+                q: dict['q_pattern'].replace('{term}', t.term),
                 options: [
-                    { text: 'Market Indecision', correct: false },
-                    { text: t.term.includes('Bull') || t.term.includes('Bottom') || t.term.includes('Cup') ? 'Bullish Movement' : 'Bearish Movement', correct: true },
-                    { text: 'Volume Decrease only', correct: false },
+                    { text: dict['opt_indecision'], correct: false },
+                    { text: isBullWord ? dict['opt_bullish'] : dict['opt_bearish'], correct: true },
+                    { text: dict['opt_volume_only'], correct: false },
                 ].sort(() => Math.random() - 0.5)
             };
         }
         if (t.category === 'TECHNICAL') {
             return {
-                q: `How is ${t.term} primarily used in trading?`,
+                q: dict['q_technical'].replace('{term}', t.term),
                 options: [
-                    { text: 'To measure momentum/trend', correct: true },
-                    { text: 'To predict exact news events', correct: false },
-                    { text: 'To guarantee 100% profit', correct: false },
+                    { text: dict['opt_tech_use'], correct: true },
+                    { text: dict['opt_tech_news'], correct: false },
+                    { text: dict['opt_tech_profit'], correct: false },
                 ].sort(() => Math.random() - 0.5)
             };
         }
         return {
-            q: `Which statement about "${t.term}" is true?`,
+            q: dict['q_other'].replace('{term}', t.term),
             options: [
-                { text: 'It is irrelevant in crypto.', correct: false },
-                { text: 'It helps manage risk or identify trends.', correct: true },
-                { text: 'It is a guaranteed signal.', correct: false },
+                { text: dict['opt_other_irrelevant'], correct: false },
+                { text: dict['opt_other_risk'], correct: true },
+                { text: dict['opt_other_guarantee'], correct: false },
             ].sort(() => Math.random() - 0.5)
         };
     };
@@ -95,10 +165,10 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
                     <div className="w-16 h-16 bg-brand-cyan/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-brand-cyan/30">
                         <BotIcon className="w-8 h-8 text-brand-cyan animate-pulse" />
                     </div>
-                    <h2 className="font-orbitron font-bold text-white text-xl mb-1">TACTICAL DRILL</h2>
-                    <p className="text-xs text-slate-400 font-mono">SUBJECT: {term.term}</p>
+                    <h2 className="font-orbitron font-bold text-white text-md tracking-wider mb-1">{dict['title']}</h2>
+                    <p className="text-[9px] text-slate-400 font-mono">{dict['subject']}: {term.term}</p>
                 </div>
-
+                
                 <div className="p-6">
                     {status === 'QUESTION' && (
                         <>
@@ -110,7 +180,7 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
                                     <button
                                         key={idx}
                                         onClick={() => handleAnswer(opt.correct)}
-                                        className="w-full p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-brand-cyan/20 hover:border-brand-cyan/50 transition-all text-sm font-mono text-left active:scale-[0.98]"
+                                        className="w-full p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-brand-cyan/20 hover:border-brand-cyan/50 transition-all text-xs font-mono text-left active:scale-[0.98]"
                                     >
                                         <span className="text-slate-500 mr-2">{String.fromCharCode(65 + idx)}.</span> 
                                         <span className="text-slate-200">{opt.text}</span>
@@ -123,10 +193,10 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
                     {status === 'SUCCESS' && (
                         <div className="text-center py-8">
                             <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-bounce shadow-[0_0_30px_#22c55e]">
-                                <ShieldIcon className="w-10 h-10 text-black" />
+                                <ShieldIcon className="w-10 h-10 text-black z-10" />
                             </div>
-                            <h3 className="text-2xl font-black text-green-400 font-orbitron mb-2">CORRECT</h3>
-                            <p className="text-white font-mono text-sm">+50 XP GRANTED</p>
+                            <h3 className="text-xl font-black text-green-400 font-orbitron mb-2">{dict['correct']}</h3>
+                            <p className="text-white font-mono text-xs">{dict['xp_granted']}</p>
                         </div>
                     )}
 
@@ -135,8 +205,8 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
                             <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center mx-auto mb-6 animate-pulse shadow-[0_0_30px_#ef4444]">
                                 <ActivityIcon className="w-10 h-10 text-white" />
                             </div>
-                            <h3 className="text-2xl font-black text-red-500 font-orbitron mb-2">FAILED</h3>
-                            <p className="text-slate-400 font-mono text-sm">Resync Neural Link...</p>
+                            <h3 className="text-xl font-black text-red-500 font-orbitron mb-2">{dict['failed']}</h3>
+                            <p className="text-slate-400 font-mono text-xs">{dict['resync']}</p>
                         </div>
                     )}
                 </div>

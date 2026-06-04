@@ -83,7 +83,10 @@ const UpgradeBanner: React.FC = () => {
                     </div>
                 </div>
 
-                <button className={`font-bold text-[9px] px-3 py-1.5 rounded-lg shadow-lg hover:scale-105 transition-transform flex items-center gap-1 ${btnColor}`}>
+                <button 
+                    onClick={(e) => { e.stopPropagation(); handleUpgrade(); }}
+                    className={`font-bold text-[9px] px-3 py-1.5 rounded-lg shadow-lg hover:scale-105 transition-transform flex items-center gap-1 ${btnColor}`}
+                >
                     <ShieldIcon className="w-3 h-3" />
                     {isPaidExpiring ? t('upgrade.renew') : t('upgrade.extend')}
                 </button>

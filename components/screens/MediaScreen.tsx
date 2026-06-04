@@ -14,7 +14,7 @@ import { ACADEMY_DATABASE } from '../MediaContent';
 const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const { settings } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
-    const [filter, setFilter] = useState<'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY'>('PATTERNS');
+    const [filter, setFilter] = useState<'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY'>('PATTERNS');
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [activeQuizTerm, setActiveQuizTerm] = useState<AcademyTerm | null>(null);
@@ -58,10 +58,11 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <div className="flex-1 overflow-y-auto custom-scrollbar px-6 pt-6 pb-32 relative z-10">
                 <UpgradeBanner />
 
-                <div className="flex gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-8 shadow-inner">
-                    <button onClick={() => setFilter('PATTERNS')} className={`flex-1 py-3 rounded-xl text-[9px] font-black font-orbitron transition-all uppercase tracking-widest ${filter === 'PATTERNS' ? 'bg-brand-card text-brand-cyan shadow-xl' : 'text-slate-500'}`}>{t('academy.patterns')}</button>
-                    <button onClick={() => setFilter('TECHNICAL')} className={`flex-1 py-3 rounded-xl text-[9px] font-black font-orbitron transition-all uppercase tracking-widest ${filter === 'TECHNICAL' ? 'bg-brand-card text-brand-cyan shadow-xl' : 'text-slate-500'}`}>{t('academy.technical')}</button>
-                    <button onClick={() => setFilter('PSYCHOLOGY')} className={`flex-1 py-3 rounded-xl text-[9px] font-black font-orbitron transition-all uppercase tracking-widest ${filter === 'PSYCHOLOGY' ? 'bg-brand-card text-brand-cyan shadow-xl' : 'text-slate-500'}`}>{t('academy.psychology')}</button>
+                <div className="grid grid-cols-4 gap-1.5 bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-8 shadow-inner">
+                    <button onClick={() => { triggerHaptic('selection'); setFilter('PATTERNS'); }} className={`py-3 rounded-xl text-[8px] font-black font-orbitron transition-all uppercase tracking-wider text-center ${filter === 'PATTERNS' ? 'bg-brand-card text-brand-cyan shadow-xl border border-white/5' : 'text-slate-500'}`}>{t('academy.patterns')}</button>
+                    <button onClick={() => { triggerHaptic('selection'); setFilter('TECHNICAL'); }} className={`py-3 rounded-xl text-[8px] font-black font-orbitron transition-all uppercase tracking-wider text-center ${filter === 'TECHNICAL' ? 'bg-brand-card text-brand-cyan shadow-xl border border-white/5' : 'text-slate-500'}`}>{t('academy.technical')}</button>
+                    <button onClick={() => { triggerHaptic('selection'); setFilter('PSYCHOLOGY'); }} className={`py-3 rounded-xl text-[8px] font-black font-orbitron transition-all uppercase tracking-wider text-center ${filter === 'PSYCHOLOGY' ? 'bg-brand-card text-brand-cyan shadow-xl border border-white/5' : 'text-slate-500'}`}>{t('academy.psychology')}</button>
+                    <button onClick={() => { triggerHaptic('selection'); setFilter('SECURITY'); }} className={`py-3 rounded-xl text-[8px] font-black font-orbitron transition-all uppercase tracking-wider text-center ${filter === 'SECURITY' ? 'bg-brand-card text-brand-cyan shadow-xl border border-white/5' : 'text-slate-500'}`}>{t('academy.security')}</button>
                 </div>
 
                 <div className="relative mb-8">
