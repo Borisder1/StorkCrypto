@@ -44,6 +44,37 @@ const MarketPulseWidget: React.FC = () => {
         return () => clearInterval(interval);
     }, []);
 
+    const getRegimeTranslation = (regime: string) => {
+        const lang = settings?.language || 'en';
+        const map: Record<string, Record<string, string>> = {
+            en: {
+                'VOLATILE_BULL': 'VOLATILE BULL',
+                'VOLATILE_BEAR': 'VOLATILE BEAR',
+                'QUIET_RANGING': 'QUIET RANGING',
+                'BULL_TREND': 'BULL TREND',
+                'BEAR_TREND': 'BEAR TREND',
+                'UNKNOWN': 'UNKNOWN'
+            },
+            ua: {
+                'VOLATILE_BULL': 'ВОЛАТИЛЬНИЙ БИК',
+                'VOLATILE_BEAR': 'ВОЛАТИЛЬНИЙ ВЕДМІДЬ',
+                'QUIET_RANGING': 'СПОКІЙНИЙ ФЛЕТ',
+                'BULL_TREND': 'БИЧАЧИЙ ТРЕНД',
+                'BEAR_TREND': 'ВЕДМЕЖИЙ ТРЕНД',
+                'UNKNOWN': 'НЕВІДОМО'
+            },
+            pl: {
+                'VOLATILE_BULL': 'ZMIENNY BYK',
+                'VOLATILE_BEAR': 'ZMIENNY NIEDŹWIEDŹ',
+                'QUIET_RANGING': 'SPOKOJNY KONSOLIDACJA',
+                'BULL_TREND': 'TREND BYCZY',
+                'BEAR_TREND': 'TREND SPADKOWY',
+                'UNKNOWN': 'NIEZNANY'
+            }
+        };
+        return map[lang]?.[regime] || regime;
+    };
+
     return (
         <div className="grid grid-cols-4 gap-2 mb-4">
             <div className="bg-brand-card/40 border border-white/5 rounded-2xl p-2 text-center group hover:border-brand-cyan/30 transition-all">
@@ -60,7 +91,7 @@ const MarketPulseWidget: React.FC = () => {
             </div>
             <div className="bg-brand-card/40 border border-white/5 rounded-2xl p-2 text-center group hover:border-brand-purple/30 transition-all">
                 <p className="text-[6px] text-slate-500 uppercase font-black mb-1">{t('market.phase')}</p>
-                <p className="text-[7px] font-black text-white truncate uppercase tracking-tighter">{marketRegime}</p>
+                <p className="text-[7px] font-black text-white truncate uppercase tracking-tighter">{getRegimeTranslation(marketRegime)}</p>
             </div>
         </div>
     );

@@ -53,10 +53,14 @@ export const AIMarketSummary: React.FC = () => {
             </div>
             <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                    <span className="text-[8px] font-black text-brand-cyan uppercase tracking-widest font-orbitron">Neural_Summary</span>
+                    <span className="text-[8px] font-black text-brand-cyan uppercase tracking-widest font-orbitron">
+                        {settings?.language === 'ua' ? 'Нейро_Підсумок' : settings?.language === 'pl' ? 'Podsumowanie_Neuro' : 'Neural_Summary'}
+                    </span>
                     <div className="flex items-center gap-1">
                         <ActivityIcon className="w-2 h-2 text-brand-green animate-pulse" />
-                        <span className="text-[7px] text-brand-green font-mono uppercase">Live</span>
+                        <span className="text-[7px] text-brand-green font-mono uppercase">
+                            {settings?.language === 'ua' ? 'НАЖИВО' : settings?.language === 'pl' ? 'NA ŻYWO' : 'LIVE'}
+                        </span>
                     </div>
                 </div>
                 <p className="text-[10px] text-slate-300 font-mono leading-relaxed italic">

@@ -307,10 +307,119 @@ const generateFallbackSignals = (metrics: AssetMetrics[]): AgentAnalysis => {
     };
 };
 
+const MOCK_NEWS: Record<string, NewsArticle[]> = {
+    en: [
+        {
+            headline: "Bitcoin Consolidation Pattern Signals Pre-Breakout Impulse",
+            summary: "On-chain metrics indicate massive institutional accumulation within the $68,000 range. Top analysts expect a high-volatility expansion phase as liquidity pool sweeps conclude.",
+            sentimentMock: "POS",
+            impact: "HIGH",
+            time: "10m ago",
+            tags: ["BTC", "ACCUMULATION", "SMC"]
+        },
+        {
+            headline: "Ethereum Layer-2 Networks Process Record Transactions",
+            summary: "L2 scaling layers recorded a combined throughput spike of 165 TPS, significantly reducing mainnet congestion and validating current EIP-4844 scaling upgrades.",
+            sentimentMock: "POS",
+            impact: "MED",
+            time: "48m ago",
+            tags: ["ETH", "L2", "DEFI"]
+        },
+        {
+            headline: "Global Macro Outlook: Fed Hints at Rate Stabilization",
+            summary: "The Federal Reserve's latest minutes suggest core inflation is stabilizing, boosting risk asset sentiment across cryptocurrency and equity markets.",
+            sentimentMock: "NEU",
+            impact: "HIGH",
+            time: "2h ago",
+            tags: ["MACRO", "FED", "FINANCE"]
+        }
+    ],
+    ua: [
+        {
+            headline: "Консолідація Bitcoin свідчить про імпульс перед проривом",
+            summary: "Метрики он-чейн вказують на масштабне накопичення інституціоналами в діапазоні $68,000. Провідні аналітики очікують фазу високої волатильності після завершення збору ліквідності.",
+            sentimentMock: "POS",
+            impact: "HIGH",
+            time: "10 хв тому",
+            tags: ["BTC", "НАКОПИЧЕННЯ", "SMC"]
+        },
+        {
+            headline: "Мережі другого рівня Ethereum (L2) зафіксували рекорд транзакцій",
+            summary: "Сукупна пропускна здатність мереж L2 досягла піку в 165 TPS, що суттєво зменшило перевантаження основної мережі та підтвердило успішність оновлення EIP-4844.",
+            sentimentMock: "POS",
+            impact: "MED",
+            time: "48 хв тому",
+            tags: ["ETH", "L2", "DEFI"]
+        },
+        {
+            headline: "Глобальний макроекономічний аналіз: ФРС натякає на стабілізацію ставок",
+            summary: "Останні протоколи Федеральної резервної системи США показують стабілізацію базової інфляції, що покращує настрої на ринках криптовалют та акцій.",
+            sentimentMock: "NEU",
+            impact: "HIGH",
+            time: "2 год тому",
+            tags: ["МАКРО", "ФРС", "ФІНАНСИ"]
+        }
+    ],
+    pl: [
+        {
+            headline: "Konsolidacja Bitcoina zapowiada impuls przed wybiciem",
+            summary: "Wskaźniki on-chain wskazują na masową akumulację instytucjonalną w przedziale 68 000 USD. Główni analitycy oczekują fazy wysokiej zmienności po zakończeniu czyszczenia płynności.",
+            sentimentMock: "POS",
+            impact: "HIGH",
+            time: "10 min temu",
+            tags: ["BTC", "AKUMULACJA", "SMC"]
+        },
+        {
+            headline: "Sieci Ethereum Layer-2 rejestrują rekordową liczbę transakcji",
+            summary: "Skumulowana przepustowość sieci L2 osiągnęła rekordowe 165 TPS, znacząco zmniejszając obciążenie sieci głównej i potwierdzając skuteczność aktualizacji EIP-4844.",
+            sentimentMock: "POS",
+            impact: "MED",
+            time: "48 min temu",
+            tags: ["ETH", "L2", "DEFI"]
+        },
+        {
+            headline: "Globalne makro: Rezerwa Federalna sugeruje stabilizację stóp procentowych",
+            summary: "Ostatnie protokoły Fed sugerują, że inflacja bazowa się stabilizuje, co poprawia nastroje na rynku kryptowalut i akcji.",
+            sentimentMock: "NEU",
+            impact: "HIGH",
+            time: "2 godz. temu",
+            tags: ["MAKRO", "FED", "FINANSE"]
+        }
+    ]
+};
+
 export const getLatestCryptoNews = async (language: string = 'en'): Promise<NewsArticle[]> => {
-    const prompt = `Search Google for top 5 latest crypto news. Return JSON array: [{headline, summary, sentimentMock: "POS"|"NEG"|"NEU", impact: "HIGH"|"MED"|"LOW", sources: [{uri, title}], time: "HH:MM", tags: ["tag1", "tag2"]}]. ${getLanguageInstruction(language)}`;
-    const result = await safeGenerate(prompt, { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] });
-    return result || [];
+    try {
+        const prompt = `Search Google for top 5 latest crypto news. Return JSON array: [{headline, summary, sentimentMock: "POS"|"NEG"|"NEU", impact: "HIGH"|"MED"|"LOW", sources: [{uri, title}], time: "HH:MM", tags: ["tag1", "tag2"]}]. ${getLanguageInstruction(language)}`;
+        const result = await safeGenerate(prompt, { responseMimeType: 'application/json', tools: [{ googleSearch: {} }] });
+        
+        let articles: any[] = [];
+        if (Array.isArray(result)) {
+            articles = result;
+        } else if (result && typeof result === 'object') {
+            const val = result.news || result.articles || result.data || result.newsList;
+            if (Array.isArray(val)) {
+                articles = val;
+            }
+        }
+        
+        if (articles && articles.length > 0) {
+            return articles.map(item => ({
+                headline: item.headline || item.title || "Market Update",
+                summary: item.summary || item.description || "No description provided.",
+                sentimentMock: item.sentimentMock || item.sentiment || "NEU",
+                impact: item.impact || "MED",
+                sources: Array.isArray(item.sources) ? item.sources : [],
+                time: item.time || "Just now",
+                tags: Array.isArray(item.tags) ? item.tags : []
+            }));
+        }
+    } catch (e) {
+        console.error("Failed to fetch fresh news from AI, resolving defaults", e);
+    }
+    
+    const key = (language === 'ua' || language === 'pl') ? language : 'en';
+    return MOCK_NEWS[key] || MOCK_NEWS['en'];
 };
 
 export const getAIAgentAnalysis = async (agentType: 'SNIPER' | 'WHALE' | 'GUARDIAN', language: string, marketRegime: string = 'UNKNOWN'): Promise<string> => {
