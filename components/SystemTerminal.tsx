@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { triggerHaptic } from '../utils/haptics';
 import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
+import { HelpIndicator } from './HelpIndicator';
 
 export const SystemTerminal: React.FC = () => {
     const { navigateTo, setIsAIChatOpen, activeTab, settings } = useStore();
@@ -106,7 +107,10 @@ export const SystemTerminal: React.FC = () => {
                     <div className="flex gap-1 items-end h-3">
                          {[1,2,3,4].map(i => <div key={i} className="w-0.5 bg-brand-cyan animate-pulse" style={{ height: `${Math.random() * 100}%`, animationDelay: `${i * 0.1}s` }}></div>)}
                     </div>
-                    <span className="text-[10px] font-black text-white tracking-[0.2em] font-orbitron uppercase">{t('term.title')}</span>
+                    <div className="flex items-center gap-1.5 animate-fade-in">
+                        <span className="text-[10px] font-black text-white tracking-[0.2em] font-orbitron uppercase">{t('term.title')}</span>
+                        <HelpIndicator id="system_terminal" />
+                    </div>
                 </div>
                 <div className="flex items-center gap-3">
                      <span className="text-[9px] font-mono text-brand-cyan/60">{integrity.toFixed(1)}% INTG</span>

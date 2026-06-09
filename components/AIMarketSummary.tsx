@@ -5,6 +5,7 @@ import { generateProactiveInsight } from '../services/geminiService';
 import { triggerHaptic } from '../utils/haptics';
 import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
+import { HelpIndicator } from './HelpIndicator';
 
 export const AIMarketSummary: React.FC = () => {
     const { settings } = useStore();
@@ -53,9 +54,12 @@ export const AIMarketSummary: React.FC = () => {
             </div>
             <div className="flex-1">
                 <div className="flex items-center justify-between mb-1">
-                    <span className="text-[8px] font-black text-brand-cyan uppercase tracking-widest font-orbitron">
-                        {settings?.language === 'ua' ? 'Нейро_Підсумок' : settings?.language === 'pl' ? 'Podsumowanie_Neuro' : 'Neural_Summary'}
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                        <span className="text-[8px] font-black text-brand-cyan uppercase tracking-widest font-orbitron">
+                            {settings?.language === 'ua' ? 'Нейро_Підсумок' : settings?.language === 'pl' ? 'Podsumowanie_Neuro' : 'Neural_Summary'}
+                        </span>
+                        <HelpIndicator id="ai_market_summary" />
+                    </div>
                     <div className="flex items-center gap-1">
                         <ActivityIcon className="w-2 h-2 text-brand-green animate-pulse" />
                         <span className="text-[7px] text-brand-green font-mono uppercase">

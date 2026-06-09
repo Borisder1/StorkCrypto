@@ -5,6 +5,7 @@ import { triggerHaptic } from '../../utils/haptics';
 import { CopiedTrader } from '../../types';
 import { TacticalBackground } from '../TacticalBackground';
 import CopyStrategyModal from '../CopyStrategyModal';
+import { HelpIndicator } from '../HelpIndicator';
 
 const TRADERS: CopiedTrader[] = [
     { id: 't1', name: 'Alpha_Centauri', roi: 124.5, tvl: 850000, winRate: 78, riskScore: 4 },
@@ -29,7 +30,10 @@ export const SyndicateScreen: React.FC<{ onClose: () => void }> = ({ onClose }) 
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
                     </button>
                     <div>
-                        <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">SYNDICATE_V1</h1>
+                        <div className="flex items-center gap-1.5 animate-fade-in">
+                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">SYNDICATE_V1</h1>
+                            <HelpIndicator id="syndicate_hq" />
+                        </div>
                         <p className="text-[8px] text-brand-purple font-mono uppercase">Social_Link: ESTABLISHED</p>
                     </div>
                 </div>

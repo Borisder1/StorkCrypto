@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { triggerHaptic } from '../utils/haptics';
 import { TacticalBackground } from './TacticalBackground';
 import { GlobeIcon, ChevronRightIcon, ZapIcon, ActivityIcon } from './icons';
+import { HelpIndicator } from './HelpIndicator';
 
 interface DexAggregatorModalProps {
     onClose: () => void;
@@ -32,7 +33,10 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
                     </button>
                     <div>
-                        <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">DEX_SWAP</h1>
+                        <div className="flex items-center gap-1.5">
+                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">DEX_SWAP</h1>
+                            <HelpIndicator id="dex_aggregator" />
+                        </div>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">Aggregator_Node</p>
                     </div>
                 </div>

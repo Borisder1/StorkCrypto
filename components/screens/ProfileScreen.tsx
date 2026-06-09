@@ -16,6 +16,7 @@ import AvatarSelectionModal from '../AvatarSelectionModal';
 import { triggerHaptic } from '../../utils/haptics';
 import { TacticalBackground } from '../TacticalBackground';
 import UpgradeBanner from '../UpgradeBanner';
+import { HelpIndicator } from '../HelpIndicator';
 
 import TwoFactorModal from '../TwoFactorModal';
 import QuestWidget from '../QuestWidget';
@@ -142,7 +143,10 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
                     </button>
                     <div>
-                        <h1 className="font-orbitron text-base sm:text-lg font-black text-white tracking-widest uppercase italic">{t('profile.title')}</h1>
+                        <div className="flex items-center gap-1.5">
+                            <h1 className="font-orbitron text-base sm:text-lg font-black text-white tracking-widest uppercase italic">{t('profile.title')}</h1>
+                            <HelpIndicator id="profile_center" />
+                        </div>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('home.level')}_{userStats.level}_{t('profile.pilot')}</p>
                     </div>
                 </div>

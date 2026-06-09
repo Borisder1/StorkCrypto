@@ -11,6 +11,7 @@ import { TacticalBackground } from '../TacticalBackground';
 import UpgradeBanner from '../UpgradeBanner';
 import HolographicGlobe from '../HolographicGlobe';
 import InfoModal from '../InfoModal';
+import { HelpIndicator } from '../HelpIndicator';
 
 const ScannerListItem = React.memo(({ coin, onAssetClick, style, isAlpha, t }: { 
     coin: AssetMetrics, onAssetClick: (c: AssetMetrics) => void, style?: React.CSSProperties, isAlpha?: boolean, t: (key: string) => string
@@ -118,7 +119,10 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
                         <ChevronRightIcon className="w-5 h-5 rotate-180" />
                     </button>
                     <div>
-                        <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">{t('scanner.v8')}</h1>
+                        <div className="flex items-center gap-1.55">
+                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">{t('scanner.v8')}</h1>
+                            <HelpIndicator id="market_scanner" />
+                        </div>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('scanner.grid_online')}</p>
                     </div>
                 </div>

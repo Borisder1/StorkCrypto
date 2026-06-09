@@ -5,6 +5,7 @@ import { useStore } from '../store';
 import { PickaxeIcon, TimerIcon, GiftIcon, ShieldIcon, TelegramIcon, LinkIcon, ChevronRightIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
+import { HelpIndicator } from './HelpIndicator';
 
 interface AirdropModalProps {
     onClose: () => void;
@@ -122,7 +123,10 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                         <PickaxeIcon className="w-5 h-5 text-brand-cyan animate-pulse" />
                     </div>
                     <div>
-                        <h2 className="font-orbitron font-black text-base sm:text-lg text-white uppercase tracking-widest">{t('airdrop.mining_hub')}</h2>
+                        <div className="flex items-center gap-1.5">
+                            <h2 className="font-orbitron font-black text-base sm:text-lg text-white uppercase tracking-widest">{t('airdrop.mining_hub')}</h2>
+                            <HelpIndicator id="airdrop_terminal" />
+                        </div>
                         <p className="text-[9px] text-slate-500 font-mono">{t('airdrop.neural_hash')}: {mining.miningRate.toFixed(2)} / SEC</p>
                     </div>
                 </div>

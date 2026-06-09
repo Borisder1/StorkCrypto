@@ -10,6 +10,7 @@ import QuizModal from '../QuizModal';
 import UpgradeBanner from '../UpgradeBanner';
 import { TacticalBackground } from '../TacticalBackground';
 import { ACADEMY_DATABASE } from '../MediaContent';
+import { HelpIndicator } from '../HelpIndicator';
 
 const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const { settings } = useStore();
@@ -19,7 +20,8 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const [search, setSearch] = useState('');
     const [activeQuizTerm, setActiveQuizTerm] = useState<AcademyTerm | null>(null);
 
-    const currentContent = (ACADEMY_DATABASE && settings?.language) ? (ACADEMY_DATABASE[settings.language] || ACADEMY_DATABASE['en']) : [];
+    const currentLanguage = (settings?.language === 'ua' || settings?.language === 'pl') ? settings.language : 'en';
+    const currentContent = ACADEMY_DATABASE?.[currentLanguage] || ACADEMY_DATABASE?.['en'] || [];
 
     const filteredItems = (currentContent || []).filter(item => {
         const matchesFilter = item.category === filter;
@@ -46,7 +48,10 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
                     </button>
                     <div>
-                        <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">{t('academy.title')}</h1>
+                        <div className="flex items-center gap-1.5">
+                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">{t('academy.title')}</h1>
+                            <HelpIndicator id="academy_hub" />
+                        </div>
                         <p className="text-[8px] text-brand-purple font-mono uppercase">{t('academy.subtitle')}</p>
                     </div>
                 </div>

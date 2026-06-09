@@ -5,6 +5,7 @@ import { triggerHaptic } from '../utils/haptics';
 import LockedFeature from './LockedFeature';
 import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
+import { HelpIndicator } from './HelpIndicator';
 
 export const PortfolioTools: React.FC = () => {
     const { settings } = useStore();
@@ -97,6 +98,7 @@ export const PortfolioTools: React.FC = () => {
                     <div className="flex items-center gap-2 mb-4">
                         <ShieldIcon className="w-4 h-4 text-brand-cyan drop-shadow-[0_0_5px_#00F0FF]" />
                         <span className="text-xs font-bold text-white tracking-widest font-orbitron">{t('tools.asset_protection')}</span>
+                        <HelpIndicator id="portfolio_audit" />
                     </div>
                     
                     <div className="bg-black/30 rounded-2xl p-4 border border-white/5 mb-4">

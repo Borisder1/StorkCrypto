@@ -5,6 +5,7 @@ import { supabase } from '../../services/supabaseClient';
 import { ShieldIcon, ActivityIcon, GlobeIcon, ZapIcon, UserIcon } from '../icons';
 import { triggerHaptic } from '../../utils/haptics';
 import UpgradeBanner from '../UpgradeBanner'; 
+import { HelpIndicator } from '../HelpIndicator';
 
 const RankPodium: React.FC<{ user: any, rank: number }> = ({ user, rank }) => {
     if (!user) return <div className="w-1/3 h-full"></div>;
@@ -73,7 +74,10 @@ const LeaderboardScreen: React.FC = () => {
 
             <div className="flex items-center justify-between mb-6 pt-4 relative z-10 shrink-0">
                 <div>
-                    <h1 className="font-orbitron text-2xl font-black text-white uppercase tracking-tighter">Leaderboard</h1>
+                    <div className="flex items-center gap-1.5 animate-fade-in">
+                        <h1 className="font-orbitron text-2xl font-black text-white uppercase tracking-tighter">Leaderboard</h1>
+                        <HelpIndicator id="leaderboard" />
+                    </div>
                     <div className="flex items-center gap-2 mt-1">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
                         <p className="text-[10px] text-slate-500 font-space-mono uppercase">Global Pilot Rankings</p>

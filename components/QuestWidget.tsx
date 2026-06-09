@@ -2,6 +2,7 @@ import React from 'react';
 import { useStore } from '../store';
 import { ShieldIcon, TrendingUpIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
+import { HelpIndicator } from './HelpIndicator';
 
 const QuestWidget: React.FC = () => {
     const { quests, claimQuestReward } = useStore();
@@ -21,8 +22,9 @@ const QuestWidget: React.FC = () => {
             
             <div className="flex justify-between items-center mb-4 relative z-10">
                 <div>
-                    <h3 className="text-white font-black text-[10px] font-orbitron tracking-widest flex items-center gap-2 uppercase">
+                    <h3 className="text-white font-black text-[10px] font-orbitron tracking-widest flex items-center gap-1.5 uppercase">
                         <ShieldIcon className="w-3 h-3 text-brand-purple" /> MISSIONS
+                        <HelpIndicator id="quests_center" />
                     </h3>
                 </div>
                 <div className="px-2 py-0.5 bg-black/40 border border-white/5 rounded text-[7px] font-mono text-slate-500">

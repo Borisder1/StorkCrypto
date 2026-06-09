@@ -13,8 +13,8 @@ import { PortfolioTools } from '../PortfolioTools';
 import { getTranslation } from '../../utils/translations';
 import UpgradeBanner from '../UpgradeBanner';
 import Skeleton from '../Skeleton';
-
 import { PortfolioDistributionChart } from '../PortfolioDistributionChart';
+import { HelpIndicator } from '../HelpIndicator';
 
 // OPTIMIZATION: Memoized component to prevent re-renders on parent state changes
 const AssetEntry = React.memo(({ asset, totalPortfolioValue, t }: { asset: Asset, totalPortfolioValue: number, t: (key: string) => string }) => {
@@ -112,7 +112,10 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
                     </button>
                     <div>
-                        <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">{t('portfolio.title')}</h1>
+                        <div className="flex items-center gap-1.5">
+                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">{t('portfolio.title')}</h1>
+                            <HelpIndicator id="portfolio_tracker" />
+                        </div>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('portfolio.secure_storage')}</p>
                     </div>
                 </div>

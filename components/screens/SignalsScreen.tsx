@@ -12,6 +12,7 @@ import { TacticalBackground } from '../TacticalBackground';
 import { getTranslation } from '../../utils/translations';
 import UpgradeBanner from '../UpgradeBanner';
 import InfoModal from '../InfoModal';
+import { HelpIndicator } from '../HelpIndicator';
 
 // --- VISUAL COMPONENTS ---
 
@@ -253,9 +254,10 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
 
             <div className="flex items-center justify-between px-6 pt-8 mb-6 relative z-20 shrink-0">
                 <div>
-                    <h1 className={`font-orbitron text-xl sm:text-2xl font-black tracking-tighter uppercase italic flex items-center gap-3 ${isSniperMode ? 'text-red-500' : 'text-white'}`}>
+                    <h1 className={`font-orbitron text-xl sm:text-2xl font-black tracking-tighter uppercase italic flex items-center gap-2 ${isSniperMode ? 'text-red-500' : 'text-white'}`}>
                         {isSniperMode ? t('signals.sniper_mode') : t('signals.terminal')}
                         <button onClick={() => setShowInfo(true)}><InfoIcon className={`w-5 h-5 ${isSniperMode ? 'text-red-500' : 'text-slate-500'}`} /></button>
+                        <HelpIndicator id="arbitrage_radar" />
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
                         <div className={`w-2 h-2 rounded-full ${loading ? 'bg-yellow-500 animate-pulse' : isSniperMode ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-brand-green shadow-[0_0_10px_#22c55e]'}`}></div>

@@ -7,6 +7,7 @@ import { ChevronRightIcon, ShieldIcon, ActivityIcon, BotIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { getAIAgentAnalysis } from '../services/geminiService';
 import Skeleton from './Skeleton';
+import { HelpIndicator } from './HelpIndicator';
 
 interface AIAgentModalProps {
     onClose: () => void;
@@ -68,7 +69,10 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
                     </button>
                     <div>
-                        <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">AI_Agents</h1>
+                        <div className="flex items-center gap-1.5">
+                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">AI_Agents</h1>
+                            <HelpIndicator id="ai_agent" />
+                        </div>
                         <p className="text-[8px] text-brand-purple font-mono uppercase">Neural_Advisors: ONLINE</p>
                     </div>
                 </div>
