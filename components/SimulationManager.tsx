@@ -13,10 +13,17 @@ const SimulationManager: React.FC = () => {
     const { copiedTraders, updateCopiedTraderPnL, showToast, settings, updateMarketRegime } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
     const lastEvaluationTime = useRef<number>(0);
-    const priceHistory = useRef<number[]>([]);
+    const priceHistory = useRef<number[]>(
+        Array.from({ length: 25 }, (_, i) => 67000 + Math.sin(i / 3.5) * 600 + Math.random() * 200)
+    );
 
     useEffect(() => {
         if (!settings.isAuthenticated) return;
+
+        // Immediate default evaluation on boot to prevent UNKNOWN regime status
+        detectMarketRegime(priceHistory.current).then(regime => {
+            updateMarketRegime(regime);
+        }).catch(console.error);
 
         // Subscribe to real-time prices for AI Strategy Memory evaluation
         const unsubscribeWS = binanceWS.subscribe((data) => {

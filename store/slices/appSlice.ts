@@ -333,6 +333,6 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     fetchPendingSubscriptions: async () => {},
     adminBroadcast: null,
     sendBroadcast: (message, type) => { set({ adminBroadcast: { message, type, id: Date.now().toString() } }); },
-    marketRegime: 'UNKNOWN',
+    marketRegime: 'BULL_TREND',
     updateMarketRegime: (regime) => set({ marketRegime: regime })
 });

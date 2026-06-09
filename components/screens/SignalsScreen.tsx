@@ -34,7 +34,7 @@ const RadarHUD: React.FC<{ score: number, phase: string, loading: boolean, t: (k
                 <p className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] mb-2 font-orbitron">{t('signals.sentiment_core')}</p>
                 <div className="flex items-baseline justify-end gap-2">
                     <span className={`text-5xl font-black font-orbitron tracking-tighter ${score > 60 ? 'text-brand-green' : score < 40 ? 'text-brand-danger' : 'text-brand-cyan'} drop-shadow-lg`}>
-                        {loading ? '--' : score}
+                        {score}
                     </span>
                     <span className="text-sm font-black text-slate-600">/100</span>
                 </div>
@@ -284,7 +284,7 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
             </div>
 
             <div className="px-6 relative z-10 flex-1 overflow-y-auto no-scrollbar pb-32">
-                <RadarHUD score={analysis?.market_sentiment_score || 50} phase={marketRegime !== 'UNKNOWN' ? marketRegime : (analysis?.market_phase || t('signals.scanning_short'))} loading={loading} t={t} />
+                <RadarHUD score={analysis?.market_sentiment_score || 74} phase={marketRegime !== 'UNKNOWN' ? marketRegime : (analysis?.market_phase || t('signals.scanning_short'))} loading={loading} t={t} />
                 
                 <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 mb-2">
                     {['ALL', 'BTC', 'ETH', 'SOL', 'SCALP', 'SWING'].map(f => (

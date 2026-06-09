@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type NewsArticle } from '../types';
 import { getLatestCryptoNews, safeGenerate } from '../services/geminiService';
@@ -59,15 +59,18 @@ const InfluencerPulse: React.FC = () => {
     );
 };
 
-const SentimentRadar: React.FC = () => {
+const SentimentRadar: React.FC<{ score?: number }> = ({ score = 74 }) => {
     return (
         <div className="w-24 h-24 relative flex items-center justify-center">
-            <div className="absolute inset-0 border border-brand-cyan/20 rounded-full"></div>
+            <div className="absolute inset-0 border border-brand-cyan/20 rounded-full animate-pulse"></div>
             <div className="absolute inset-2 border border-brand-cyan/10 rounded-full"></div>
-            <div className="absolute inset-0 border-t border-brand-cyan/30 animate-spin-slow rounded-full"></div>
-            <div className="w-1 h-1 bg-brand-cyan rounded-full absolute top-4 left-10 animate-ping"></div>
-            <div className="w-1 h-1 bg-brand-purple rounded-full absolute bottom-6 right-6 animate-pulse"></div>
-            <span className="text-[8px] font-black text-brand-cyan bg-black/60 px-1 rounded relative z-10">SCAN</span>
+            <div className="absolute inset-0 border-t border-brand-cyan/30 animate-[spin_6s_linear_infinite] rounded-full"></div>
+            <div className="w-1.5 h-1.5 bg-brand-cyan rounded-full absolute top-4 left-10 animate-ping"></div>
+            <div className="w-1.5 h-1.5 bg-brand-purple rounded-full absolute bottom-6 right-6 animate-pulse"></div>
+            <div className="flex flex-col items-center justify-center relative z-10 bg-black/70 w-16 h-16 rounded-full border border-brand-cyan/25 shadow-inner">
+                <span className="text-[7px] font-mono text-slate-500 uppercase tracking-tighter">SENTIMENT</span>
+                <span className="text-xs font-black text-brand-cyan font-orbitron">{score}%</span>
+            </div>
         </div>
     );
 };
@@ -146,7 +149,22 @@ const NewsScreen: React.FC = () => {
     const { settings, customNews } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
 
-    const news = [...(customNews || []), ...(fetchedNews || [])];
+    const newsSorted = [...(customNews || []), ...(fetchedNews || [])];
+    const news = category === 'ALL' ? newsSorted : newsSorted.filter((n: any) => n.category === category || n.headline?.toUpperCase().includes(category));
+
+    const sentimentScore = useMemo(() => {
+        if (news.length === 0) return 72;
+        let positiveCount = 0;
+        let neutralCount = 0;
+        news.forEach((n: any) => {
+            const code = n.sentimentMock || 'NEU';
+            if (code === 'POS') positiveCount++;
+            else if (code === 'NEU') neutralCount++;
+        });
+        const total = news.length;
+        const calculated = Math.round(((positiveCount * 1.0 + neutralCount * 0.5) / total) * 100);
+        return Math.min(95, Math.max(38, calculated));
+    }, [news]);
 
     useEffect(() => {
         const fetch = async () => {
@@ -237,7 +255,7 @@ const NewsScreen: React.FC = () => {
                          <p className="text-[9px] text-slate-500 font-mono uppercase tracking-[0.2em] font-black">Intercepting_Global_Feeds</p>
                     </div>
                 </div>
-                <SentimentRadar />
+                <SentimentRadar score={sentimentScore} />
             </div>
 
             <UpgradeBanner />

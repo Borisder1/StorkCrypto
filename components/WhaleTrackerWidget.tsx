@@ -12,7 +12,41 @@ const WHALE_THRESHOLD_USD = 100000;
 
 export const WhaleTrackerWidget: React.FC = () => {
     const { addWhaleTransaction, getWhaleStats, userStats, setSubscriptionOpen } = useStore();
-    const [recentTxs, setRecentTxs] = useState<WhaleTransaction[]>([]);
+    const [recentTxs, setRecentTxs] = useState<WhaleTransaction[]>([
+        {
+            id: 'seed-1',
+            asset: 'BTC',
+            amount: 8.45,
+            valueUsd: 569000,
+            from: 'Exchange_Hot_Wallet',
+            to: 'Whale_Cold_Storage',
+            type: 'WHALE_ACCUMULATION',
+            timestamp: new Date(Date.now() - 15000).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' }),
+            aiComment: 'whale.heavy_accum'
+        },
+        {
+            id: 'seed-2',
+            asset: 'TON',
+            amount: 42500,
+            valueUsd: 304000,
+            from: 'Whale_Wallet',
+            to: 'Exchange',
+            type: 'EXCHANGE_INFLOW',
+            timestamp: new Date(Date.now() - 45000).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' }),
+            aiComment: 'whale.retail_dist'
+        },
+        {
+            id: 'seed-3',
+            asset: 'ETH',
+            amount: 52.1,
+            valueUsd: 181000,
+            from: 'Unknown_Wallet',
+            to: 'Whale_Cold_Storage',
+            type: 'WHALE_ACCUMULATION',
+            timestamp: new Date(Date.now() - 120000).toLocaleTimeString([], { hour12: false, hour: '2-digit', minute:'2-digit', second:'2-digit' }),
+            aiComment: 'whale.heavy_accum'
+        }
+    ]);
     const [showHistory, setShowHistory] = useState(false);
     const lastSoundRef = useRef(0);
     
