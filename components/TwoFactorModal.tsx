@@ -66,10 +66,10 @@ const TwoFactorModal: React.FC<TwoFactorModalProps> = ({ onClose }) => {
     }).toString() : '';
 
     return (
-        <div className="fixed inset-0 z-[100] grid place-items-center p-4">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto overscroll-contain">
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
             
-            <div className="relative z-10 w-full max-w-sm bg-brand-bg border border-brand-border rounded-2xl overflow-hidden shadow-2xl animate-zoom-in">
+            <div className="relative z-10 w-full max-w-sm bg-brand-bg border border-brand-border rounded-2xl overflow-hidden shadow-2xl animate-zoom-in my-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col">
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-3">

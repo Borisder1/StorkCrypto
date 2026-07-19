@@ -58,7 +58,7 @@ const MarketTicker: React.FC = React.memo(() => {
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ type: 'spring', damping: 20, stiffness: 100, delay: 0.2 }}
-            className="fixed top-0 left-0 w-full h-9 z-[80] flex items-center overflow-hidden pointer-events-none select-none border-b border-white/5"
+            className="fixed top-0 left-0 w-full h-9 z-[10] flex items-center overflow-hidden pointer-events-none select-none border-b border-white/5"
         >
             {/* Glass Background */}
             <div className="absolute inset-0 bg-[#020617]/60 backdrop-blur-md"></div>

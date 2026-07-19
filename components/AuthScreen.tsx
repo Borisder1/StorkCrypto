@@ -18,6 +18,35 @@ const AuthScreen: React.FC = () => {
     const [tapCount, setTapCount] = useState(0);
     const [lastTap, setLastTap] = useState(0);
 
+    // Verify Telegram Environment
+    React.useEffect(() => {
+        const tg = (window as any).Telegram?.WebApp;
+        if (!tg || !tg.initData) {
+            // Un-comment to enforce Telegram only in production
+            // setError("Цей додаток працює тільки в Telegram");
+            return;
+        }
+        
+        // Валідація initData на бекенді
+        fetch('/api/validate', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ initData: tg.initData })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.error) {
+                console.error("Invalid Telegram session:", data.error);
+                setError("Помилка перевірки сесії Telegram");
+            } else {
+                console.log("Telegram session valid");
+            }
+        })
+        .catch(() => {
+            console.error("Validation service unreachable");
+        });
+    }, []);
+
     const handleSecretTap = () => {
         const now = Date.now();
         if (now - lastTap > 1000) {

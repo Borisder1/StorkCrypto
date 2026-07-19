@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useStore } from '../../store';
 import { UserIcon, TrendingUpIcon, ActivityIcon, ShieldIcon, ChevronRightIcon, ZapIcon } from '../icons';
 import { triggerHaptic } from '../../utils/haptics';
@@ -6,6 +6,7 @@ import { CopiedTrader } from '../../types';
 import { TacticalBackground } from '../TacticalBackground';
 import CopyStrategyModal from '../CopyStrategyModal';
 import { HelpIndicator } from '../HelpIndicator';
+import { ResponsiveContainer, AreaChart, Area } from 'recharts';
 
 const TRADERS: CopiedTrader[] = [
     { id: 't1', name: 'Alpha_Centauri', roi: 124.5, tvl: 850000, winRate: 78, riskScore: 4 },
@@ -16,6 +17,20 @@ const TRADERS: CopiedTrader[] = [
 export const SyndicateScreen: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { copiedTraders, stopCopying } = useStore();
     const [selectedTrader, setSelectedTrader] = useState<CopiedTrader | null>(null);
+
+    // Generate deterministic sparklines for each trader
+    const getChartData = (id: string, roi: number) => {
+        return useMemo(() => {
+            const seed = id.charCodeAt(0) + roi;
+            const data = [];
+            let val = 100;
+            for (let i = 0; i < 20; i++) {
+                val += Math.sin(i + seed) * 10 + (Math.random() * 5);
+                data.push({ val });
+            }
+            return data;
+        }, [id, roi]);
+    };
 
     return (
         <div className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden animate-fade-in h-[100dvh] w-full">
@@ -57,11 +72,29 @@ export const SyndicateScreen: React.FC<{ onClose: () => void }> = ({ onClose }) 
                 <div className="space-y-4">
                     {TRADERS.map(trader => {
                         const isCopying = copiedTraders.some(t => t.id === trader.id);
+                        const chartData = getChartData(trader.id, trader.roi);
+                        
                         return (
-                            <div key={trader.id} className={`bg-brand-card/60 border rounded-3xl p-5 transition-all duration-300 ${isCopying ? 'border-brand-green bg-brand-green/5' : 'border-white/5 hover:border-brand-purple/30'}`}>
-                                <div className="flex justify-between items-start mb-6">
+                            <div key={trader.id} className={`bg-brand-card/60 border rounded-[2rem] p-5 transition-all duration-300 relative overflow-hidden group ${isCopying ? 'border-brand-green bg-brand-green/5' : 'border-white/5 hover:border-brand-purple/30'}`}>
+                                
+                                {/* Background Sparkline */}
+                                <div className="absolute bottom-16 left-0 right-0 h-24 opacity-10 pointer-events-none">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <AreaChart data={chartData}>
+                                            <defs>
+                                                <linearGradient id={`grad-${trader.id}`} x1="0" y1="0" x2="0" y2="1">
+                                                    <stop offset="5%" stopColor={isCopying ? '#10b981' : '#8b5cf6'} stopOpacity={0.8}/>
+                                                    <stop offset="95%" stopColor={isCopying ? '#10b981' : '#8b5cf6'} stopOpacity={0}/>
+                                                </linearGradient>
+                                            </defs>
+                                            <Area type="monotone" dataKey="val" stroke={isCopying ? '#10b981' : '#8b5cf6'} fillOpacity={1} fill={`url(#grad-${trader.id})`} />
+                                        </AreaChart>
+                                    </ResponsiveContainer>
+                                </div>
+
+                                <div className="flex justify-between items-start mb-6 relative z-10">
                                     <div className="flex items-center gap-4">
-                                        <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center font-black text-brand-purple text-xl shadow-inner">
+                                        <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center font-black text-brand-purple text-xl shadow-inner backdrop-blur-sm">
                                             {trader.name[0]}
                                         </div>
                                         <div>
@@ -75,16 +108,16 @@ export const SyndicateScreen: React.FC<{ onClose: () => void }> = ({ onClose }) 
                                     </div>
                                 </div>
 
-                                <div className="grid grid-cols-3 gap-2 mb-6">
-                                    <div className="bg-black/40 rounded-xl p-2 text-center border border-white/5">
+                                <div className="grid grid-cols-3 gap-2 mb-6 relative z-10">
+                                    <div className="bg-black/60 backdrop-blur-md rounded-xl p-2 text-center border border-white/5">
                                         <p className="text-[7px] text-slate-500 uppercase font-black mb-1">Win Rate</p>
                                         <p className="text-xs font-mono font-bold text-white">{trader.winRate}%</p>
                                     </div>
-                                    <div className="bg-black/40 rounded-xl p-2 text-center border border-white/5">
+                                    <div className="bg-black/60 backdrop-blur-md rounded-xl p-2 text-center border border-white/5">
                                         <p className="text-[7px] text-slate-500 uppercase font-black mb-1">Risk</p>
                                         <p className={`text-xs font-mono font-bold ${trader.riskScore > 6 ? 'text-brand-danger' : 'text-brand-cyan'}`}>{trader.riskScore}/10</p>
                                     </div>
-                                    <div className="bg-black/40 rounded-xl p-2 text-center border border-white/5">
+                                    <div className="bg-black/60 backdrop-blur-md rounded-xl p-2 text-center border border-white/5">
                                         <p className="text-[7px] text-slate-500 uppercase font-black mb-1">Trades</p>
                                         <p className="text-xs font-mono font-bold text-white">1.2k</p>
                                     </div>
@@ -93,14 +126,14 @@ export const SyndicateScreen: React.FC<{ onClose: () => void }> = ({ onClose }) 
                                 {isCopying ? (
                                     <button 
                                         onClick={() => { triggerHaptic('heavy'); stopCopying(trader.id); }}
-                                        className="w-full py-4 bg-brand-danger/10 border border-brand-danger/30 text-brand-danger font-black font-orbitron rounded-2xl text-[10px] uppercase tracking-widest hover:bg-brand-danger/20 transition-all"
+                                        className="w-full py-4 bg-brand-danger/10 border border-brand-danger/30 text-brand-danger font-black font-orbitron rounded-2xl text-[10px] uppercase tracking-widest hover:bg-brand-danger/20 transition-all relative z-10"
                                     >
                                         Terminate Connection
                                     </button>
                                 ) : (
                                     <button 
                                         onClick={() => { triggerHaptic('medium'); setSelectedTrader(trader); }}
-                                        className="w-full py-4 bg-brand-purple text-white font-black font-orbitron rounded-2xl text-[10px] uppercase tracking-widest shadow-xl hover:shadow-brand-purple/20 transition-all active:scale-95"
+                                        className="w-full py-4 bg-brand-purple text-white font-black font-orbitron rounded-2xl text-[10px] uppercase tracking-widest shadow-xl hover:shadow-brand-purple/20 transition-all active:scale-95 relative z-10"
                                     >
                                         Deploy Neural Mirror
                                     </button>

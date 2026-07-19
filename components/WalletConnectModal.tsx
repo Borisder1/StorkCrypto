@@ -26,16 +26,16 @@ const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] grid place-items-center p-4 overflow-hidden overscroll-none touch-none"
+            className="fixed inset-0 z-[120] flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
         >
-            <div className="fixed inset-0 bg-black/95 backdrop-blur-md animate-fade-in touch-none" onClick={onClose}></div>
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
             
             <motion.div 
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="relative z-10 w-full max-w-sm bg-[#020617] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_80px_rgba(0,217,255,0.15)] flex flex-col"
+                className="relative z-10 w-full max-w-sm bg-[#020617] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_80px_rgba(0,217,255,0.15)] flex flex-col my-auto max-h-[90vh] sm:max-h-[85vh]"
             >
                 
                 {/* Header Section */}

@@ -10,10 +10,18 @@ export default defineConfig(({ mode }) => {
         port: 3000,
         host: '0.0.0.0',
         proxy: {
-          '/api/nvidia': {
-            target: 'https://integrate.api.nvidia.com',
+          '/api/chat': {
+            target: 'https://integrate.api.nvidia.com/v1/chat/completions',
             changeOrigin: true,
-            rewrite: (path) => path.replace(/^\/api\/nvidia/, ''),
+            rewrite: (path) => '',
+            configure: (proxy, options) => {
+              proxy.on('proxyReq', (proxyReq, req, res) => {
+                const rawKey = env.VITE_NVIDIA_API_KEY || env.NVIDIA_API_KEY || '';
+                const keys = rawKey.split(',').map(k => k.trim()).filter(k => k);
+                const key = keys.length > 0 ? keys[Math.floor(Math.random() * keys.length)] : '';
+                proxyReq.setHeader('Authorization', `Bearer ${key}`);
+              });
+            }
           }
         }
       },

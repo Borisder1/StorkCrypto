@@ -144,7 +144,8 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
             active: false, whaleThreshold: 500000, trackWhales: true, trackVolatility: true, trackSentiment: false, 
             notifyExpiringPack: true, notifyBreakingNews: true, // NEW DEFAULTS
             quietHoursStart: '23:00', quietHoursEnd: '07:00' 
-        }
+        },
+        telegramStars: 500
     },
     
     checkTrialStatus: () => set(state => ({ userStats: { ...state.userStats, trialActive: new Date() < new Date(state.userStats.trialEndsAt) } })),
@@ -334,5 +335,48 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     adminBroadcast: null,
     sendBroadcast: (message, type) => { set({ adminBroadcast: { message, type, id: Date.now().toString() } }); },
     marketRegime: 'BULL_TREND',
-    updateMarketRegime: (regime) => set({ marketRegime: regime })
+    updateMarketRegime: (regime) => set({ marketRegime: regime }),
+    buyMiningBoost: () => {
+        const state = get();
+        const currentStars = state.userStats.telegramStars ?? 500;
+        const cost = 250;
+        if (currentStars < cost) {
+            get().showToast('Недостатньо Telegram Stars!');
+            return;
+        }
+        const newStars = currentStars - cost;
+        const newRate = state.userStats.mining.miningRate + 0.01;
+        set(s => ({
+            userStats: {
+                ...s.userStats,
+                telegramStars: newStars,
+                mining: {
+                    ...s.userStats.mining,
+                    miningRate: newRate
+                }
+            }
+        }));
+        get().showToast('Генератор прискорено: +0.01 STORK/сек');
+        get().grantXp(150, 'Mining Booster Upgraded');
+    },
+    buyStars: (starsAmount) => {
+        const state = get();
+        // $10 values 500 Stars, $20 values 1000 Stars, etc.
+        const usdCost = starsAmount * 0.02; 
+        const currentDemoBalance = state.userStats.demoBalance;
+        if (currentDemoBalance < usdCost) {
+            get().showToast('Недостатньо паперового балансу!');
+            return;
+        }
+        const currentStars = state.userStats.telegramStars ?? 500;
+        set(s => ({
+            userStats: {
+                ...s.userStats,
+                demoBalance: currentDemoBalance - usdCost,
+                telegramStars: currentStars + starsAmount
+            }
+        }));
+        get().showToast(`Придбано +${starsAmount} Telegram Stars`);
+        get().grantXp(50, 'Stars Purchased');
+    }
 });

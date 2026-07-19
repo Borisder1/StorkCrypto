@@ -32,7 +32,7 @@ const HashLog: React.FC = () => {
 };
 
 const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
-    const { userStats, claimMining, completeAirdropTask, settings, showToast, setShowReferral } = useStore();
+    const { userStats, claimMining, completeAirdropTask, settings, showToast, setShowReferral, buyMiningBoost, buyStars } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
     
     const [currentTime, setCurrentTime] = useState(Date.now());
@@ -113,27 +113,29 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed inset-0 z-[150] bg-black/95 backdrop-blur-md flex flex-col items-center overflow-hidden"
+            className="fixed inset-0 z-[150] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full"
         >
             
             {/* Header */}
-            <div className="w-full p-6 border-b border-white/5 flex justify-between items-center bg-brand-card/50 relative z-10 shrink-0">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center">
-                        <PickaxeIcon className="w-5 h-5 text-brand-cyan animate-pulse" />
-                    </div>
+            <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => { triggerHaptic('light'); onClose(); }}
+                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
+                    >
+                        <ChevronRightIcon className="w-6 h-6 rotate-180" />
+                    </button>
                     <div>
-                        <div className="flex items-center gap-1.5">
-                            <h2 className="font-orbitron font-black text-base sm:text-lg text-white uppercase tracking-widest">{t('airdrop.mining_hub')}</h2>
+                        <div className="flex items-center gap-2">
+                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">{t('airdrop.mining_hub')}</h1>
                             <HelpIndicator id="airdrop_terminal" />
                         </div>
-                        <p className="text-[9px] text-slate-500 font-mono">{t('airdrop.neural_hash')}: {mining.miningRate.toFixed(2)} / SEC</p>
+                        <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('airdrop.neural_hash')}: {mining.miningRate.toFixed(2)} / SEC</p>
                     </div>
                 </div>
-                <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors">✕</button>
             </div>
 
-            <div className="flex-1 w-full max-w-lg overflow-y-auto custom-scrollbar p-6 space-y-8 relative z-0">
+            <div className="flex-1 w-full sm:max-w-md mx-auto overflow-y-auto no-scrollbar p-6 space-y-8 relative z-0">
                 
                 {/* MINING MONITOR */}
                 <div className="bg-brand-card/30 border border-brand-cyan/30 rounded-[2.5rem] p-8 text-center relative overflow-hidden shadow-[0_0_50px_rgba(0,217,255,0.1)]">
@@ -183,6 +185,67 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                         <p className="text-xl font-black text-white font-mono">{userStats.storkBalance.toFixed(2)} $STORK</p>
                     </div>
                     <GiftIcon className="w-8 h-8 text-brand-purple opacity-50" />
+                </div>
+
+                {/* TELEGRAM STARS & NEURAL CORE UPGRADES (PHASE 3) */}
+                <div className="bg-brand-card/40 border border-brand-purple/30 rounded-[2rem] p-6 relative overflow-hidden shadow-[0_0_35px_rgba(139,92,246,0.15)]">
+                    <div className="absolute top-0 right-0 w-24 h-24 bg-brand-purple/5 blur-xl rounded-full pointer-events-none"></div>
+                    
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <span className="text-[9px] font-black font-orbitron tracking-widest text-brand-purple uppercase">PHASE 3: ECONOMIC PROTOCOL</span>
+                            <h3 className="text-white font-black text-base uppercase font-orbitron tracking-tight mt-1">TELEGRAM STARS HUB</h3>
+                        </div>
+                        <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/30 px-4 py-2 rounded-2xl">
+                            <svg className="w-4 h-4 text-yellow-400 drop-shadow-[0_0_6px_rgba(250,204,21,0.5)]" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <span className="text-base font-black text-white font-orbitron">{userStats.telegramStars ?? 500}</span>
+                        </div>
+                    </div>
+
+                    <p className="text-[10px] text-slate-300 font-sans leading-relaxed mb-6">
+                        Використовуйте нативну валюту Telegram Stars для розширення потужностей майнінгу та розблокування високоточних сигналів Whale рівня (Sniper Mode).
+                    </p>
+
+                    <div className="grid grid-cols-2 gap-3">
+                        {/* Boost Buy Button */}
+                        <div className="bg-black/40 border border-white/5 p-4 rounded-2xl flex flex-col justify-between hover:border-brand-purple/50 transition-all">
+                            <div>
+                                <h4 className="text-[10px] font-black text-white uppercase tracking-wider font-orbitron">CORE ACCELERATION</h4>
+                                <p className="text-[8px] text-slate-500 mt-1 font-mono">Швидкість: +0.01 STORK/sec</p>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    triggerHaptic('medium');
+                                    buyMiningBoost();
+                                }}
+                                className="mt-4 w-full py-2.5 bg-brand-purple text-white text-[9px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_15px_#8b5cf6] transition-all flex items-center justify-center gap-1.5"
+                            >
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                </svg>
+                                250 STARS
+                            </button>
+                        </div>
+
+                        {/* Top-up Stars Button */}
+                        <div className="bg-black/40 border border-white/5 p-4 rounded-2xl flex flex-col justify-between hover:border-brand-cyan/50 transition-all">
+                            <div>
+                                <h4 className="text-[10px] font-black text-white uppercase tracking-wider font-orbitron">TOP-UP STARS</h4>
+                                <p className="text-[8px] text-slate-500 mt-1 font-mono">Купити за паперові USD</p>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    triggerHaptic('medium');
+                                    buyStars(500);
+                                }}
+                                className="mt-4 w-full py-2.5 bg-brand-cyan text-black text-[9px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_15px_#00d9ff] transition-all flex items-center justify-center gap-1"
+                            >
+                                <span className="font-mono">$10</span> BUY 500 ⭐
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 {/* TASKS LIST */}

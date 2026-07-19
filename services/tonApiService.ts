@@ -4,6 +4,16 @@
 
 const BASE_URL = 'https://tonapi.io/v2';
 
+const getTonApiHeaders = () => {
+    const rawKeys = import.meta.env.VITE_TONAPI_KEYS || '';
+    const keys = rawKeys.split(',').map(k => k.trim()).filter(k => k);
+    if (keys.length > 0) {
+        const key = keys[Math.floor(Math.random() * keys.length)];
+        return { 'Authorization': `Bearer ${key}` };
+    }
+    return {};
+};
+
 export interface JettonBalance {
     balance: string;
     wallet_address: {
@@ -31,7 +41,7 @@ export interface JettonBalance {
 export const tonApiService = {
     async getNativeBalance(address: string): Promise<number> {
         try {
-            const res = await fetch(`${BASE_URL}/accounts/${address}`);
+            const res = await fetch(`${BASE_URL}/accounts/${address}`, { headers: getTonApiHeaders() });
             if (!res.ok) {
                 console.warn(`[TonAPI] Native Balance Fetch Failed: ${res.status}`);
                 return 0;
@@ -47,7 +57,7 @@ export const tonApiService = {
     async getJettons(address: string): Promise<JettonBalance[]> {
         try {
             // Include supported_currencies to get prices directly if supported
-            const res = await fetch(`${BASE_URL}/accounts/${address}/jettons?currencies=usd`);
+            const res = await fetch(`${BASE_URL}/accounts/${address}/jettons?currencies=usd`, { headers: getTonApiHeaders() });
             if (!res.ok) {
                 console.warn(`[TonAPI] Jettons Fetch Failed: ${res.status}`);
                 return [];

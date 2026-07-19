@@ -1,10 +1,29 @@
 
 import { AssetMetrics, MarketPriceMap } from '../types';
 
-const BINANCE_API_URL = 'https://api.binance.com/api/v3';
+const BINANCE_API_URLS = [
+    'https://api.binance.com/api/v3',
+    'https://api1.binance.com/api/v3',
+    'https://api2.binance.com/api/v3',
+    'https://api3.binance.com/api/v3',
+    'https://api4.binance.com/api/v3'
+];
+const getBinanceUrl = () => BINANCE_API_URLS[Math.floor(Math.random() * BINANCE_API_URLS.length)];
+
 const COINCAP_API_URL = 'https://api.coincap.io/v2';
 // Free Fear & Greed API
 const FEAR_GREED_API_URL = 'https://api.alternative.me/fng/?limit=1';
+
+// Dynamic API Key Rotation for CoinCap if provided
+const getCoinCapHeaders = () => {
+    const rawKeys = import.meta.env.VITE_COINCAP_API_KEYS || '';
+    const keys = rawKeys.split(',').map(k => k.trim()).filter(k => k);
+    if (keys.length > 0) {
+        const key = keys[Math.floor(Math.random() * keys.length)];
+        return { 'Authorization': `Bearer ${key}` };
+    }
+    return {};
+};
 
 export interface OrderBookData {
     bids: [number, number][]; // [price, quantity]
@@ -14,7 +33,7 @@ export interface OrderBookData {
 export const getOrderBook = async (ticker: string, limit: number = 20): Promise<OrderBookData | null> => {
     try {
         const symbol = `${ticker}USDT`;
-        const response = await fetch(`${BINANCE_API_URL}/depth?symbol=${symbol}&limit=${limit}`);
+        const response = await fetch(`${getBinanceUrl()}/depth?symbol=${symbol}&limit=${limit}`);
         if (response.ok) {
             const data = await response.json();
             return {
@@ -115,7 +134,7 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
     try {
         // 2. Спроба Binance (Найшвидший)
         const binanceSymbols = MASTER_ASSET_LIST.slice(0, 8).map(a => `"${a.ticker}USDT"`).join(',');
-        const bResp = await fetch(`${BINANCE_API_URL}/ticker/24hr?symbols=[${binanceSymbols}]`).catch(() => null);
+        const bResp = await fetch(`${getBinanceUrl()}/ticker/24hr?symbols=[${binanceSymbols}]`).catch(() => null);
         
         if (bResp && bResp.ok) {
             const bData = await bResp.json();
@@ -134,7 +153,7 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
         }
 
         // 3. Спроба Coincap (Fallback для всіх інших монет)
-        const cResp = await fetch(`${COINCAP_API_URL}/assets?limit=100`).catch(() => null);
+        const cResp = await fetch(`${COINCAP_API_URL}/assets?limit=100`, { headers: getCoinCapHeaders() }).catch(() => null);
         if (cResp && cResp.ok) {
             const cData = await cResp.json();
             cData.data.forEach((coin: any) => {
@@ -233,7 +252,7 @@ export const getOHLCData = async (id: string, timeframe: string = '1'): Promise<
     
     try {
         let symbol = `${ticker}USDT`;
-        const response = await fetch(`${BINANCE_API_URL}/klines?symbol=${symbol}&interval=1h&limit=50`).catch(() => null);
+        const response = await fetch(`${getBinanceUrl()}/klines?symbol=${symbol}&interval=1h&limit=50`).catch(() => null);
         if (response && response.ok) {
             const raw = await response.json();
             return raw.map((d: any) => ({ 

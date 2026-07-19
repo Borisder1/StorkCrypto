@@ -42,10 +42,10 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, totalValue, totalPnL, 
     };
 
     return (
-        <div className="fixed inset-0 z-[80] grid place-items-center p-6 overflow-hidden overscroll-none touch-none">
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-lg animate-fade-in touch-none" onClick={onClose}></div>
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-6 overflow-y-auto overscroll-contain">
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-lg animate-fade-in" onClick={onClose}></div>
             
-            <div className="relative z-10 w-full max-w-sm animate-zoom-in max-h-[90dvh] flex flex-col justify-center">
+            <div className="relative z-10 w-full max-w-sm animate-zoom-in max-h-[90vh] sm:max-h-[85vh] flex flex-col justify-center my-auto">
                 
                 <div className="bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] relative transform transition-transform hover:scale-[1.01]">
                     <div className="absolute inset-0 bg-cyber-grid opacity-20"></div>

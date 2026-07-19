@@ -284,21 +284,21 @@ const QUIZZES: Record<Language, Record<string, { question: string; options: stri
         hns: { question: "Який тип патерну 'Голова і Плечі'?", options: ["Патерн розвороту", "Патерн продовження тренду"], answer: "Патерн розвороту" },
         bullflag: { question: "Бичачий Прапор сигналізує про:", options: ["Продовження росту", "Розворот тренду вниз"], answer: "Продовження росту" },
         fomo: { question: "Що означає FOMO?", options: ["Страх втраченої вигоди", "Швидке виконання ордерів"], answer: "Страх втраченої вигоди" },
-        fud: { question: "Що зазвичай провокує FUD?", options: ["Панічні продажі", "Раціональне тримання"], answer: "Панічні продажі" },
-        seedphrase: { question: "Кому можна повідомляти сід-фразу?", options: ["Нікому", "Службі підтримки"], answer: "Нікому" },
-        coldwallet: { question: "Де зберігаються ключі холодного гаманця?", options: ["Офлайн в пристрої", "Онлайн у хмарі"], answer: "Офлайн в пристрої" }
+        fud: { question: "Що зазвичай провокує FUD?", options: ["Панічні продажі", "Раціональне утримання"], answer: "Панічні продажі" },
+        seedphrase: { question: "З ким можна ділитися сід-фразою?", options: ["Ні з ким", "Підтримка StorkCrypto"], answer: "Ні з ким" },
+        coldwallet: { question: "Де зберігає приватні ключі Холодний Гаманець?", options: ["Офлайн на пристрої", "Онлайн в хмарі"], answer: "Офлайн на пристрої" }
     },
     pl: {
-        rsi: { question: "Czy RSI > 70 oznacza wykupienie czy wyprzedanie?", options: ["Wykupienie", "Wyprzedanie"], answer: "Wykupienie" },
-        macd: { question: "Co sugeruje Złoty Krzyż?", options: ["Wejście (wzrost)", "Wyjście (spadek)"], answer: "Wejście (wzrost)" },
+        rsi: { question: "Czy RSI > 70 oznacza Wykupienie czy Wyprzedanie?", options: ["Wykupienie", "Wyprzedanie"], answer: "Wykupienie" },
+        macd: { question: "Co sugeruje Złoty Krzyż?", options: ["Wejście (Bullish)", "Wyjście (Bearish)"], answer: "Wejście (Bullish)" },
         ob: { question: "Czym jest Order Block (OB)?", options: ["Silnym wsparciem/oporem", "Nieistotnym punktem"], answer: "Silnym wsparciem/oporem" },
-        fvg: { question: "Co reprezentuje FVG?", options: ["Luka cenowa / nierównowaga", "Idealny wolumen"], answer: "Luka cenowa / nierównowaga" },
-        hns: { question: "Formacja Głowy i Ramion jest formacją:", options: ["Odwrócenia", "Kontynuacji"], answer: "Odwrócenia" },
-        bullflag: { question: "Flaga Byka to formacja:", options: ["Kontynuacji trendu", "Odwrócenia trendu"], answer: "Kontynuacji trendu" },
-        fomo: { question: "Co oznacza FOMO?", options: ["Strach przed pominięciem", "Szybka analiza rynku"], answer: "Strach przed pominięciem" },
-        fud: { question: "Co zazwyczaj wywołuje FUD?", options: ["Paniczną sprzedaż", "Spokojne trzymanie"], answer: "Paniczną sprzedaż" },
-        seedphrase: { question: "Komu możesz podać frazę seed?", options: ["Nikomu", "Pomocy technicznej"], answer: "Nikomu" },
-        coldwallet: { question: "Gdzie są zapisane klucze zimnego portfela?", options: ["Offline", "Online w chmurze"], answer: "Offline" }
+        fvg: { question: "Co FVG reprezentuje w akcji cenowej?", options: ["Nierównowagę cenową / Lukę", "Idealny bilans wolumenu"], answer: "Nierównowagę cenową / Lukę" },
+        hns: { question: "Jakim typem formacji jest Głowa z Ramionami?", options: ["Odwrócenia", "Kontynuacji"], answer: "Odwrócenia" },
+        bullflag: { question: "W jakim kierunku sugeruje ruch Flaga Byka?", options: ["Kontynuacja wzrostów", "Odwrócenie spadków"], answer: "Kontynuacja wzrostów" },
+        fomo: { question: "Co oznacza skrót FOMO?", options: ["Strach przed pominięciem", "Zlecenie opcji rynkowych"], answer: "Strach przed pominięciem" },
+        fud: { question: "Co zazwyczaj wywołuje FUD u inwestorów?", options: ["Paniczną sprzedaż", "Racjonalny HODLing"], answer: "Paniczną sprzedaż" },
+        seedphrase: { question: "Komu powinieneś udostępnić frazę seed?", options: ["Nikomu", "Wsparciu StorkCrypto"], answer: "Nikomu" },
+        coldwallet: { question: "Gdzie zimny portfel przechowuje klucze prywatne?", options: ["Offline na urządzeniu", "Online w chmurze"], answer: "Offline na urządzeniu" }
     }
 };
 
@@ -337,7 +337,7 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden overscroll-none"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
         >
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
             
@@ -346,7 +346,7 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="relative z-10 w-full max-w-lg bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[85dvh]"
+                className="relative z-10 w-full max-w-lg bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[90vh] sm:max-h-[85vh] my-auto"
             >
                 
                 {/* Header */}

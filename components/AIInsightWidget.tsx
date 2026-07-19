@@ -5,6 +5,7 @@ import { generateProactiveInsight, playAudio } from '../services/geminiService';
 import { useStore } from '../store';
 import { triggerHaptic } from '../utils/haptics';
 import PortfolioAuditModal from './PortfolioAuditModal';
+import { getTranslation } from '../utils/translations';
 
 const TypewriterText: React.FC<{ text: string; onComplete?: () => void }> = ({ text, onComplete }) => {
     const [displayedText, setDisplayedText] = useState('');
@@ -26,7 +27,8 @@ const TypewriterText: React.FC<{ text: string; onComplete?: () => void }> = ({ t
 };
 
 const AIInsightWidget: React.FC = () => {
-    const { assets, navigateTo } = useStore();
+    const { assets, navigateTo, settings } = useStore();
+    const t = (key: string) => getTranslation(settings.language, key);
     const [insight, setInsight] = useState<{type: string, text: string} | null>(null);
     const [visible, setVisible] = useState(false);
     const [showAudit, setShowAudit] = useState(false);
@@ -77,7 +79,7 @@ const AIInsightWidget: React.FC = () => {
                     <div className="flex items-center gap-2">
                         <BotIcon className={`w-4 h-4 ${isAlert ? 'text-red-500 animate-pulse' : 'text-brand-cyan'}`} />
                         <span className={`text-[10px] font-black font-orbitron uppercase tracking-widest ${isAlert ? 'text-red-400' : 'text-brand-cyan'}`}>
-                            {isAlert ? 'CRITICAL_ALERT' : 'NEURAL_INSIGHT'}
+                            {isAlert ? 'CRITICAL_ALERT' : (t('insight.title') || 'NEURAL_INSIGHT')}
                         </span>
                     </div>
                     <div className="flex gap-2">

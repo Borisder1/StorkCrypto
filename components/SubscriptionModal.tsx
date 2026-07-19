@@ -18,7 +18,7 @@ const StarIcon: React.FC<{className?: string}> = ({className}) => (
 );
 
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
-    const { settings, showToast, requestSubscriptionAction, userStats, upgradeUserTier } = useStore();
+    const { settings, showToast, requestSubscriptionAction, userStats, upgradeUserTier, updateUserStats } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
     
     const [step, setStep] = useState<'SELECT' | 'PAY' | 'REDIRECT' | 'VERIFY'>('SELECT');
@@ -39,31 +39,29 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
     const handleStarsPayment = async () => {
         triggerHaptic('heavy');
         
-        // @ts-ignore
-        const tg = window.Telegram?.WebApp;
-        if (!tg || !tg.openInvoice) {
-            showToast(t('sub.tg_unavailable'));
+        const planPrice = plans.find(p => p.id === selectedPlan)?.price || 0;
+        const starsCost = getPriceInStars(planPrice);
+        const currentStars = userStats.telegramStars ?? 500;
+
+        if (currentStars < starsCost) {
+            showToast(`Недостатньо Telegram Stars (потрібно ${starsCost} ⭐). Поповніть баланс у вкладці 'Майнінг'!`);
+            triggerHaptic('error');
             return;
         }
 
         setStep('REDIRECT');
 
         try {
-            // В реальному застосунку ви отримуєте цей URL від вашого бота/бекенда
-            // Тут ми симулюємо запит до бекенда
             await new Promise(r => setTimeout(r, 1000));
             
-            // Наприклад: const invoiceUrl = await fetchInvoiceFromBot(selectedPlan);
-            // Для демонстрації ми показуємо як викликати нативне вікно:
-            // tg.openInvoice(invoiceUrl, (status) => { ... });
-
             // Оскільки ми в пісочниці, симулюємо успіх після "закриття" вікна
             setTimeout(() => {
                 setStep('VERIFY');
                 const mockHash = 'STARS_' + Math.random().toString(36).substring(7).toUpperCase();
                 setTxHash(mockHash);
                 
-                // Автоматично активуємо Tier для демонстрації успіху
+                // Deduct stars and upgrade user tier
+                updateUserStats({ telegramStars: currentStars - starsCost });
                 if (selectedPlan) upgradeUserTier(selectedPlan);
                 showToast(t('sub.payment_success'));
             }, 2000);
@@ -94,7 +92,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto overscroll-contain"
         >
             <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose}></div>
 
@@ -103,7 +101,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="relative z-10 w-full sm:max-w-md bg-brand-bg rounded-t-[2.5rem] sm:rounded-[2.5rem] border-t sm:border border-white/10 shadow-[0_-10px_60px_rgba(139,92,246,0.3)] flex flex-col max-h-[90vh] overflow-hidden"
+                className="relative z-10 w-full sm:max-w-md bg-brand-bg rounded-t-[2.5rem] sm:rounded-[2.5rem] border-t sm:border border-white/10 shadow-[0_-10px_60px_rgba(139,92,246,0.3)] flex flex-col max-h-[90vh] overflow-hidden sm:my-auto"
             >
                 
                 <div className="shrink-0 px-6 py-5 text-center border-b border-white/5 relative bg-brand-card/50">

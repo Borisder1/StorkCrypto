@@ -86,9 +86,10 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
     // Question Generator based on localized database
     const generateQuestion = (t: AcademyTerm) => {
         if (t.category === 'PATTERNS') {
-            const isBullWord = t.term.includes('Bull') || t.term.includes('Bottom') || t.term.includes('Cup') || t.term.includes('Бичачий') || t.term.includes('Дно') || t.term.includes('Чашка') || t.term.includes('Flaga') || t.term.includes('Wstęgi');
+            const safeTerm = t.term || '';
+            const isBullWord = safeTerm.includes('Bull') || safeTerm.includes('Bottom') || safeTerm.includes('Cup') || safeTerm.includes('Бичачий') || safeTerm.includes('Дно') || safeTerm.includes('Чашка') || safeTerm.includes('Flaga') || safeTerm.includes('Wstęgi');
             return {
-                q: dict['q_pattern'].replace('{term}', t.term),
+                q: dict['q_pattern'].replace('{term}', safeTerm),
                 options: [
                     { text: dict['opt_indecision'], correct: false },
                     { text: isBullWord ? dict['opt_bullish'] : dict['opt_bearish'], correct: true },
@@ -98,7 +99,7 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
         }
         if (t.category === 'TECHNICAL') {
             return {
-                q: dict['q_technical'].replace('{term}', t.term),
+                q: dict['q_technical'].replace('{term}', t.term || ''),
                 options: [
                     { text: dict['opt_tech_use'], correct: true },
                     { text: dict['opt_tech_news'], correct: false },
@@ -107,7 +108,7 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
             };
         }
         return {
-            q: dict['q_other'].replace('{term}', t.term),
+            q: dict['q_other'].replace('{term}', t.term || ''),
             options: [
                 { text: dict['opt_other_irrelevant'], correct: false },
                 { text: dict['opt_other_risk'], correct: true },
@@ -148,10 +149,10 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[150] grid place-items-center p-6 touch-none">
+        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 overflow-y-auto overscroll-contain">
             <div className="absolute inset-0 bg-black/95 backdrop-blur-xl animate-fade-in" onClick={onClose}></div>
             
-            <div className="relative z-10 w-full max-w-sm bg-brand-card border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(0,217,255,0.2)] animate-zoom-in">
+            <div className="relative z-10 w-full max-w-sm bg-brand-card border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(0,217,255,0.2)] animate-zoom-in my-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col">
                 
                 {/* Header */}
                 <div className="p-6 text-center border-b border-white/5 relative overflow-hidden">

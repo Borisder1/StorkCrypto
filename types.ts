@@ -103,6 +103,7 @@ export interface UserStats {
     mining: MiningStats;
     tasks: AirdropTask[];
     sentinel: SentinelConfig;
+    telegramStars?: number;
 }
 
 export interface ShadowTrade {
@@ -482,6 +483,8 @@ export interface AppSlice {
     sendBroadcast: (message: string, type: 'INFO' | 'ALERT' | 'SUCCESS') => void;
     marketRegime: string;
     updateMarketRegime: (regime: string) => void;
+    buyMiningBoost: () => void;
+    buyStars: (starsAmount: number) => void;
 }
 
 export type StoreState = AuthSlice & TradeSlice & AppSlice;

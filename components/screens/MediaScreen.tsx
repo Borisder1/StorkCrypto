@@ -25,7 +25,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
     const filteredItems = (currentContent || []).filter(item => {
         const matchesFilter = item.category === filter;
-        const matchesSearch = item.term?.toLowerCase().includes(search.toLowerCase());
+        const matchesSearch = (item.term || '').toLowerCase().includes((search || '').toLowerCase());
         return matchesFilter && matchesSearch;
     });
 

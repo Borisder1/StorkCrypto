@@ -40,13 +40,13 @@ const RoadmapModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const progress = (completedCount / ROADMAP_DATA.length) * 100;
 
     return (
-        <div className="fixed inset-0 z-[100] grid place-items-center p-4 overflow-hidden overscroll-none touch-none">
-            <div className="fixed inset-0 bg-black/90 backdrop-blur-lg animate-fade-in touch-none" onClick={onClose}></div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto overscroll-contain">
+            <div className="fixed inset-0 bg-black/90 backdrop-blur-lg animate-fade-in" onClick={onClose}></div>
             
-            <div className="relative z-10 w-full max-w-lg bg-brand-bg border border-brand-border rounded-3xl shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[85dvh] overflow-hidden animate-zoom-in">
+            <div className="relative z-10 w-full max-w-lg bg-brand-bg border border-brand-border rounded-3xl shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[90vh] sm:max-h-[85vh] overflow-hidden animate-zoom-in my-auto">
                 
                 {/* Header */}
-                <div className="p-5 border-b border-brand-border bg-brand-card relative z-10 shrink-0 touch-none">
+                <div className="p-5 border-b border-brand-border bg-brand-card relative z-10 shrink-0">
                     <div className="flex justify-between items-center mb-4">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 bg-brand-cyan/10 rounded-lg flex items-center justify-center border border-brand-cyan/30">

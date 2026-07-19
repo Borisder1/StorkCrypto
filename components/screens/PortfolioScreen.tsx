@@ -15,6 +15,7 @@ import UpgradeBanner from '../UpgradeBanner';
 import Skeleton from '../Skeleton';
 import { PortfolioDistributionChart } from '../PortfolioDistributionChart';
 import { HelpIndicator } from '../HelpIndicator';
+import { TonConnectButton } from '@tonconnect/ui-react';
 
 // OPTIMIZATION: Memoized component to prevent re-renders on parent state changes
 const AssetEntry = React.memo(({ asset, totalPortfolioValue, t }: { asset: Asset, totalPortfolioValue: number, t: (key: string) => string }) => {
@@ -158,8 +159,10 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                             </div>
                         </div>
                     </div>
-                    {balanceType === 'MAINNET' && !wallet.isConnected && (
-                        <p className="text-[10px] text-red-400 mt-2 font-mono bg-red-900/20 inline-block px-2 py-1 rounded">{t('portfolio.wallet_disconnected')}</p>
+                    {balanceType === 'MAINNET' && (
+                        <div className="mt-4 flex justify-center">
+                            <TonConnectButton />
+                        </div>
                     )}
                 </div>
 

@@ -1,12 +1,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useStore } from '../store';
-import { StorkIcon, ArrowDownLeftIcon, ShieldIcon, ActivityIcon, ArrowUpRightIcon } from './icons';
+import { StorkIcon, ArrowDownLeftIcon, ShieldIcon, ActivityIcon, ArrowUpRightIcon, ChevronRightIcon } from './icons';
 import { getTranslation } from '../utils/translations';
 import { triggerHaptic } from '../utils/haptics';
 import { getCryptoPrices } from '../services/priceService';
 import { useScrollLock } from '../utils/useScrollLock';
 import { useTonConnectUI, SendTransactionRequest } from '@tonconnect/ui-react';
+import { HelpIndicator } from './HelpIndicator';
 
 const SwapModal: React.FC = () => {
     const { swapState, closeSwap, executeSwap, settings, wallet } = useStore();
@@ -111,15 +112,26 @@ const SwapModal: React.FC = () => {
     if (!swapState.isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-end sm:items-center justify-center">
-            <div className="absolute inset-0 bg-black/95 backdrop-blur-md animate-fade-in" onClick={closeSwap}></div>
-            <div className="relative z-10 w-full sm:max-w-md bg-brand-bg border-t sm:border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col animate-slide-up-mobile">
-                <div className="p-6 flex justify-between items-center border-b border-white/5">
-                    <h2 className="font-orbitron font-black text-lg text-white tracking-widest uppercase">SWAP_TERMINAL</h2>
-                    <button onClick={closeSwap} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400">✕</button>
+        <div className="fixed inset-0 z-[150] bg-brand-bg flex flex-col overflow-hidden animate-fade-in h-[100dvh] w-full">
+            <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
+                <div className="flex items-center gap-4">
+                    <button 
+                        onClick={() => { triggerHaptic('light'); closeSwap(); }}
+                        className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
+                    >
+                        <ChevronRightIcon className="w-6 h-6 rotate-180" />
+                    </button>
+                    <div>
+                        <div className="flex items-center gap-2">
+                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">{t('swap.title') || 'SWAP_TERMINAL'}</h1>
+                        </div>
+                        <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('swap.subtitle') || 'DEX Aggregator'}</p>
+                    </div>
                 </div>
+            </div>
 
-                <div className="p-6 space-y-4">
+            <div className="flex-1 overflow-y-auto no-scrollbar p-6 relative z-10 flex flex-col items-center justify-start sm:justify-center">
+                <div className="w-full sm:max-w-md bg-brand-card/60 border border-white/10 rounded-[2.5rem] shadow-2xl p-6 space-y-4 my-auto">
                     {stage === 'INPUT' && (
                         <>
                             <div className="bg-black/40 p-5 rounded-3xl border border-white/5">

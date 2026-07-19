@@ -375,58 +375,30 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
 
         const isAIStudio = import.meta.env.DEV || window.location.hostname.includes('run.app') || window.location.hostname === 'localhost';
 
-        if (!isAIStudio) {
-            const response = await fetch('/api/chat', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    model: "minimaxai/minimax-m2.7",
-                    messages: messages,
-                    temperature: config?.temperature || 1,
-                    top_p: 0.95,
-                    max_tokens: config?.maxOutputTokens || 8192,
-                    stream: false
-                })
-            });
+        const response = await fetch('/api/chat', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                model: "minimaxai/minimax-m2.7",
+                messages: messages,
+                temperature: config?.temperature || 1,
+                top_p: 0.95,
+                max_tokens: config?.maxOutputTokens || 8192,
+                stream: false
+            })
+        });
 
-            if (response.ok) {
-                const data = await response.json();
-                let resultText = data.choices?.[0]?.message?.content || "NO_DATA_PACKET";
-                if (config.responseMimeType === 'application/json' && typeof resultText === 'string') return parseCleanJSON(resultText);
-                return resultText;
+        if (response.ok) {
+            const data = await response.json();
+            let resultText = data.choices?.[0]?.message?.content || "NO_DATA_PACKET";
+            const reasoning = data.choices?.[0]?.message?.reasoning_content;
+            if (reasoning) {
+                resultText = `<thinking>\n${reasoning}\n</thinking>\n${resultText}`;
             }
-        } else {
-            const fallbackKey = import.meta.env.VITE_NVIDIA_API_KEY || "";
-            if (fallbackKey && fallbackKey.startsWith("nvapi-") && !fallbackKey.includes("NTu91J")) {
-                const response = await fetch('/api/nvidia/v1/chat/completions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${fallbackKey}`
-                    },
-                    body: JSON.stringify({
-                        model: "minimaxai/minimax-m2.7",
-                        messages: messages,
-                        temperature: config?.temperature || 1,
-                        top_p: 0.95,
-                        max_tokens: config?.maxOutputTokens || 8192,
-                        stream: false
-                    })
-                });
-
-                if (response.ok) {
-                    const data = await response.json();
-                    let resultText = data.choices?.[0]?.message?.content || "NO_DATA_PACKET";
-                    const reasoning = data.choices?.[0]?.message?.reasoning_content;
-                    if (reasoning) {
-                        resultText = `<thinking>\n${reasoning}\n</thinking>\n${resultText}`;
-                    }
-                    if (config.responseMimeType === 'application/json' && typeof resultText === 'string') return parseCleanJSON(resultText);
-                    return resultText;
-                }
-            }
+            if (config.responseMimeType === 'application/json' && typeof resultText === 'string') return parseCleanJSON(resultText);
+            return resultText;
         }
     } catch (e) {
         console.warn("[AI] Cloudflare/Nvidia API call failed quietly. Engaging local deterministic AI engine.");

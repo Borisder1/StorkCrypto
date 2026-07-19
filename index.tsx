@@ -5,6 +5,86 @@ import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
 import { TonConnectUIProvider } from '@tonconnect/ui-react';
 
+// Suppress TON Connect SDK errors that commonly occur in sandbox/iframe environments
+const shouldSuppressError = (msg: string) => {
+    return (
+        msg.includes('TonConnect') ||
+        msg.includes('TON_CONNECT_SDK') ||
+        msg.includes('Bridge error') ||
+        msg.includes('Failed to dispose') ||
+        msg.includes('dispose the resource') ||
+        msg.includes('_TonConnectError') ||
+        msg.includes('unpause') ||
+        msg.includes('Operation aborted') ||
+        msg.includes('isTrusted')
+    );
+};
+
+// Monkey-patch console.error to filter out sandbox TON Connect SDK error outputs
+const originalConsoleError = console.error;
+console.error = function (...args: any[]) {
+    const serialized = args.map(arg => {
+        try {
+            return typeof arg === 'string' ? arg : JSON.stringify(arg);
+        } catch (e) {
+            return String(arg);
+        }
+    }).join(' ');
+
+    if (shouldSuppressError(serialized)) {
+        return;
+    }
+    originalConsoleError.apply(console, args);
+};
+
+// Monkey-patch console.warn to filter out sandbox TON Connect SDK warning outputs
+const originalConsoleWarn = console.warn;
+console.warn = function (...args: any[]) {
+    const serialized = args.map(arg => {
+        try {
+            return typeof arg === 'string' ? arg : JSON.stringify(arg);
+        } catch (e) {
+            return String(arg);
+        }
+    }).join(' ');
+
+    if (shouldSuppressError(serialized)) {
+        return;
+    }
+    originalConsoleWarn.apply(console, args);
+};
+
+window.addEventListener('unhandledrejection', (event) => {
+    const reason = event.reason;
+    if (reason && (
+        String(reason).includes('TonConnect') || 
+        String(reason).includes('TON_CONNECT_SDK') || 
+        String(reason.message).includes('TonConnect') ||
+        String(reason.message).includes('Bridge error') ||
+        String(reason.message).includes('dispose') ||
+        String(reason.message).includes('unpause')
+    )) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+}, true);
+
+window.addEventListener('error', (event) => {
+    const error = event.error;
+    const msg = event.message || '';
+    if (msg.includes('TonConnect') || msg.includes('TON_CONNECT_SDK') || msg.includes('Bridge error') || 
+        (error && (
+            String(error).includes('TonConnect') || 
+            String(error.message).includes('Bridge error') ||
+            String(error.message).includes('dispose') ||
+            String(error.message).includes('unpause')
+        ))
+    ) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+}, true);
+
 console.log("[System] Booting Neural Terminal...");
 
 const rootElement = document.getElementById('root');
