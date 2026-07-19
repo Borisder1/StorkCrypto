@@ -1,5 +1,3 @@
-import crypto from 'node:crypto';
-
 export async function onRequestPost(context) {
   const { request, env } = context;
   
@@ -19,10 +17,38 @@ export async function onRequestPost(context) {
       .map(([key, value]) => `${key}=${value}`)
       .join('\n');
     
-    const secretKey = crypto.createHmac('sha256', 'WebAppData')
-      .update(env.BOT_TOKEN || '').digest();
-    const calculatedHash = crypto.createHmac('sha256', secretKey)
-      .update(dataCheckString).digest('hex');
+    // Use Web Crypto API natively supported in Cloudflare Workers and all modern platforms
+    const encoder = new TextEncoder();
+
+    const hmacSha256 = async (keyBuffer, dataBuffer) => {
+      const cryptoKey = await crypto.subtle.importKey(
+        'raw',
+        keyBuffer,
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign']
+      );
+      const signature = await crypto.subtle.sign(
+        'HMAC',
+        cryptoKey,
+        dataBuffer
+      );
+      return new Uint8Array(signature);
+    };
+
+    const secretKey = await hmacSha256(
+      encoder.encode('WebAppData'),
+      encoder.encode(env.BOT_TOKEN || '')
+    );
+
+    const calculatedHashBuffer = await hmacSha256(
+      secretKey,
+      encoder.encode(dataCheckString)
+    );
+
+    const calculatedHash = Array.from(calculatedHashBuffer)
+      .map(b => b.toString(16).padStart(2, '0'))
+      .join('');
     
     if (calculatedHash !== hash) {
       return new Response(JSON.stringify({ error: 'Invalid initData' }), { status: 403 });
