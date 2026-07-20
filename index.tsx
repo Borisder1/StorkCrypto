@@ -92,9 +92,9 @@ const rootElement = document.getElementById('root');
 if (!rootElement) {
   console.error("[System] Critical Failure: Root mount point not found!");
 } else {
-    // ⚡ CRITICAL FIX: Always use the hosted manifest to prevent [TON_CONNECT_SDK] Failed to fetch.
-    // Localhost or file:// URLs cannot be reached by external wallets (Tonkeeper).
-    const MANIFEST_URL = 'https://a310c93f.storkcrypto-app.pages.dev/tonconnect-manifest.json';
+    // ⚡ CRITICAL FIX: Always use a dynamic manifest URL to prevent [TON_CONNECT_SDK] App Manifest Validation Error.
+    // The manifest URL origin MUST match the window.location.origin where the app is running.
+    const MANIFEST_URL = window.location.origin + '/tonconnect-manifest.json';
 
     console.log("[System] Using Manifest:", MANIFEST_URL);
 
