@@ -7,11 +7,20 @@ import { MarketPriceMap } from '../types';
 import { getTranslation } from '../utils/translations';
 
 const MarketTicker: React.FC = React.memo(() => {
-    const { settings } = useStore();
+    const { settings, updateSettings, showToast } = useStore();
     const [prices, setPrices] = useState<MarketPriceMap>({});
     const [source, setSource] = useState<string>('SYNCING');
     
     const t = (key: string) => getTranslation(settings.language, key);
+
+    const toggleSunlightMode = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        const newMode = settings.themeMode === 'daylight' ? 'midnight' : 'daylight';
+        updateSettings({ themeMode: newMode });
+        if (showToast) {
+            showToast(newMode === 'daylight' ? '☀️ Режим "Сонячний день" (Високий контраст)' : '🌙 Нічний режим');
+        }
+    };
 
     useEffect(() => {
         let isMounted = true;
@@ -90,7 +99,17 @@ const MarketTicker: React.FC = React.memo(() => {
                 </div>
             </div>
             
-            <div className="absolute top-0 right-0 w-12 h-full bg-gradient-to-l from-[#020617] to-transparent z-10"></div>
+            <div className="relative z-20 flex items-center pr-2 pl-1 h-full shrink-0 pointer-events-auto">
+                <button 
+                    onClick={toggleSunlightMode}
+                    title="Переключити світлу/темну тему"
+                    className="p-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 text-xs transition-all active:scale-90 flex items-center justify-center shadow-sm"
+                >
+                    {settings.themeMode === 'daylight' ? '☀️' : '🌙'}
+                </button>
+            </div>
+            
+            <div className="absolute top-0 right-0 w-12 h-full bg-gradient-to-l from-[#020617] to-transparent z-10 pointer-events-none"></div>
         </motion.div>
     );
 });

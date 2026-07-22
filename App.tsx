@@ -21,7 +21,8 @@ const THEME_BG_MODES = {
     midnight: '#020617', // Deepest Black/Blue
     twilight: '#0f172a',
     concrete: '#18181b',
-    solar: '#1e293b'
+    solar: '#1e293b',
+    daylight: '#f8fafc' // Outdoor High-Contrast Day Mode
 };
 
 const App: React.FC = () => {
@@ -127,7 +128,7 @@ const App: React.FC = () => {
     if (maintenanceMode && settings?.isAuthenticated) return <MaintenanceScreen />; 
 
     return (
-        <div className="h-[100dvh] w-screen bg-brand-bg text-white overflow-hidden flex flex-col font-sans relative">
+        <div data-theme={settings.themeMode} className="h-[100dvh] w-screen bg-brand-bg text-white overflow-hidden flex flex-col font-sans relative">
             <OfflineIndicator />
             <SimulationManager />
             <WalletListener /> 

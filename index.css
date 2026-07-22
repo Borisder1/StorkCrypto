@@ -50,3 +50,60 @@ input, textarea, .select-text {
 /* Utility for hiding scrollbars */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ☀️ Daylight / Outdoor High-Contrast Theme */
+[data-theme="daylight"] {
+  --app-bg: #f8fafc;
+  --app-text: #0f172a;
+  --app-hint: #475569;
+  --app-link: #0284c7;
+  color-scheme: light;
+}
+
+[data-theme="daylight"] body,
+[data-theme="daylight"] .bg-brand-bg {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+[data-theme="daylight"] .bg-[#020617],
+[data-theme="daylight"] .bg-[#050b14],
+[data-theme="daylight"] .bg-[#020617]\/60,
+[data-theme="daylight"] .bg-[#050b14]\/60,
+[data-theme="daylight"] .bg-brand-card\/40,
+[data-theme="daylight"] .bg-brand-card,
+[data-theme="daylight"] .bg-black\/60,
+[data-theme="daylight"] .bg-black\/80,
+[data-theme="daylight"] .bg-black\/95 {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  color: #0f172a !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
+}
+
+[data-theme="daylight"] .text-white {
+  color: #0f172a !important;
+}
+
+[data-theme="daylight"] .text-slate-300,
+[data-theme="daylight"] .text-slate-400 {
+  color: #334155 !important;
+  font-weight: 600;
+}
+
+[data-theme="daylight"] .text-slate-500 {
+  color: #475569 !important;
+  font-weight: 600;
+}
+
+[data-theme="daylight"] .border-white\/5,
+[data-theme="daylight"] .border-white\/10,
+[data-theme="daylight"] .border-white\/20 {
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="daylight"] .bg-white\/5,
+[data-theme="daylight"] .bg-white\/10 {
+  background-color: #e2e8f0 !important;
+}
+

@@ -452,8 +452,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                 <button 
                                     onClick={() => {
                                         triggerHaptic('selection');
-                                        useStore.getState().showToast(t('profile.connecting_binance'));
-                                        setTimeout(() => useStore.getState().showToast(t('profile.binance_connected')), 1500);
+                                        setShowWalletModal(true);
                                     }} 
                                     className={`w-full py-3 rounded-lg text-[10px] font-black uppercase transition-all bg-[#F3BA2F]/10 text-[#F3BA2F] hover:bg-[#F3BA2F]/20 border border-[#F3BA2F]/20`}
                                 >
@@ -472,13 +471,14 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                             </div>
                         </div>
 
-                        {/* Theme Mode (Density) */}
+                        {/* Theme Mode (Density / Outdoor Sunlight) */}
                         <div>
                             <p className="text-[9px] text-slate-500 font-bold uppercase mb-2 ml-1">{t('profile.visual_density')}</p>
-                            <div className="flex bg-black/40 p-1 rounded-xl border border-white/5">
-                                <button onClick={() => { updateSettings({ themeMode: 'midnight' }); triggerHaptic('selection'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'midnight' ? 'bg-slate-900 text-white border border-slate-700' : 'text-slate-500'}`}>{t('profile.midnight')}</button>
-                                <button onClick={() => { updateSettings({ themeMode: 'twilight' }); triggerHaptic('selection'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'twilight' ? 'bg-slate-800 text-white border border-slate-600' : 'text-slate-500'}`}>{t('profile.twilight')}</button>
-                                <button onClick={() => { updateSettings({ themeMode: 'concrete' }); triggerHaptic('selection'); }} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'concrete' ? 'bg-zinc-800 text-white border border-zinc-600' : 'text-slate-500'}`}>{t('profile.graphite')}</button>
+                            <div className="grid grid-cols-2 gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
+                                <button onClick={() => { updateSettings({ themeMode: 'midnight' }); triggerHaptic('selection'); }} className={`py-2 px-1 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'midnight' ? 'bg-slate-900 text-white border border-slate-700' : 'text-slate-500'}`}>{t('profile.midnight')}</button>
+                                <button onClick={() => { updateSettings({ themeMode: 'twilight' }); triggerHaptic('selection'); }} className={`py-2 px-1 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'twilight' ? 'bg-slate-800 text-white border border-slate-600' : 'text-slate-500'}`}>{t('profile.twilight')}</button>
+                                <button onClick={() => { updateSettings({ themeMode: 'concrete' }); triggerHaptic('selection'); }} className={`py-2 px-1 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'concrete' ? 'bg-zinc-800 text-white border border-zinc-600' : 'text-slate-500'}`}>{t('profile.graphite')}</button>
+                                <button onClick={() => { updateSettings({ themeMode: 'daylight' }); triggerHaptic('selection'); }} className={`py-2 px-1 rounded-lg text-[9px] font-black uppercase transition-all ${settings.themeMode === 'daylight' ? 'bg-amber-400 text-black font-bold shadow-lg' : 'text-slate-500'}`}>{t('profile.daylight')}</button>
                             </div>
                         </div>
 
