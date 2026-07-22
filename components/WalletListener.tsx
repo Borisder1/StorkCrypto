@@ -7,14 +7,14 @@ import { toUserFriendlyAddress } from '@tonconnect/sdk';
 
 const WalletListener: React.FC = () => {
     const [tonConnectUI] = useTonConnectUI();
-    const { connectWallet, disconnectWallet, userStats, grantXp, showToast } = useStore();
+    const { connectWallet, disconnectWallet, userStats, wallet } = useStore();
 
     useEffect(() => {
-        const unsubscribe = tonConnectUI.onStatusChange(async (wallet) => {
-            if (wallet) {
-                const rawAddress = wallet.account.address;
+        const unsubscribe = tonConnectUI.onStatusChange(async (connectedWallet) => {
+            if (connectedWallet) {
+                const rawAddress = connectedWallet.account.address;
                 const friendlyAddress = toUserFriendlyAddress(rawAddress, true); // User-friendly, bounceable
-                const walletAppName = wallet.device.appName;
+                const walletAppName = connectedWallet.device.appName || 'TON Wallet';
 
                 console.log("[TON Connect] Connected:", friendlyAddress);
 
@@ -33,16 +33,10 @@ const WalletListener: React.FC = () => {
                     
                     if (error) {
                         console.error("[Supabase] Wallet sync failed:", error);
-                    } else {
-                        // Optional: Show toast only on fresh connection logic if needed
                     }
                 }
-
-                // 3. Grant XP if first time (Handled inside connectWallet store logic usually, but here for safety)
-                // grantXp(100, 'Web3 Linked'); 
-
             } else {
-                console.log("[TON Connect] Disconnected");
+                console.log("[TON Connect] Disconnected status received");
                 disconnectWallet();
             }
         });
@@ -51,6 +45,14 @@ const WalletListener: React.FC = () => {
             if (unsubscribe) unsubscribe();
         };
     }, [tonConnectUI, userStats.id]);
+
+    // Synchronize Store -> TON Connect UI SDK disconnect
+    useEffect(() => {
+        if (!wallet.isConnected && tonConnectUI.connected) {
+            console.log("[WalletListener] Store disconnected, clearing TON Connect UI SDK session...");
+            tonConnectUI.disconnect().catch(err => console.error("[TON Connect] Disconnect error:", err));
+        }
+    }, [wallet.isConnected, tonConnectUI]);
 
     return null; // Invisible component
 };
