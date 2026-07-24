@@ -220,7 +220,28 @@ export const PortfolioTools: React.FC = () => {
                         </div>
                     )}
 
-                    <button onClick={calculateTax} className="w-full py-3 bg-white/5 border border-white/10 hover:bg-brand-green/20 hover:border-brand-green hover:text-brand-green transition-all rounded-xl text-[10px] font-bold uppercase tracking-widest">{t('tools.calculate_tax')}</button>
+                    <button onClick={calculateTax} className="w-full py-3 bg-white/5 border border-white/10 hover:bg-brand-green/20 hover:border-brand-green hover:text-brand-green transition-all rounded-xl text-[10px] font-bold uppercase tracking-widest mb-2">{t('tools.calculate_tax')}</button>
+                    
+                    <div className="grid grid-cols-2 gap-2 mt-2">
+                        <button 
+                            onClick={() => {
+                                triggerHaptic('selection');
+                                useStore.getState().setShowTaxCalculator(true);
+                            }}
+                            className="py-2.5 bg-brand-green/20 border border-brand-green/40 text-brand-green font-black text-[9px] font-orbitron rounded-xl hover:bg-brand-green hover:text-black transition-all uppercase"
+                        >
+                            🧮 Повний Податковий Аудитор
+                        </button>
+                        <button 
+                            onClick={() => {
+                                triggerHaptic('selection');
+                                useStore.getState().setShowCompetitorMatrix(true);
+                            }}
+                            className="py-2.5 bg-brand-cyan/20 border border-brand-cyan/40 text-brand-cyan font-black text-[9px] font-orbitron rounded-xl hover:bg-brand-cyan hover:text-black transition-all uppercase"
+                        >
+                            ⚔️ StorkCrypto vs Конкуренти
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

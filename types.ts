@@ -424,6 +424,10 @@ export interface AppSlice {
     setShowSentimentPulse: (show: boolean) => void;
     showLiquidationHeatmap: boolean;
     setShowLiquidationHeatmap: (show: boolean) => void;
+    showTaxCalculator: boolean;
+    setShowTaxCalculator: (show: boolean) => void;
+    showCompetitorMatrix: boolean;
+    setShowCompetitorMatrix: (show: boolean) => void;
 
     toast: { visible: boolean; message: string };
     showToast: (message: string) => void;

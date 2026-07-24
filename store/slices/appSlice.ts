@@ -109,6 +109,10 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     setShowSentimentPulse: (show) => set({ showSentimentPulse: show }),
     showLiquidationHeatmap: false,
     setShowLiquidationHeatmap: (show) => set({ showLiquidationHeatmap: show }),
+    showTaxCalculator: false,
+    setShowTaxCalculator: (show) => set({ showTaxCalculator: show }),
+    showCompetitorMatrix: false,
+    setShowCompetitorMatrix: (show) => set({ showCompetitorMatrix: show }),
     updateSentinelConfig: async (config) => {
         set(state => ({
             userStats: { ...state.userStats, sentinel: { ...state.userStats.sentinel, ...config } }

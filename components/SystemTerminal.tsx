@@ -87,6 +87,18 @@ export const SystemTerminal: React.FC = () => {
         } else if (cmd === 'clear') {
             setLogs([t('term.cmd_clear'), t('term.ready')]);
             return;
+        } else if (cmd === 'tax' || cmd === 'fee') {
+            response = "Launching Net Profit & Tax Auditor module...";
+            setTimeout(() => {
+                const { setShowTaxCalculator } = useStore.getState();
+                setShowTaxCalculator(true);
+            }, 600);
+        } else if (cmd === 'vs' || cmd === 'competitors' || cmd === 'cmc') {
+            response = "Launching StorkCrypto vs Competitors Analysis Matrix...";
+            setTimeout(() => {
+                const { setShowCompetitorMatrix } = useStore.getState();
+                setShowCompetitorMatrix(true);
+            }, 600);
         }
 
         setLogs(prev => [...prev, `> ${cmd.toUpperCase()}`, `[${timestamp}] ${response}`]);
@@ -134,7 +146,7 @@ export const SystemTerminal: React.FC = () => {
 
                 {/* QUICK COMMAND BAR */}
                 <div className="flex gap-1.5 overflow-x-auto no-scrollbar pt-2 pb-1 shrink-0">
-                    {['help', 'whale', 'risk', 'kelly', 'audit', 'clear'].map((cmd) => (
+                    {['help', 'whale', 'tax', 'vs', 'risk', 'kelly', 'audit', 'clear'].map((cmd) => (
                         <button
                             key={cmd}
                             onClick={(e) => {

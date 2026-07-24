@@ -18,6 +18,8 @@ const WhaleRadarProModal = React.lazy(() => import('./WhaleRadarProModal'));
 const StrategyBuilderModal = React.lazy(() => import('./StrategyBuilderModal'));
 const SentimentPulseModal = React.lazy(() => import('./SentimentPulseModal'));
 const LiquidationHeatmapModal = React.lazy(() => import('./LiquidationHeatmapModal'));
+const TaxCalculatorModal = React.lazy(() => import('./TaxCalculatorModal'));
+const CompetitorComparisonModal = React.lazy(() => import('./CompetitorComparisonModal'));
 
 const ScannerModal = React.lazy(() => import('./ScannerModal'));
 const AnalyticsModal = React.lazy(() => import('./AnalyticsModal'));
@@ -60,7 +62,11 @@ const ModalManager: React.FC = () => {
         showSentimentPulse,
         setShowSentimentPulse,
         showLiquidationHeatmap,
-        setShowLiquidationHeatmap
+        setShowLiquidationHeatmap,
+        showTaxCalculator,
+        setShowTaxCalculator,
+        showCompetitorMatrix,
+        setShowCompetitorMatrix
     } = useStore();
 
     const goHome = () => navigateTo('home');
@@ -96,6 +102,8 @@ const ModalManager: React.FC = () => {
                         {showStrategyBuilder && <StrategyBuilderModal key="strategybuilder" onClose={() => setShowStrategyBuilder(false)} />}
                         {showSentimentPulse && <SentimentPulseModal key="sentimentpulse" onClose={() => setShowSentimentPulse(false)} />}
                         {showLiquidationHeatmap && <LiquidationHeatmapModal key="liqheatmap" onClose={() => setShowLiquidationHeatmap(false)} />}
+                        {showTaxCalculator && <TaxCalculatorModal key="taxcalc" onClose={() => setShowTaxCalculator(false)} />}
+                        {showCompetitorMatrix && <CompetitorComparisonModal key="competitormatrix" onClose={() => setShowCompetitorMatrix(false)} />}
                     </AnimatePresence>
                 </div>
 
