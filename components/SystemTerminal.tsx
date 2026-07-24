@@ -132,7 +132,23 @@ export const SystemTerminal: React.FC = () => {
                     ))}
                 </div>
 
-                <div className="flex items-center gap-2 mt-4 shrink-0 bg-brand-cyan/5 p-2 rounded-lg border border-brand-cyan/10">
+                {/* QUICK COMMAND BAR */}
+                <div className="flex gap-1.5 overflow-x-auto no-scrollbar pt-2 pb-1 shrink-0">
+                    {['help', 'whale', 'risk', 'kelly', 'audit', 'clear'].map((cmd) => (
+                        <button
+                            key={cmd}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                executeCommand(cmd);
+                            }}
+                            className="px-2.5 py-1 rounded-md bg-brand-cyan/10 hover:bg-brand-cyan/20 border border-brand-cyan/30 text-[9px] font-mono text-brand-cyan uppercase tracking-wider transition-all whitespace-nowrap active:scale-95"
+                        >
+                            /{cmd}
+                        </button>
+                    ))}
+                </div>
+
+                <div className="flex items-center gap-2 mt-2 shrink-0 bg-brand-cyan/5 p-2 rounded-lg border border-brand-cyan/10">
                     <span className="text-brand-cyan font-black animate-pulse">{'>'}</span>
                     <input 
                         ref={inputRef}

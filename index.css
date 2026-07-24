@@ -133,3 +133,33 @@ input, textarea, .select-text {
   border-color: #cbd5e1 !important;
 }
 
+/* ☀️ Daylight Input & Card Contrast Refinements */
+[data-theme="daylight"] input,
+[data-theme="daylight"] select,
+[data-theme="daylight"] textarea {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #94a3b8 !important;
+}
+
+[data-theme="daylight"] input::placeholder {
+  color: #64748b !important;
+}
+
+[data-theme="daylight"] .backdrop-blur-md,
+[data-theme="daylight"] .backdrop-blur-xl {
+  backdrop-filter: blur(8px) brightness(1.05) !important;
+}
+
+/* 🌙 Night / Midnight Deep Dark Eye-Protection */
+[data-theme="midnight"] {
+  --app-bg: #020617;
+  color-scheme: dark;
+}
+
+/* Smooth font rendering */
+* {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+

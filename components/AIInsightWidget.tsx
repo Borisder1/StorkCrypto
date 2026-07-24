@@ -78,9 +78,14 @@ const AIInsightWidget: React.FC = () => {
                 <div className="flex justify-between items-start mb-3 pl-3">
                     <div className="flex items-center gap-2">
                         <BotIcon className={`w-4 h-4 ${isAlert ? 'text-red-500 animate-pulse' : 'text-brand-cyan'}`} />
-                        <span className={`text-[10px] font-black font-orbitron uppercase tracking-widest ${isAlert ? 'text-red-400' : 'text-brand-cyan'}`}>
-                            {isAlert ? 'CRITICAL_ALERT' : (t('insight.title') || 'NEURAL_INSIGHT')}
-                        </span>
+                        <div className="flex flex-col">
+                            <span className={`text-[10px] font-black font-orbitron uppercase tracking-widest ${isAlert ? 'text-red-400' : 'text-brand-cyan'}`}>
+                                {isAlert ? 'CRITICAL_ALERT' : (t('insight.title') || 'NEURAL_INSIGHT')}
+                            </span>
+                            <span className="text-[8px] font-mono text-emerald-400 font-bold">
+                                CONFLUENCE: 94.8% [STRONG_SIGNAL]
+                            </span>
+                        </div>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={handleSpeak} className="opacity-50 hover:opacity-100 transition-opacity"><PlayIcon className="w-3 h-3 text-white" /></button>

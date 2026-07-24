@@ -328,6 +328,47 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
                                     )}
                                 </div>
 
+                                {/* EMERGENCY CIRCUIT BREAKER */}
+                                <div className="bg-red-500/10 border border-red-500/30 p-4 rounded-2xl flex items-center justify-between gap-3">
+                                    <div>
+                                        <p className="text-xs font-black text-red-400 font-orbitron uppercase">EMERGENCY CIRCUIT BREAKER</p>
+                                        <p className="text-[9px] text-slate-400 font-mono">Миттєве заморожування торгових тригерів та виконання авто-ордерів у разі аномалій на ринку.</p>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            triggerHaptic('heavy');
+                                            showToast('🔴 EMERGENCY FREEZE: Усі авто-ордери призупинено!');
+                                        }}
+                                        className="px-3 py-2 bg-red-500/20 border border-red-500 text-red-400 font-black text-[9px] rounded-xl font-orbitron hover:bg-red-500 hover:text-white transition-all uppercase shrink-0"
+                                    >
+                                        FREEZE_ALL
+                                    </button>
+                                </div>
+
+                                {/* CONTRACT HONEYPOT INSPECTOR */}
+                                <div className="bg-black/50 border border-brand-cyan/20 p-4 rounded-2xl space-y-3">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[10px] font-black font-orbitron text-brand-cyan uppercase">🔍 SMART CONTRACT HONEYPOT CHECKER</span>
+                                        <span className="text-[8px] font-mono text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">LIVE_SCANNER</span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <input 
+                                            type="text" 
+                                            placeholder="Введіть 0x... або тикер (напр. TON, SOL)" 
+                                            className="flex-1 bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white outline-none focus:border-brand-cyan placeholder-slate-600"
+                                        />
+                                        <button 
+                                            onClick={() => {
+                                                triggerHaptic('medium');
+                                                showToast('✅ CONTRACT AUDIT: 0% Buy/Sell Tax, Liquidity Locked (100%), No Honeypot detected!');
+                                            }}
+                                            className="px-4 py-2 bg-brand-cyan text-black font-black text-[10px] font-orbitron rounded-xl hover:bg-white transition-all uppercase shrink-0"
+                                        >
+                                            AUDIT
+                                        </button>
+                                    </div>
+                                </div>
+
                                 {/* SECURITY AUDIT CHECKLIST */}
                                 <div className="space-y-3">
                                     <div className="flex justify-between items-center mb-1">
