@@ -101,6 +101,14 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
 
     showSentinel: false,
     setShowSentinel: (show) => set({ showSentinel: show }),
+    showWhaleRadar: false,
+    setShowWhaleRadar: (show) => set({ showWhaleRadar: show }),
+    showStrategyBuilder: false,
+    setShowStrategyBuilder: (show) => set({ showStrategyBuilder: show }),
+    showSentimentPulse: false,
+    setShowSentimentPulse: (show) => set({ showSentimentPulse: show }),
+    showLiquidationHeatmap: false,
+    setShowLiquidationHeatmap: (show) => set({ showLiquidationHeatmap: show }),
     updateSentinelConfig: async (config) => {
         set(state => ({
             userStats: { ...state.userStats, sentinel: { ...state.userStats.sentinel, ...config } }
@@ -148,8 +156,21 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
         telegramStars: 500
     },
     
-    checkTrialStatus: () => set(state => ({ userStats: { ...state.userStats, trialActive: new Date() < new Date(state.userStats.trialEndsAt) } })),
-    hasProAccess: () => get().userStats.subscriptionTier !== 'FREE' || get().userStats.trialActive,
+    checkTrialStatus: () => set(state => {
+        const isPaid = state.userStats.subscriptionTier !== 'FREE';
+        const isValid = new Date() < new Date(state.userStats.trialEndsAt);
+        return {
+            userStats: {
+                ...state.userStats,
+                trialActive: isPaid ? false : isValid
+            }
+        };
+    }),
+    hasProAccess: () => {
+        const u = get().userStats;
+        if (u.subscriptionTier !== 'FREE') return true;
+        return u.trialActive && new Date() < new Date(u.trialEndsAt);
+    },
     
     whaleHistory: [],
     addWhaleTransaction: (tx) => set(state => ({ whaleHistory: [tx, ...state.whaleHistory].slice(0, 50) })),
@@ -167,7 +188,24 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
         get().grantXp(amount, 'ACADEMY_QUIZ');
     },
 
-    upgradeUserTier: (tier) => set(s => ({ userStats: { ...s.userStats, subscriptionTier: tier as any } })),
+    upgradeUserTier: (tier, days = 30) => {
+        const expiry = new Date(Date.now() + days * 24 * 60 * 60 * 1000).toISOString();
+        set(s => ({
+            userStats: {
+                ...s.userStats,
+                subscriptionTier: tier as any,
+                trialActive: false,
+                trialEndsAt: expiry
+            }
+        }));
+        const state = get();
+        if (state.userStats.id && !state.userStats.id.startsWith('GUEST')) {
+            supabase.from('profiles').update({
+                subscription_tier: tier,
+                trial_ends_at: expiry
+            }).eq('id', state.userStats.id).then();
+        }
+    },
     redeemXpForPro: (days) => { get().showToast('XP Redeemed'); },
     getRankName: () => 'DATA_SENTINEL',
     levelUpState: { visible: false, level: 1, rewards: [] },

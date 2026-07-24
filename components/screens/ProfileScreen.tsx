@@ -86,43 +86,34 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     // Calculate Trial/Sub visual data
     const subData = useMemo(() => {
         const isPaid = userStats.subscriptionTier !== 'FREE';
-        const isTrial = userStats.trialActive;
+        const end = new Date(userStats.trialEndsAt).getTime();
+        const now = Date.now();
+        const diff = Math.max(0, end - now);
+        const isTrial = !isPaid && userStats.trialActive && diff > 0;
         const tierName = isPaid ? userStats.subscriptionTier : isTrial ? 'TRIAL_PRO' : 'FREE';
         
         let timeLeftString = '';
         let progress = 0;
 
-        // Use trialEndsAt as the master expiry for now
-        const end = new Date(userStats.trialEndsAt).getTime();
-        const now = Date.now();
-        const diff = end - now;
-        
         if (isPaid) {
-            if (diff > 3 * 24 * 60 * 60 * 1000) {
-                 timeLeftString = t('profile.status_secure');
-                 progress = 100;
-            } else {
-                 const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                 timeLeftString = t('profile.renewal_days').replace('{days}', d.toString());
-                 progress = 20; 
-            }
+            const daysLeft = Math.ceil(diff / (1000 * 60 * 60 * 24));
+            timeLeftString = `ОПЛАЧЕНО (${userStats.subscriptionTier}) • ${daysLeft} дн.`;
+            progress = Math.min(100, Math.max(10, (diff / (30 * 24 * 60 * 60 * 1000)) * 100));
         } else if (isTrial) {
-            const totalTrial = 3 * 24 * 60 * 60 * 1000; // 3 days assumption
-            progress = Math.max(0, Math.min(100, (diff / totalTrial) * 100));
+            const maxTrialMs = 3 * 24 * 60 * 60 * 1000; // 3 days max trial period
+            const cappedDiff = Math.min(diff, maxTrialMs);
+            progress = Math.max(0, Math.min(100, (cappedDiff / maxTrialMs) * 100));
             
-            if (diff <= 0) timeLeftString = t('profile.expired');
-            else {
-                const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-                const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                timeLeftString = t('profile.remaining').replace('{days}', d.toString()).replace('{hours}', h.toString());
-            }
+            const d = Math.floor(cappedDiff / (1000 * 60 * 60 * 24));
+            const h = Math.floor((cappedDiff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            timeLeftString = `ПРОБНИЙ ПЕРІОД (3 дні) • ${d}д ${h}год`;
         } else {
             timeLeftString = t('profile.restricted_access');
             progress = 0;
         }
 
         return { tierName, timeLeftString, progress, isPaid, isTrial };
-    }, [userStats]);
+    }, [userStats, t]);
 
     return (
         <motion.div 

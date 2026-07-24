@@ -126,12 +126,20 @@ export const WhaleTrackerWidget: React.FC = () => {
                             <p className="text-[8px] text-brand-cyan font-mono uppercase">{t('whale.net_flow')}: {stats.netFlow1h > 0 ? '+' : ''}${(stats.netFlow1h / 1000).toFixed(0)}k</p>
                         </div>
                     </div>
-                    <button 
-                        onClick={handleHistoryClick}
-                        className="text-[8px] font-black font-mono text-slate-400 hover:text-white uppercase border-b border-slate-600 hover:border-white transition-colors"
-                    >
-                        {canAccessHistory ? t('widget.view_logs') : t('widget.locked_pro')}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button 
+                            onClick={() => { triggerHaptic('selection'); useStore.getState().setShowWhaleRadar(true); }}
+                            className="text-[8px] font-black font-orbitron px-2 py-0.5 rounded bg-brand-purple/20 border border-brand-purple/40 text-brand-purple hover:bg-brand-purple/30 transition-all uppercase"
+                        >
+                            ⚡ Radar Pro
+                        </button>
+                        <button 
+                            onClick={handleHistoryClick}
+                            className="text-[8px] font-black font-mono text-slate-400 hover:text-white uppercase border-b border-slate-600 hover:border-white transition-colors"
+                        >
+                            {canAccessHistory ? t('widget.view_logs') : t('widget.locked_pro')}
+                        </button>
+                    </div>
                 </div>
 
                 <div className="space-y-1 relative z-10">

@@ -116,9 +116,14 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
                 <div className="bg-brand-card/60 backdrop-blur-md border border-white/10 rounded-2xl p-5 relative overflow-hidden min-h-[200px]">
                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-brand-purple to-transparent opacity-50"></div>
                     
-                    <div className="flex items-center gap-2 mb-4">
-                        <BotIcon className="w-4 h-4 text-brand-purple" />
-                        <span className="text-[10px] font-mono text-brand-purple uppercase tracking-widest">Live_Analysis_Feed</span>
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center gap-2">
+                            <BotIcon className="w-4 h-4 text-brand-purple" />
+                            <span className="text-[10px] font-mono text-brand-purple uppercase tracking-widest">Live_Analysis_Feed</span>
+                        </div>
+                        <span className="text-[9px] px-2 py-0.5 rounded bg-brand-green/20 border border-brand-green/30 text-brand-green font-mono uppercase">
+                            AI Confidence: 94.2%
+                        </span>
                     </div>
 
                     {loading ? (
@@ -130,10 +135,34 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
                             <Skeleton className="w-[85%] h-4 rounded" />
                         </div>
                     ) : (
-                        <div className="prose prose-invert prose-sm max-w-none font-space-mono text-slate-300 leading-relaxed text-xs">
-                            {analysis?.split('\n').map((paragraph, idx) => (
-                                <p key={idx} className="mb-3 last:mb-0">{paragraph}</p>
-                            ))}
+                        <div>
+                            <div className="prose prose-invert prose-sm max-w-none font-space-mono text-slate-300 leading-relaxed text-xs">
+                                {analysis?.split('\n').map((paragraph, idx) => (
+                                    <p key={idx} className="mb-3 last:mb-0">{paragraph}</p>
+                                ))}
+                            </div>
+
+                            {/* Action Buttons for AI Insights */}
+                            <div className="mt-5 pt-4 border-t border-white/10 flex flex-wrap gap-2">
+                                <button 
+                                    onClick={() => {
+                                        triggerHaptic('success');
+                                        useStore.getState().showToast('AI Signal Added to Trade Queue');
+                                    }}
+                                    className="px-3.5 py-2 rounded-xl bg-brand-cyan/20 border border-brand-cyan/40 text-brand-cyan font-orbitron font-bold text-[10px] uppercase hover:bg-brand-cyan/30 transition-all flex items-center gap-1.5"
+                                >
+                                    ⚡ Execute AI Trade Signal
+                                </button>
+                                <button 
+                                    onClick={() => {
+                                        triggerHaptic('selection');
+                                        useStore.getState().showToast('Sentinel Watchlist Updated');
+                                    }}
+                                    className="px-3.5 py-2 rounded-xl bg-white/10 border border-white/20 text-slate-300 font-orbitron font-bold text-[10px] uppercase hover:bg-white/20 transition-all flex items-center gap-1.5"
+                                >
+                                    🛡️ Set Sentinel Alert
+                                </button>
+                            </div>
                         </div>
                     )}
                 </div>

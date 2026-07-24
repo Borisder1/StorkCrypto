@@ -416,6 +416,15 @@ export interface AppSlice {
     setShowSentinel: (show: boolean) => void;
     updateSentinelConfig: (config: Partial<SentinelConfig>) => void;
 
+    showWhaleRadar: boolean;
+    setShowWhaleRadar: (show: boolean) => void;
+    showStrategyBuilder: boolean;
+    setShowStrategyBuilder: (show: boolean) => void;
+    showSentimentPulse: boolean;
+    setShowSentimentPulse: (show: boolean) => void;
+    showLiquidationHeatmap: boolean;
+    setShowLiquidationHeatmap: (show: boolean) => void;
+
     toast: { visible: boolean; message: string };
     showToast: (message: string) => void;
     isSubscriptionOpen: boolean;

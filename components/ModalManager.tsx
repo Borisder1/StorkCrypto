@@ -14,6 +14,10 @@ const AdInquiryModal = React.lazy(() => import('./AdInquiryModal'));
 const AirdropModal = React.lazy(() => import('./AirdropModal'));
 const SentinelModal = React.lazy(() => import('./SentinelModal'));
 const LeaderboardModal = React.lazy(() => import('./LeaderboardModal'));
+const WhaleRadarProModal = React.lazy(() => import('./WhaleRadarProModal'));
+const StrategyBuilderModal = React.lazy(() => import('./StrategyBuilderModal'));
+const SentimentPulseModal = React.lazy(() => import('./SentimentPulseModal'));
+const LiquidationHeatmapModal = React.lazy(() => import('./LiquidationHeatmapModal'));
 
 const ScannerModal = React.lazy(() => import('./ScannerModal'));
 const AnalyticsModal = React.lazy(() => import('./AnalyticsModal'));
@@ -48,7 +52,15 @@ const ModalManager: React.FC = () => {
         showSentinel,
         setShowSentinel,
         showLeaderboard,
-        setShowLeaderboard
+        setShowLeaderboard,
+        showWhaleRadar,
+        setShowWhaleRadar,
+        showStrategyBuilder,
+        setShowStrategyBuilder,
+        showSentimentPulse,
+        setShowSentimentPulse,
+        showLiquidationHeatmap,
+        setShowLiquidationHeatmap
     } = useStore();
 
     const goHome = () => navigateTo('home');
@@ -80,6 +92,10 @@ const ModalManager: React.FC = () => {
                         {showAirdrop && <AirdropModal key="airdrop" onClose={() => setShowAirdrop(false)} />}
                         {showSentinel && <SentinelModal key="sentinel" onClose={() => setShowSentinel(false)} />}
                         {showLeaderboard && <LeaderboardModal key="leaderboard" onClose={() => setShowLeaderboard(false)} />}
+                        {showWhaleRadar && <WhaleRadarProModal key="whaleradar" onClose={() => setShowWhaleRadar(false)} />}
+                        {showStrategyBuilder && <StrategyBuilderModal key="strategybuilder" onClose={() => setShowStrategyBuilder(false)} />}
+                        {showSentimentPulse && <SentimentPulseModal key="sentimentpulse" onClose={() => setShowSentimentPulse(false)} />}
+                        {showLiquidationHeatmap && <LiquidationHeatmapModal key="liqheatmap" onClose={() => setShowLiquidationHeatmap(false)} />}
                     </AnimatePresence>
                 </div>
 

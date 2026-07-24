@@ -66,10 +66,10 @@ input, textarea, .select-text {
   color: #0f172a !important;
 }
 
-[data-theme="daylight"] .bg-[#020617],
-[data-theme="daylight"] .bg-[#050b14],
-[data-theme="daylight"] .bg-[#020617]\/60,
-[data-theme="daylight"] .bg-[#050b14]\/60,
+[data-theme="daylight"] .bg-\[\#020617\],
+[data-theme="daylight"] .bg-\[\#050b14\],
+[data-theme="daylight"] .bg-\[\#020617\]\/60,
+[data-theme="daylight"] .bg-\[\#050b14\]\/60,
 [data-theme="daylight"] .bg-brand-card\/40,
 [data-theme="daylight"] .bg-brand-card,
 [data-theme="daylight"] .bg-black\/60,
@@ -85,25 +85,51 @@ input, textarea, .select-text {
   color: #0f172a !important;
 }
 
+[data-theme="daylight"] .text-brand-cyan {
+  color: #0284c7 !important;
+}
+
+[data-theme="daylight"] .text-brand-purple {
+  color: #7c3aed !important;
+}
+
+[data-theme="daylight"] .text-brand-green {
+  color: #15803d !important;
+}
+
+[data-theme="daylight"] .text-brand-danger,
+[data-theme="daylight"] .text-red-500 {
+  color: #dc2626 !important;
+}
+
+[data-theme="daylight"] .text-amber-300,
+[data-theme="daylight"] .text-amber-400 {
+  color: #b45309 !important;
+}
+
 [data-theme="daylight"] .text-slate-300,
 [data-theme="daylight"] .text-slate-400 {
-  color: #334155 !important;
+  color: #1e293b !important;
   font-weight: 600;
 }
 
-[data-theme="daylight"] .text-slate-500 {
-  color: #475569 !important;
+[data-theme="daylight"] .text-slate-500,
+[data-theme="daylight"] .text-slate-600 {
+  color: #334155 !important;
   font-weight: 600;
 }
 
 [data-theme="daylight"] .border-white\/5,
 [data-theme="daylight"] .border-white\/10,
-[data-theme="daylight"] .border-white\/20 {
-  border-color: #cbd5e1 !important;
+[data-theme="daylight"] .border-white\/20,
+[data-theme="daylight"] .border-white\/30 {
+  border-color: #94a3b8 !important;
 }
 
 [data-theme="daylight"] .bg-white\/5,
-[data-theme="daylight"] .bg-white\/10 {
-  background-color: #e2e8f0 !important;
+[data-theme="daylight"] .bg-white\/10,
+[data-theme="daylight"] .bg-white\/20 {
+  background-color: #f1f5f9 !important;
+  border-color: #cbd5e1 !important;
 }
 

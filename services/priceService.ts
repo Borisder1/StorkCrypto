@@ -50,7 +50,10 @@ export const getOrderBook = async (ticker: string, limit: number = 20): Promise<
             BTC: 67350, ETH: 3480, SOL: 145, BNB: 580, XRP: 0.52,
             ADA: 0.45, AVAX: 35, DOT: 6.2, TON: 7.15, PEPE: 0.000012,
             DOGE: 0.14, SHIB: 0.000021, WIF: 2.85, FET: 1.65, NEAR: 5.9,
-            LINK: 15.2, SUI: 1.15, APT: 8.4, ARB: 0.95, OP: 1.85
+            LINK: 15.2, SUI: 1.15, APT: 8.4, ARB: 0.95, OP: 1.85,
+            NOT: 0.0125, DOGS: 0.00068, INJ: 24.50, TAO: 320.00, RENDER: 6.15,
+            TIA: 5.80, SEI: 0.38, STX: 1.72, ONDO: 0.88, PENDLE: 4.10,
+            JUP: 0.82, ENA: 0.55, BONK: 0.000024, FLOKI: 0.00018, KAS: 0.16
         };
         const basePrice = baselinePrices[ticker.toUpperCase()] || 100;
         
@@ -97,17 +100,32 @@ export const MASTER_ASSET_LIST = [
     { ticker: 'AVAX', name: 'Avalanche', id: 'avalanche-2', category: 'L1' },
     { ticker: 'DOT', name: 'Polkadot', id: 'polkadot', category: 'L1' },
     { ticker: 'TON', name: 'Toncoin', id: 'the-open-network', category: 'L1' },
+    { ticker: 'NOT', name: 'Notcoin', id: 'notcoin', category: 'TON' },
+    { ticker: 'DOGS', name: 'DOGS', id: 'dogs', category: 'TON' },
+    { ticker: 'INJ', name: 'Injective', id: 'injective-protocol', category: 'DeFi' },
+    { ticker: 'TAO', name: 'Bittensor', id: 'bittensor', category: 'AI' },
+    { ticker: 'RENDER', name: 'Render', id: 'render-token', category: 'AI' },
+    { ticker: 'FET', name: 'Fetch.ai', id: 'fetch-ai', category: 'AI' },
+    { ticker: 'TIA', name: 'Celestia', id: 'celestia', category: 'L1' },
+    { ticker: 'SEI', name: 'Sei', id: 'sei-network', category: 'L1' },
+    { ticker: 'STX', name: 'Stacks', id: 'blockstack', category: 'L2' },
+    { ticker: 'ONDO', name: 'Ondo', id: 'ondo-finance', category: 'RWA' },
+    { ticker: 'PENDLE', name: 'Pendle', id: 'pendle', category: 'DeFi' },
+    { ticker: 'JUP', name: 'Jupiter', id: 'jupiter-exchange-solana', category: 'DeFi' },
+    { ticker: 'ENA', name: 'Ethena', id: 'ethena', category: 'DeFi' },
     { ticker: 'PEPE', name: 'Pepe', id: 'pepe', category: 'Meme' },
     { ticker: 'DOGE', name: 'Dogecoin', id: 'dogecoin', category: 'Meme' },
     { ticker: 'SHIB', name: 'Shiba Inu', id: 'shiba-inu', category: 'Meme' },
     { ticker: 'WIF', name: 'dogwifhat', id: 'dogwifhat', category: 'Meme' },
-    { ticker: 'FET', name: 'Fetch.ai', id: 'fetch-ai', category: 'AI' },
+    { ticker: 'BONK', name: 'Bonk', id: 'bonk', category: 'Meme' },
+    { ticker: 'FLOKI', name: 'Floki', id: 'floki', category: 'Meme' },
     { ticker: 'NEAR', name: 'Near', id: 'near', category: 'L1' },
     { ticker: 'LINK', name: 'Chainlink', id: 'chainlink', category: 'Oracle' },
     { ticker: 'SUI', name: 'Sui', id: 'sui', category: 'L1' },
     { ticker: 'APT', name: 'Aptos', id: 'aptos', category: 'L1' },
     { ticker: 'ARB', name: 'Arbitrum', id: 'arbitrum', category: 'L2' },
     { ticker: 'OP', name: 'Optimism', id: 'optimism', category: 'L2' },
+    { ticker: 'KAS', name: 'Kaspa', id: 'kaspa', category: 'L1' },
 ];
 
 export const SUPPORTED_ASSET_IDS = MASTER_ASSET_LIST.map(a => a.id);
@@ -186,17 +204,32 @@ export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> =
         AVAX: { usd: 35, change: 3.4 },
         DOT: { usd: 6.2, change: -0.7 },
         TON: { usd: 7.15, change: 4.8 },
+        NOT: { usd: 0.0125, change: 6.4 },
+        DOGS: { usd: 0.00068, change: 11.2 },
+        INJ: { usd: 24.50, change: 3.8 },
+        TAO: { usd: 320.00, change: 7.4 },
+        RENDER: { usd: 6.15, change: 4.2 },
+        FET: { usd: 1.65, change: 5.2 },
+        TIA: { usd: 5.80, change: -1.1 },
+        SEI: { usd: 0.38, change: 2.9 },
+        STX: { usd: 1.72, change: 0.6 },
+        ONDO: { usd: 0.88, change: 5.1 },
+        PENDLE: { usd: 4.10, change: 8.3 },
+        JUP: { usd: 0.82, change: 3.1 },
+        ENA: { usd: 0.55, change: -2.0 },
         PEPE: { usd: 0.000012, change: 8.5 },
         DOGE: { usd: 0.14, change: 2.1 },
         SHIB: { usd: 0.000021, change: 1.1 },
         WIF: { usd: 2.85, change: -3.6 },
-        FET: { usd: 1.65, change: 5.2 },
+        BONK: { usd: 0.000024, change: 4.8 },
+        FLOKI: { usd: 0.00018, change: 3.9 },
         NEAR: { usd: 5.9, change: -1.9 },
         LINK: { usd: 15.2, change: 0.5 },
         SUI: { usd: 1.15, change: 2.7 },
         APT: { usd: 8.4, change: -1.4 },
         ARB: { usd: 0.95, change: -2.2 },
-        OP: { usd: 1.85, change: -0.8 }
+        OP: { usd: 1.85, change: -0.8 },
+        KAS: { usd: 0.16, change: 1.9 }
     };
 
     MASTER_ASSET_LIST.forEach((asset) => {

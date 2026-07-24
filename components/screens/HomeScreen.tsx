@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { TrendingUpIcon, BellIcon, StorkIcon, ShieldIcon, PieChartIcon, PickaxeIcon, ActivityIcon, RadarIcon, ZapIcon, GlobeIcon, BotIcon, InfoIcon } from '../icons';
+import { TrendingUpIcon, BellIcon, StorkIcon, ShieldIcon, PieChartIcon, PickaxeIcon, ActivityIcon, RadarIcon, ZapIcon, GlobeIcon, BotIcon, InfoIcon, BrainIcon, FlameIcon } from '../icons';
 import { useStore } from '../../store';
 import { NavItem } from '../../types';
 import AIInsightWidget from '../AIInsightWidget';
@@ -428,36 +428,74 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                     </button>
                 </motion.div>
 
-                {/* AI AGENTS BUTTON */}
+                {/* ADVANCED PRO TRADING TOOLKIT GRID */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.7 }}
-                    className="mb-6"
+                    className="grid grid-cols-2 gap-3 mb-4"
                 >
                     <button 
                         onClick={() => { 
                             triggerHaptic('medium'); 
-                            if (userStats.subscriptionTier === 'FREE') {
-                                navigateTo('profile');
-                            } else {
-                                setShowAIAgents(true); 
-                            }
+                            useStore.getState().setShowWhaleRadar(true);
                         }}
-                        className="w-full relative group rounded-[2rem] bg-gradient-to-r from-brand-purple/10 to-brand-cyan/10 border border-brand-purple/20 hover:border-brand-purple/50 transition-all shadow-2xl p-4 flex items-center justify-between overflow-hidden"
+                        className="relative group rounded-[2rem] bg-gradient-to-b from-brand-purple/20 to-black/60 border border-brand-purple/30 hover:border-brand-purple/60 transition-all p-3 flex flex-col justify-between text-left overflow-hidden h-24"
                     >
-                        <div className="absolute inset-0 bg-brand-purple/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                        <div className="flex items-center gap-3 relative z-10">
-                            <div className="w-10 h-10 rounded-xl bg-black/40 border border-brand-purple/30 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform shrink-0">
-                                <BotIcon className="w-5 h-5 text-brand-purple" />
-                            </div>
-                            <div className="text-left">
-                                <h3 className="font-orbitron font-black text-white text-xs uppercase tracking-widest">{t('home.ai_agents')}</h3>
-                                <p className="text-[8px] text-brand-purple font-mono uppercase">{t('home.neural_advisors')}</p>
-                            </div>
+                        <div className="w-7 h-7 rounded-xl bg-brand-purple/20 border border-brand-purple/40 flex items-center justify-center shrink-0">
+                            <RadarIcon className="w-3.5 h-3.5 text-brand-purple" />
                         </div>
-                        <div className="relative z-10 px-2 py-1 rounded-lg bg-brand-purple/20 border border-brand-purple/30 text-[7px] font-black text-brand-purple uppercase tracking-widest animate-pulse shrink-0">
-                            {t('home.pro')}
+                        <div>
+                            <h3 className="font-orbitron font-black text-white text-[9px] uppercase tracking-widest">{t('home.whale_radar')}</h3>
+                            <p className="text-[7px] text-brand-purple font-mono uppercase">{t('home.whale_radar_sub')}</p>
+                        </div>
+                    </button>
+
+                    <button 
+                        onClick={() => { 
+                            triggerHaptic('medium'); 
+                            useStore.getState().setShowStrategyBuilder(true);
+                        }}
+                        className="relative group rounded-[2rem] bg-gradient-to-b from-brand-cyan/20 to-black/60 border border-brand-cyan/30 hover:border-brand-cyan/60 transition-all p-3 flex flex-col justify-between text-left overflow-hidden h-24"
+                    >
+                        <div className="w-7 h-7 rounded-xl bg-brand-cyan/20 border border-brand-cyan/40 flex items-center justify-center shrink-0">
+                            <BotIcon className="w-3.5 h-3.5 text-brand-cyan" />
+                        </div>
+                        <div>
+                            <h3 className="font-orbitron font-black text-white text-[9px] uppercase tracking-widest">{t('home.strategy_builder')}</h3>
+                            <p className="text-[7px] text-brand-cyan font-mono uppercase">{t('home.strategy_builder_sub')}</p>
+                        </div>
+                    </button>
+
+                    <button 
+                        onClick={() => { 
+                            triggerHaptic('medium'); 
+                            useStore.getState().setShowSentimentPulse(true);
+                        }}
+                        className="relative group rounded-[2rem] bg-gradient-to-b from-teal-500/20 to-black/60 border border-teal-500/30 hover:border-teal-500/60 transition-all p-3 flex flex-col justify-between text-left overflow-hidden h-24"
+                    >
+                        <div className="w-7 h-7 rounded-xl bg-teal-500/20 border border-teal-500/40 flex items-center justify-center shrink-0">
+                            <BrainIcon className="w-3.5 h-3.5 text-teal-400" />
+                        </div>
+                        <div>
+                            <h3 className="font-orbitron font-black text-white text-[9px] uppercase tracking-widest">{t('home.sentiment_pulse')}</h3>
+                            <p className="text-[7px] text-teal-400 font-mono uppercase">{t('home.sentiment_pulse_sub')}</p>
+                        </div>
+                    </button>
+
+                    <button 
+                        onClick={() => { 
+                            triggerHaptic('medium'); 
+                            useStore.getState().setShowLiquidationHeatmap(true);
+                        }}
+                        className="relative group rounded-[2rem] bg-gradient-to-b from-orange-500/20 to-black/60 border border-orange-500/30 hover:border-orange-500/60 transition-all p-3 flex flex-col justify-between text-left overflow-hidden h-24"
+                    >
+                        <div className="w-7 h-7 rounded-xl bg-orange-500/20 border border-orange-500/40 flex items-center justify-center shrink-0">
+                            <FlameIcon className="w-3.5 h-3.5 text-orange-400" />
+                        </div>
+                        <div>
+                            <h3 className="font-orbitron font-black text-white text-[9px] uppercase tracking-widest">{t('home.liq_heatmap')}</h3>
+                            <p className="text-[7px] text-orange-400 font-mono uppercase">{t('home.liq_heatmap_sub')}</p>
                         </div>
                     </button>
                 </motion.div>

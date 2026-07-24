@@ -26,6 +26,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
         name: string;
         chain: 'ETH' | 'TON' | 'SOL';
         type: string;
+        url?: string;
     } | null>(null);
     const [providerAddressInput, setProviderAddressInput] = useState('');
     const [connectionMode, setConnectionMode] = useState<'uid' | 'api'>('uid');
@@ -51,13 +52,25 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
     };
 
     // Open provider input form when exchange or web3 wallet card is clicked
-    const handleSelectProviderCard = (name: string, chain: 'ETH' | 'TON' | 'SOL', type: string = 'Exchange / Web3') => {
+    const handleSelectProviderCard = (name: string, chain: 'ETH' | 'TON' | 'SOL', type: string = 'Exchange / Web3', url?: string) => {
         triggerHaptic('light');
-        setSelectedProvider({ name, chain, type });
+        setSelectedProvider({ name, chain, type, url });
         setProviderAddressInput('');
         setApiKeyInput('');
         setApiSecretInput('');
         setConnectionMode('uid');
+    };
+
+    const handleOpenExternalUrl = (url?: string, e?: React.MouseEvent) => {
+        if (e) e.stopPropagation();
+        if (!url) return;
+        triggerHaptic('light');
+        const tg = (window as any).Telegram?.WebApp;
+        if (tg?.openLink) {
+            tg.openLink(url);
+        } else {
+            window.open(url, '_blank', 'noopener,noreferrer');
+        }
     };
 
     // Confirm connection with user's inputted exchange address/UID or Read-Only API
@@ -193,24 +206,24 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
     };
 
     const cexExchanges = [
-        { name: 'Binance CEX', type: 'Централізована Біржа (Spot/Futures)', chain: 'ETH' as const, color: 'from-amber-950/60 to-slate-950', border: 'border-amber-500/40', badge: 'CEX #1' },
-        { name: 'WhiteBIT', type: 'CEX (Гривня UAH & Crypto)', chain: 'ETH' as const, color: 'from-sky-950/60 to-slate-950', border: 'border-sky-500/40', badge: 'CEX UAH' },
-        { name: 'Bybit CEX', type: 'Централізована Біржа (Spot/Derivatives)', chain: 'ETH' as const, color: 'from-orange-950/60 to-slate-950', border: 'border-orange-500/40', badge: 'CEX Hot' },
-        { name: 'OKX CEX', type: 'Централізована Біржа (Spot/Futures)', chain: 'TON' as const, color: 'from-zinc-900 to-black', border: 'border-white/30', badge: 'CEX Global' },
-        { name: 'Kuna Exchange', type: 'Українська CEX Біржа', chain: 'ETH' as const, color: 'from-blue-950/60 to-slate-950', border: 'border-blue-500/40', badge: 'UA CEX' },
-        { name: 'Bitget / Gate.io', type: 'Централізовані Біржі', chain: 'ETH' as const, color: 'from-emerald-950/60 to-slate-950', border: 'border-emerald-500/40', badge: 'CEX' },
+        { name: 'Binance CEX', type: 'Централізована Біржа (Spot/Futures)', chain: 'ETH' as const, color: 'from-amber-950/60 to-slate-950', border: 'border-amber-500/40', badge: 'CEX #1', url: 'https://www.binance.com' },
+        { name: 'WhiteBIT', type: 'CEX (Гривня UAH & Crypto)', chain: 'ETH' as const, color: 'from-sky-950/60 to-slate-950', border: 'border-sky-500/40', badge: 'CEX UAH', url: 'https://whitebit.com' },
+        { name: 'Bybit CEX', type: 'Централізована Біржа (Spot/Derivatives)', chain: 'ETH' as const, color: 'from-orange-950/60 to-slate-950', border: 'border-orange-500/40', badge: 'CEX Hot', url: 'https://www.bybit.com' },
+        { name: 'OKX CEX', type: 'Централізована Біржа (Spot/Futures)', chain: 'TON' as const, color: 'from-zinc-900 to-black', border: 'border-white/30', badge: 'CEX Global', url: 'https://www.okx.com' },
+        { name: 'Kuna Exchange', type: 'Українська CEX Біржа', chain: 'ETH' as const, color: 'from-blue-950/60 to-slate-950', border: 'border-blue-500/40', badge: 'UA CEX', url: 'https://kuna.io' },
+        { name: 'Bitget / Gate.io', type: 'Централізовані Біржі', chain: 'ETH' as const, color: 'from-emerald-950/60 to-slate-950', border: 'border-emerald-500/40', badge: 'CEX', url: 'https://www.bitget.com' },
     ];
 
     const web3Exchanges = [
-        { name: 'OKX Web3 Wallet', type: 'Web3 / Multi-Chain', chain: 'TON' as const, color: 'from-black to-slate-900', border: 'border-white/20', badge: 'Web3 TON' },
-        { name: 'Binance Web3 Wallet', type: 'Web3 Wallet', chain: 'ETH' as const, color: 'from-amber-950/40 to-black', border: 'border-amber-500/30', badge: 'BSC/EVM' },
-        { name: 'Bybit Web3 Wallet', type: 'Web3 Wallet', chain: 'ETH' as const, color: 'from-orange-950/40 to-black', border: 'border-orange-500/30', badge: 'Web3' },
+        { name: 'OKX Web3 Wallet', type: 'Web3 / Multi-Chain', chain: 'TON' as const, color: 'from-black to-slate-900', border: 'border-white/20', badge: 'Web3 TON', url: 'https://www.okx.com/web3' },
+        { name: 'Binance Web3 Wallet', type: 'Web3 Wallet', chain: 'ETH' as const, color: 'from-amber-950/40 to-black', border: 'border-amber-500/30', badge: 'BSC/EVM', url: 'https://www.binance.com' },
+        { name: 'Bybit Web3 Wallet', type: 'Web3 Wallet', chain: 'ETH' as const, color: 'from-orange-950/40 to-black', border: 'border-orange-500/30', badge: 'Web3', url: 'https://www.bybit.com' },
     ];
 
     const web3Wallets = [
-        { name: 'MetaMask', chain: 'ETH' as const, badge: 'EVM' },
-        { name: 'Trust Wallet', chain: 'ETH' as const, badge: 'Multi-Chain' },
-        { name: 'Phantom Wallet', chain: 'SOL' as const, badge: 'Solana' },
+        { name: 'MetaMask', chain: 'ETH' as const, badge: 'EVM', url: 'https://metamask.io' },
+        { name: 'Trust Wallet', chain: 'ETH' as const, badge: 'Multi-Chain', url: 'https://trustwallet.com' },
+        { name: 'Phantom Wallet', chain: 'SOL' as const, badge: 'Solana', url: 'https://phantom.app' },
     ];
 
     return (
@@ -318,13 +331,24 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                         <h3 className="text-xs font-black text-white font-orbitron uppercase">{selectedProvider.name}</h3>
                                         <p className="text-[9px] text-brand-cyan font-mono font-bold uppercase">{selectedProvider.type} • {selectedProvider.chain}</p>
                                     </div>
-                                    <button 
-                                        type="button" 
-                                        onClick={() => setSelectedProvider(null)}
-                                        className="px-2.5 py-1 rounded-lg bg-white/10 text-[9px] font-bold text-slate-300 hover:text-white"
-                                    >
-                                        ← Змінити
-                                    </button>
+                                    <div className="flex items-center gap-1.5">
+                                        {selectedProvider.url && (
+                                            <button 
+                                                type="button" 
+                                                onClick={(e) => handleOpenExternalUrl(selectedProvider.url, e)}
+                                                className="px-2.5 py-1 rounded-lg bg-amber-400/20 text-amber-300 hover:bg-amber-400/40 text-[9px] font-bold font-mono transition-all flex items-center gap-1"
+                                            >
+                                                🌐 Відкрити
+                                            </button>
+                                        )}
+                                        <button 
+                                            type="button" 
+                                            onClick={() => setSelectedProvider(null)}
+                                            className="px-2.5 py-1 rounded-lg bg-white/10 text-[9px] font-bold text-slate-300 hover:text-white"
+                                        >
+                                            ← Змінити
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <form onSubmit={handleConfirmProviderConnection} className="space-y-3">
@@ -475,7 +499,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                     </motion.div>
                                 )}
 
-                                {/* TAB 2: CRYPTO EXCHANGES (CEX & WEB3) */}
+                                 {/* TAB 2: CRYPTO EXCHANGES (CEX & WEB3) */}
                                 {activeTab === 'exchange' && (
                                     <motion.div 
                                         key="tab-exchange"
@@ -490,11 +514,10 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                             </p>
                                             <div className="space-y-2">
                                                 {cexExchanges.map((ex) => (
-                                                    <button 
+                                                    <div 
                                                         key={ex.name}
-                                                        onClick={() => handleSelectProviderCard(ex.name, ex.chain, ex.type)}
-                                                        disabled={isConnecting}
-                                                        className={`w-full p-3.5 rounded-2xl bg-gradient-to-r ${ex.color} border ${ex.border} flex items-center justify-between group transition-all active:scale-[0.98] hover:border-amber-400/60`}
+                                                        onClick={() => handleSelectProviderCard(ex.name, ex.chain, ex.type, ex.url)}
+                                                        className={`w-full p-3.5 rounded-2xl bg-gradient-to-r ${ex.color} border ${ex.border} flex items-center justify-between group transition-all cursor-pointer active:scale-[0.98] hover:border-amber-400/60`}
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-300 font-bold font-orbitron text-xs">
@@ -505,10 +528,20 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                                                 <p className="text-[9px] text-slate-400 font-mono uppercase">{ex.type}</p>
                                                             </div>
                                                         </div>
-                                                        <span className="text-[8px] font-black uppercase px-2 py-1 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                                                            {ex.badge}
-                                                        </span>
-                                                    </button>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleOpenExternalUrl(ex.url, e)}
+                                                                className="px-2 py-1 rounded bg-amber-400/20 text-amber-300 hover:bg-amber-400/40 text-[9px] font-bold font-mono transition-all flex items-center gap-1"
+                                                                title="Перейти на сайт/додаток біржі"
+                                                            >
+                                                                🌐 Відкрити
+                                                            </button>
+                                                            <span className="text-[8px] font-black uppercase px-2 py-1 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
+                                                                {ex.badge}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>
@@ -519,11 +552,10 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                             </p>
                                             <div className="space-y-2">
                                                 {web3Exchanges.map((ex) => (
-                                                    <button 
+                                                    <div 
                                                         key={ex.name}
-                                                        onClick={() => handleSelectProviderCard(ex.name, ex.chain, ex.type)}
-                                                        disabled={isConnecting}
-                                                        className={`w-full p-3.5 rounded-2xl bg-gradient-to-r ${ex.color} border ${ex.border} flex items-center justify-between group transition-all active:scale-[0.98] hover:border-brand-cyan/50`}
+                                                        onClick={() => handleSelectProviderCard(ex.name, ex.chain, ex.type, ex.url)}
+                                                        className={`w-full p-3.5 rounded-2xl bg-gradient-to-r ${ex.color} border ${ex.border} flex items-center justify-between group transition-all cursor-pointer active:scale-[0.98] hover:border-brand-cyan/50`}
                                                     >
                                                         <div className="flex items-center gap-3">
                                                             <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white font-bold font-orbitron text-xs">
@@ -534,10 +566,20 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                                                 <p className="text-[9px] text-slate-400 font-mono uppercase">{ex.type} • {ex.chain}</p>
                                                             </div>
                                                         </div>
-                                                        <span className="text-[8px] font-black uppercase px-2 py-1 rounded bg-white/10 text-brand-cyan border border-brand-cyan/20">
-                                                            {ex.badge}
-                                                        </span>
-                                                    </button>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                type="button"
+                                                                onClick={(e) => handleOpenExternalUrl(ex.url, e)}
+                                                                className="px-2 py-1 rounded bg-white/10 text-brand-cyan hover:bg-white/20 text-[9px] font-bold font-mono transition-all flex items-center gap-1"
+                                                                title="Перейти на сайт/додаток"
+                                                            >
+                                                                🌐 Відкрити
+                                                            </button>
+                                                            <span className="text-[8px] font-black uppercase px-2 py-1 rounded bg-white/10 text-brand-cyan border border-brand-cyan/20">
+                                                                {ex.badge}
+                                                            </span>
+                                                        </div>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>
@@ -558,11 +600,10 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                         </p>
 
                                         {web3Wallets.map((w) => (
-                                            <button 
+                                            <div 
                                                 key={w.name}
-                                                onClick={() => handleSelectProviderCard(w.name, w.chain, 'Web3 Wallet')}
-                                                disabled={isConnecting}
-                                                className="w-full p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between group transition-all active:scale-[0.98] hover:border-brand-cyan/50 hover:bg-white/10"
+                                                onClick={() => handleSelectProviderCard(w.name, w.chain, 'Web3 Wallet', w.url)}
+                                                className="w-full p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between group transition-all cursor-pointer active:scale-[0.98] hover:border-brand-cyan/50 hover:bg-white/10"
                                             >
                                                 <div className="flex items-center gap-3">
                                                     <div className="w-9 h-9 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan font-bold text-xs">
@@ -573,10 +614,19 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                                         <p className="text-[9px] text-slate-400 font-mono uppercase">Web3 Provider • {w.chain}</p>
                                                     </div>
                                                 </div>
-                                                <span className="text-[8px] font-black uppercase px-2 py-1 rounded bg-brand-cyan/20 text-brand-cyan">
-                                                    {w.badge}
-                                                </span>
-                                            </button>
+                                                <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        onClick={(e) => handleOpenExternalUrl(w.url, e)}
+                                                        className="px-2 py-1 rounded bg-brand-cyan/10 text-brand-cyan hover:bg-brand-cyan/20 text-[9px] font-bold font-mono transition-all flex items-center gap-1"
+                                                    >
+                                                        🌐 Відкрити
+                                                    </button>
+                                                    <span className="text-[8px] font-black uppercase px-2 py-1 rounded bg-brand-cyan/20 text-brand-cyan">
+                                                        {w.badge}
+                                                    </span>
+                                                </div>
+                                            </div>
                                         ))}
                                     </motion.div>
                                 )}
