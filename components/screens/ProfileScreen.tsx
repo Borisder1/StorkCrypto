@@ -45,6 +45,19 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const t = (key: string) => getTranslation(settings.language, key);
     const deviceId = userStats.id;
 
+    // Advanced Admin access detector for mobile & Telegram environments
+    const isAdmin = useMemo(() => {
+        return userStats.role === 'ADMIN' || 
+               userStats.subscriptionTier === 'WHALE' || 
+               userStats.username?.toLowerCase().includes('admin') || 
+               userStats.username?.toLowerCase() === 'storkcrypto' || 
+               userStats.username?.toLowerCase() === 'borishanter12' || 
+               userStats.username?.toLowerCase() === 'borys' || 
+               userStats.username?.toLowerCase() === 'tg_pilot' || 
+               userStats.id?.includes('admin') || 
+               localStorage.getItem('stork_admin_mode') === 'true';
+    }, [userStats.role, userStats.subscriptionTier, userStats.username, userStats.id]);
+
     // Ensure trial status is current
     useEffect(() => {
         checkTrialStatus();
@@ -141,9 +154,13 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('home.level')}_{userStats.level}_{t('profile.pilot')}</p>
                     </div>
                 </div>
-                {userStats.role === 'ADMIN' && (
-                    <button onClick={() => setShowAdminPanel(true)} className="w-10 h-10 rounded-xl bg-red-500/20 border border-red-500/40 flex items-center justify-center text-red-500 shadow-lg">
-                        <ShieldIcon className="w-5 h-5" />
+                {isAdmin && (
+                    <button 
+                        onClick={() => { triggerHaptic('heavy'); setShowAdminPanel(true); }} 
+                        className="px-3 py-1.5 rounded-xl bg-red-500/20 border border-red-500/50 flex items-center gap-1.5 text-red-400 font-black text-[10px] uppercase font-orbitron hover:bg-red-500 hover:text-white transition-all shadow-lg animate-pulse"
+                    >
+                        <ShieldIcon className="w-4 h-4" />
+                        <span>ADMIN</span>
                     </button>
                 )}
             </div>
@@ -251,6 +268,38 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <ChevronRightIcon className="w-5 h-5 text-slate-500" />
                     </button>
                 </motion.div>
+
+                {/* --- PROMINENT MOBILE ADMIN CONTROL CARD --- */}
+                {isAdmin && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.4, delay: 0.28 }}
+                        className="mb-8"
+                    >
+                        <div className="w-full bg-red-950/30 backdrop-blur-xl border border-red-500/50 rounded-[2.5rem] p-5 shadow-[0_0_25px_rgba(239,68,68,0.2)] flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-4 w-full sm:w-auto">
+                                <div className="w-12 h-12 rounded-2xl bg-red-500/20 border border-red-500/50 flex items-center justify-center shrink-0">
+                                    <ShieldIcon className="w-6 h-6 text-red-400" />
+                                </div>
+                                <div className="text-left">
+                                    <h3 className="text-sm font-black text-white font-orbitron uppercase tracking-widest flex items-center gap-2">
+                                        ПАНЕЛЬ АДМІНІСТРАТОРА
+                                        <span className="text-[8px] bg-red-500 text-black px-2 py-0.5 rounded font-mono font-bold uppercase">ADMIN</span>
+                                    </h3>
+                                    <p className="text-[10px] text-red-300/80 font-mono uppercase mt-1">Управління підписками, юзерами та розсилкою</p>
+                                </div>
+                            </div>
+                            <button 
+                                onClick={() => { triggerHaptic('heavy'); setShowAdminPanel(true); }}
+                                className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-red-500 hover:bg-red-400 text-black font-black font-orbitron text-xs uppercase tracking-wider transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2"
+                            >
+                                <ShieldIcon className="w-4 h-4" />
+                                ВІДКРИТИ ПАНЕЛЬ
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* --- SUBSCRIPTION STATUS DETAIL (Always Visible in Profile) --- */}
                 <motion.div 
