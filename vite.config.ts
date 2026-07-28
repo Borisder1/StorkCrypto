@@ -26,6 +26,34 @@ export default defineConfig(({ mode }) => {
         }
       },
       plugins: [react()],
+      build: {
+        target: 'esnext',
+        chunkSizeWarningLimit: 500,
+        rollupOptions: {
+          output: {
+            manualChunks(id) {
+              if (id.includes('node_modules/react/') || id.includes('node_modules/react-dom/')) {
+                return 'vendor-core';
+              }
+              if (id.includes('node_modules/framer-motion') || id.includes('node_modules/motion')) {
+                return 'vendor-motion';
+              }
+              if (id.includes('node_modules/@supabase')) {
+                return 'vendor-supabase';
+              }
+              if (id.includes('node_modules/lucide-react')) {
+                return 'vendor-icons';
+              }
+              if (id.includes('node_modules/recharts') || id.includes('node_modules/d3') || id.includes('node_modules/chart.js')) {
+                return 'vendor-charts';
+              }
+              if (id.includes('node_modules/@tonconnect')) {
+                return 'vendor-ton';
+              }
+            }
+          }
+        }
+      },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || env.API_KEY || process.env.API_KEY || ""),
         'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || env.API_KEY || process.env.API_KEY || "")

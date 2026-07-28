@@ -21,7 +21,24 @@
 
     <link rel="manifest" href="/manifest.json">
     
-    <title>StorkCrypto</title>
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "StorkCrypto",
+      "applicationCategory": "FinanceApplication",
+      "operatingSystem": "Web, Telegram",
+      "description": "AI-powered Neural Crypto Terminal providing real-time trading signals, market sentiment analysis, and portfolio audit tools.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
+    
+    <title>StorkCrypto — Neural Crypto Terminal</title>
     <script>
       window.process = window.process || { env: { NODE_ENV: 'production' } };
       window.global = window; 

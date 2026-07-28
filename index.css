@@ -72,6 +72,13 @@ body {
   .noise-bg {
     display: none !important;
   }
+  /* Reduce glow shadow on mobile for GPU efficiency */
+  [class*="shadow-glow"] {
+    box-shadow: 0 0 6px rgba(0, 240, 255, 0.15) !important;
+  }
+  .animate-scanline {
+    animation: none !important;
+  }
 }
 
 /* Utility for hiding scrollbars */

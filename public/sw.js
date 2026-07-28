@@ -1,9 +1,12 @@
 // StorkCrypto Neural Terminal Service Worker
-const CACHE_NAME = 'stork-cache-v4.2';
+const CACHE_NAME = 'stork-cache-v5.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/logo.jpg',
+  '/robots.txt',
+  '/sitemap.xml'
 ];
 
 self.addEventListener('install', (event) => {

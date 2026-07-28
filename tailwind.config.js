@@ -17,18 +17,23 @@ export default {
       zIndex: {
         'base': '0',
         'elevated': '10',
-        'overlay': '20',
+        'dropdown': '20',
         'sticky': '30',
         'modal': '40',
         'toast': '50',
       },
       colors: {
         'surface-0': '#020617', // Deep Void
-        'surface-1': '#0B1121', // Secondary Dark
+        'surface-1': '#050b14', // Secondary Dark
         'surface-2': '#0F172A', // Card Surface
         'surface-3': '#1E293B', // Highlight Surface
+        'surface-4': '#111827', // Input / Wells
+        'text-primary': '#ffffff',
+        'text-secondary': '#94a3b8',
+        'text-muted': '#64748b',
+        'text-faint': '#475569',
         'brand-bg': '#020617',
-        'brand-dark': '#0B1121',
+        'brand-dark': '#050b14',
         'brand-card': 'rgba(15, 23, 42, 0.85)',
         'brand-cyan': '#00F0FF',
         'brand-green': '#00FF9D',
@@ -38,9 +43,16 @@ export default {
         'brand-border': 'rgba(255, 255, 255, 0.08)',
       },
       boxShadow: {
-        'glow-sm': '0 0 10px rgba(0, 240, 255, 0.25)',
-        'glow-md': '0 0 20px rgba(0, 240, 255, 0.35)',
-        'glow-lg': '0 0 30px rgba(0, 240, 255, 0.5)',
+        'glow-sm': '0 0 8px rgba(0, 240, 255, 0.15)',
+        'glow-md': '0 0 15px rgba(0, 240, 255, 0.25)',
+        'glow-lg': '0 0 30px rgba(0, 240, 255, 0.35)',
+        'glow-cyan-sm': '0 0 8px rgba(0, 240, 255, 0.15)',
+        'glow-cyan-md': '0 0 15px rgba(0, 240, 255, 0.25)',
+        'glow-cyan-lg': '0 0 30px rgba(0, 240, 255, 0.35)',
+        'glow-green-sm': '0 0 8px rgba(0, 255, 157, 0.15)',
+        'glow-green-md': '0 0 15px rgba(0, 255, 157, 0.25)',
+        'glow-danger-sm': '0 0 8px rgba(255, 0, 85, 0.15)',
+        'glow-danger-md': '0 0 15px rgba(255, 0, 85, 0.25)',
       },
       animation: {
         'spin-slow': 'spin 8s linear infinite',
