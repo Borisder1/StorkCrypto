@@ -29,13 +29,13 @@
       window.onload = function() {
         setTimeout(function() {
             const root = document.getElementById('root');
-            if (root && (root.innerHTML.trim() === '' || root.children.length === 0)) {
+            if (root && (root.innerHTML.includes('stork-initial-skeleton'))) {
                 const debugInfo = document.createElement('div');
                 debugInfo.style.cssText = "position:fixed; inset:0; background:#020617; color:#ef4444; padding:20px; font-family:monospace; z-index:99999; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;";
-                debugInfo.innerHTML = "<h1>TERMINAL ERROR</h1><button onclick='window.location.reload()'>REBOOT</button>";
+                debugInfo.innerHTML = "<h1 style='font-size:18px;margin-bottom:12px;color:#00F0FF;'>STORKCRYPTO NEURAL LINK TIMEOUT</h1><p style='color:#94a3b8;font-size:12px;margin-bottom:20px;'>Initialization sequence stalled. Click below to reboot terminal.</p><button onclick='window.location.reload()' style='background:#00F0FF;color:#000;border:none;padding:10px 20px;border-radius:8px;font-weight:bold;cursor:pointer;'>REBOOT TERMINAL</button>";
                 document.body.appendChild(debugInfo);
             }
-        }, 5000);
+        }, 8000);
       };
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -44,9 +44,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap&subset=latin,cyrillic" rel="stylesheet">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
-<body>
+<body style="background-color:#020617; color:#ffffff; margin:0;">
     <div class="noise-bg"></div>
-    <div id="root"></div>
+    <div id="root">
+        <!-- Instant Inline HTML Skeleton (Task 1.2: <100ms layout feedback) -->
+        <div id="stork-initial-skeleton" style="min-height:100vh; background:#020617; display:flex; flex-direction:column; font-family:sans-serif; color:#fff; box-sizing:border-box; padding:12px;">
+            <style>
+                @keyframes storkSkeletonPulse {
+                    0%, 100% { opacity: 0.3; }
+                    50% { opacity: 0.7; }
+                }
+                .sk-pulse { animation: storkSkeletonPulse 1.5s ease-in-out infinite; }
+            </style>
+            <!-- Top Ticker Bar -->
+            <div style="height:38px; background:rgba(15,23,42,0.8); border:1px solid rgba(255,255,255,0.08); border-radius:12px; margin-bottom:16px; display:flex; align-items:center; padding:0 12px; justify-between;">
+                <div style="width:80px; height:12px; background:#00F0FF; border-radius:4px; opacity:0.6;" class="sk-pulse"></div>
+                <div style="width:120px; height:12px; background:#1e293b; border-radius:4px;" class="sk-pulse"></div>
+                <div style="width:60px; height:12px; background:#1e293b; border-radius:4px;" class="sk-pulse"></div>
+            </div>
+            <!-- Main Content Area Grid Skeleton -->
+            <div style="flex:1; display:flex; flex-direction:column; gap:12px;">
+                <div style="height:120px; background:rgba(15,23,42,0.8); border:1px solid rgba(0,240,255,0.2); border-radius:16px; padding:16px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:space-between;">
+                    <div style="width:40%; height:16px; background:#00F0FF; border-radius:4px; opacity:0.4;" class="sk-pulse"></div>
+                    <div style="width:70%; height:24px; background:#1e293b; border-radius:4px;" class="sk-pulse"></div>
+                    <div style="width:30%; height:12px; background:#1e293b; border-radius:4px;" class="sk-pulse"></div>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+                    <div style="height:90px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:16px;" class="sk-pulse"></div>
+                    <div style="height:90px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:16px;" class="sk-pulse"></div>
+                </div>
+                <div style="height:140px; background:rgba(15,23,42,0.6); border:1px solid rgba(255,255,255,0.08); border-radius:16px;" class="sk-pulse"></div>
+            </div>
+            <!-- Bottom Capsule Nav Skeleton -->
+            <div style="position:fixed; bottom:24px; left:50%; transform:translateX(-50%); width:90%; max-width:400px; height:58px; background:rgba(5,11,20,0.95); border:1px solid rgba(255,255,255,0.15); border-radius:24px; display:flex; justify-content:space-around; align-items:center; padding:0 12px;">
+                <div style="width:24px; height:24px; border-radius:50%; background:#00F0FF; opacity:0.6;" class="sk-pulse"></div>
+                <div style="width:24px; height:24px; border-radius:50%; background:#1e293b;" class="sk-pulse"></div>
+                <div style="width:24px; height:24px; border-radius:50%; background:#1e293b;" class="sk-pulse"></div>
+                <div style="width:24px; height:24px; border-radius:50%; background:#1e293b;" class="sk-pulse"></div>
+                <div style="width:24px; height:24px; border-radius:50%; background:#1e293b;" class="sk-pulse"></div>
+            </div>
+        </div>
+    </div>
     <script type="module" src="/index.tsx"></script>
 </body>
 </html>

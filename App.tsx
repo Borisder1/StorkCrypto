@@ -11,11 +11,12 @@ import MaintenanceScreen from './components/MaintenanceScreen';
 import SimulationManager from './components/SimulationManager';
 import WalletListener from './components/WalletListener'; 
 import { LoadingScreen } from './components/LoadingScreen';
-import { HomeIcon, NewspaperIcon, ActivityIcon, RadarIcon, PieChartIcon, BookIcon, BotIcon } from './components/icons';
+import { HomeIcon, NewspaperIcon, ActivityIcon, RadarIcon, PieChartIcon, BookIcon, BotIcon, GridIcon } from './components/icons';
 import { useStore } from './store';
 import { getTranslation } from './utils/translations';
 import { triggerHaptic } from './utils/haptics';
 import { soundscapes } from './utils/audio';
+import { OnboardingTour } from './components/OnboardingTour';
 
 const THEME_BG_MODES = {
     midnight: '#020617', // Deepest Black/Blue
@@ -53,10 +54,9 @@ const App: React.FC = () => {
     const navItems = [
         { id: 'home', label: t('nav.home'), icon: <HomeIcon /> },
         { id: 'signals', label: t('nav.signals'), icon: <ActivityIcon /> }, 
-        { id: 'scanner', label: t('nav.scanner'), icon: <RadarIcon /> },
-        { id: 'news', label: t('nav.news'), icon: <NewspaperIcon /> },
-        { id: 'media', label: t('nav.media'), icon: <BookIcon /> },
         { id: 'portfolio', label: t('nav.assets'), icon: <PieChartIcon /> }, 
+        { id: 'scanner', label: t('nav.scanner'), icon: <RadarIcon /> },
+        { id: 'more', label: 'Більше', icon: <GridIcon /> },
     ];
 
     useEffect(() => {
@@ -129,9 +129,15 @@ const App: React.FC = () => {
 
     return (
         <div data-theme={settings.themeMode} className="h-[100dvh] w-screen bg-brand-bg text-white overflow-hidden flex flex-col font-sans relative">
+            {/* Accessibility Skip Link */}
+            <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-toast focus:px-4 focus:py-2 focus:bg-brand-cyan focus:text-black focus:font-bold focus:rounded-xl focus:shadow-lg">
+                Перейти до основного контенту
+            </a>
+            
             <OfflineIndicator />
             <SimulationManager />
             <WalletListener /> 
+            <OnboardingTour /> 
             
             {!settings?.isAuthenticated ? (
                 <AuthScreen />
@@ -140,7 +146,7 @@ const App: React.FC = () => {
                     <MarketTicker />
                     <LevelUpOverlay />
                     
-                    <main className="flex-grow overflow-y-auto overflow-x-hidden relative pt-10 pb-24 no-scrollbar">
+                    <main id="main-content" className="flex-grow overflow-y-auto overflow-x-hidden relative pt-10 pb-24 no-scrollbar">
                         <HomeScreen onNavigate={navigateTo} />
                     </main>
 

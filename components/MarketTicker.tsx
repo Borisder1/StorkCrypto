@@ -84,14 +84,14 @@ const MarketTicker: React.FC = React.memo(() => {
             
             {/* Scrolling Ticker */}
             <div className="flex-1 overflow-hidden relative h-full flex items-center mask-linear-fade">
-                <div className="flex animate-marquee w-max items-center hover:[animation-play-state:paused] pointer-events-auto cursor-help">
-                    {[...manipulatedData, ...manipulatedData].map((coin, idx) => (
-                        <div key={`${coin.ticker}-${idx}`} className="flex items-center gap-2 mx-6 group">
+                <div className="flex animate-marquee w-max items-center pointer-events-auto cursor-help">
+                    {[...manipulatedData, ...manipulatedData, ...manipulatedData, ...manipulatedData].map((coin, idx) => (
+                        <div key={`${coin.ticker}-${idx}`} className="flex items-center gap-2 mx-5 group shrink-0">
                             <span className="text-xs font-black text-slate-300 font-orbitron group-hover:text-white transition-colors">{coin.ticker}</span>
                             <span className="text-xs font-mono text-brand-cyan/80">
                                 ${coin.price < 1 ? coin.price.toFixed(5) : coin.price.toLocaleString(undefined, {maximumFractionDigits: 2})}
                             </span>
-                            <span className={`text-[12px] font-bold ${coin.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
+                            <span className={`text-[11px] font-bold ${coin.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
                                 {coin.change >= 0 ? '▲' : '▼'}{Math.abs(coin.change).toFixed(1)}%
                             </span>
                         </div>

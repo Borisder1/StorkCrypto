@@ -22,10 +22,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
             initial={{ y: 100, opacity: 0, x: "-50%" }}
             animate={{ y: 0, opacity: 1, x: "-50%" }}
             transition={{ type: 'spring', damping: 20, stiffness: 100, delay: 0.5 }}
-            className="fixed bottom-6 left-1/2 z-40 flex justify-center w-full max-w-md px-4 pointer-events-none"
+            className="fixed bottom-6 left-1/2 z-sticky flex justify-center w-full max-w-md px-4 pointer-events-none"
         >
             {/* Glass Capsule - Ergonomic Mobile Update */}
-            <nav className="bg-[#050b14]/95 backdrop-blur-2xl border border-white/15 rounded-3xl px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex items-center justify-between w-full pointer-events-auto relative overflow-visible transition-all hover:border-brand-cyan/30 min-h-[58px]">
+            <nav role="tablist" aria-label="Головна навігація" className="bg-[#050b14]/95 backdrop-blur-2xl border border-white/15 rounded-3xl px-3 py-2 shadow-[0_10px_30px_rgba(0,0,0,0.8)] flex items-center justify-between w-full pointer-events-auto relative overflow-visible transition-all hover:border-brand-cyan/30 min-h-[58px]">
                 
                 {/* Glow behind capsule - enhanced */}
                 <div className="absolute inset-0 rounded-3xl bg-brand-cyan/10 blur-xl -z-10"></div>
@@ -35,8 +35,10 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                     return (
                         <button
                             key={item.id}
+                            role="tab"
                             onClick={() => handleTabChange(item.id)}
                             aria-label={item.label}
+                            aria-selected={isActive}
                             aria-current={isActive ? 'page' : undefined}
                             className={`relative flex flex-col items-center justify-center group flex-1 min-h-[48px] px-1 py-1 transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan focus-visible:rounded-xl cursor-pointer ${isActive ? '-translate-y-1' : ''}`}
                         >

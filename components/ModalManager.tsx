@@ -26,6 +26,7 @@ const AnalyticsModal = React.lazy(() => import('./AnalyticsModal'));
 const NewsModal = React.lazy(() => import('./NewsModal'));
 const MediaScreen = React.lazy(() => import('./screens/MediaScreen'));
 const ChatScreen = React.lazy(() => import('./screens/ChatScreen'));
+const CategorizedHubModal = React.lazy(() => import('./CategorizedHubModal').then(m => ({ default: m.CategorizedHubModal })));
 
 // Modern sleek loading indicator for lazy-loaded tabs
 const LazyPreloader = () => (
@@ -85,6 +86,7 @@ const ModalManager: React.FC = () => {
                         {activeTab === 'scanner' && <ScannerModal key="scanner" onClose={goHome} />}
                         {activeTab === 'analytics' && <AnalyticsModal key="analytics" onClose={goHome} />}
                         {activeTab === 'news' && <NewsModal key="news" onClose={goHome} />}
+                        {activeTab === 'more' && <CategorizedHubModal key="more" isOpen={true} onClose={goHome} />}
                     </AnimatePresence>
                 </div>
                 

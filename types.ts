@@ -2,7 +2,7 @@
 export type Language = 'en' | 'ua' | 'pl';
 export type ThemeColor = 'cyan' | 'purple' | 'green';
 export type ThemeMode = 'midnight' | 'dark' | 'concrete' | 'solar' | 'matrix' | 'vaporwave' | 'twilight' | 'daylight';
-export type NavItem = 'home' | 'signals' | 'scanner' | 'news' | 'media' | 'portfolio' | 'profile' | 'analytics';
+export type NavItem = 'home' | 'signals' | 'scanner' | 'news' | 'media' | 'portfolio' | 'profile' | 'analytics' | 'more';
 export type RiskLevel = 'CONSERVATIVE' | 'AGGRESSIVE';
 export type MarketOverride = 'NORMAL' | 'PUMP' | 'DUMP';
 
