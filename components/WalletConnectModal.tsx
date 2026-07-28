@@ -51,6 +51,38 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
         }, 120);
     };
 
+    // Handle Direct MetaMask / Web3 Browser Extension Connection (window.ethereum)
+    const handleDirectMetaMaskConnect = async () => {
+        triggerHaptic('medium');
+        setIsConnecting(true);
+        try {
+            if (typeof window !== 'undefined' && (window as any).ethereum) {
+                const eth = (window as any).ethereum;
+                const accounts = await eth.request({ method: 'eth_requestAccounts' });
+                if (accounts && accounts.length > 0) {
+                    if (tonConnectUI.connected) {
+                        await tonConnectUI.disconnect().catch(() => {});
+                    }
+                    await connectWallet(accounts[0], 'MetaMask (Web3 Extension)', 'ETH');
+                    showToast(`MetaMask підключено: ${walletService.formatAddress(accounts[0])}`);
+                    triggerHaptic('success');
+                    onClose();
+                    return;
+                }
+            }
+            
+            // Fallback for mobile / Telegram WebApp without window.ethereum
+            const metamaskDeepLink = `https://metamask.app.link/dapp/${window.location.host}`;
+            showToast('Утиліта MetaMask не виявлена у розширенні. Відкриваємо MetaMask App...');
+            handleOpenExternalUrl(metamaskDeepLink);
+        } catch (err: any) {
+            console.error('[MetaMask Connect Error]:', err);
+            showToast('Помилка авторизації в MetaMask');
+        } finally {
+            setIsConnecting(false);
+        }
+    };
+
     // Open provider input form when exchange or web3 wallet card is clicked
     const handleSelectProviderCard = (name: string, chain: 'ETH' | 'TON' | 'SOL', type: string = 'Exchange / Web3', url?: string) => {
         triggerHaptic('light');
@@ -479,7 +511,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                         className="space-y-4"
                                     >
                                         <p className="text-xs text-slate-300 font-mono leading-relaxed text-center">
-                                            Офіційне підключення TON Connect для Telegram Wallet (@wallet), Tonkeeper та TON Space.
+                                            Офіційне підключення TON Connect для Telegram Wallet (@wallet), Tonkeeper, GRAM Token & TON Space.
                                         </p>
 
                                         <button 
@@ -492,9 +524,19 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                             </span>
                                         </button>
 
-                                        <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-[10px] text-slate-400 font-mono space-y-1">
-                                            <p className="text-brand-cyan font-bold">💡 Примітка щодо Telegram Wallet:</p>
-                                            <p>При повторному підключенні сесію буде автоматично оновлено для миттєвого відкриття боту або додатка.</p>
+                                        {/* Telegram Ecosystem Tokens & Stars Info Badge */}
+                                        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-sky-950/60 to-black border border-sky-500/30 text-[10px] text-slate-300 font-mono space-y-1.5">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-sky-400 font-bold font-orbitron uppercase flex items-center gap-1">
+                                                    💎 Telegram Ecosystem Hub
+                                                </span>
+                                                <span className="text-[8px] bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded font-bold border border-sky-500/30">
+                                                    TON • GRAM • ⭐
+                                                </span>
+                                            </div>
+                                            <p className="text-[9px] text-slate-300 leading-normal">
+                                                Підтримуються транзакції <b>TON</b>, <b>GRAM Token</b> (Telegram Community Token) та платіжний баланс <b>Telegram Stars ⭐</b>.
+                                            </p>
                                         </div>
                                     </motion.div>
                                 )}
@@ -595,8 +637,23 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                         exit={{ opacity: 0, y: -10 }}
                                         className="space-y-3"
                                     >
-                                        <p className="text-xs text-slate-300 font-mono leading-relaxed mb-2">
-                                            Оберіть Web3-гаманець для введення адреси або швидкої авторизації:
+                                        {/* Direct Browser Extension Connect Button (MetaMask / injected window.ethereum) */}
+                                        <button 
+                                            onClick={handleDirectMetaMaskConnect}
+                                            disabled={isConnecting}
+                                            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-black font-black font-orbitron text-xs uppercase tracking-wider flex items-center justify-between shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:brightness-110 active:scale-[0.98] transition-all"
+                                        >
+                                            <div className="flex items-center gap-2.5">
+                                                <span className="text-base">🦊</span>
+                                                <span>MetaMask Direct Extension</span>
+                                            </div>
+                                            <span className="text-[9px] bg-black/30 text-white px-2 py-0.5 rounded font-mono font-bold uppercase">
+                                                {typeof window !== 'undefined' && (window as any).ethereum ? 'DETECTED ⚡' : 'CONNECT'}
+                                            </span>
+                                        </button>
+
+                                        <p className="text-[10px] text-slate-400 font-mono leading-relaxed my-2">
+                                            Або оберіть потрібний Web3-гаманець для введення адреси:
                                         </p>
 
                                         {web3Wallets.map((w) => (
