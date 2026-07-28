@@ -17,6 +17,7 @@ import { getTranslation } from './utils/translations';
 import { triggerHaptic } from './utils/haptics';
 import { soundscapes } from './utils/audio';
 import { OnboardingTour } from './components/OnboardingTour';
+import { initTelegramApp, getTelegramUser } from './utils/telegram';
 
 const THEME_BG_MODES = {
     midnight: '#020617', // Deepest Black/Blue
@@ -112,7 +113,7 @@ const App: React.FC = () => {
             if (startParam) redeemReferral(startParam);
 
             try {
-                tg.expand(); 
+                initTelegramApp();
                 const bgColor = THEME_BG_MODES[settings.themeMode as keyof typeof THEME_BG_MODES] || '#020617';
                 tg.setHeaderColor(bgColor);
                 tg.setBackgroundColor(bgColor);

@@ -57,9 +57,10 @@ const MarketTicker: React.FC = React.memo(() => {
     }, [prices, settings.marketOverride]);
 
     const getSourceLabel = () => {
-        if (source === 'SYNCING') return t('ticker.syncing');
-        if (source === 'CACHE') return t('ticker.cache');
-        return source; 
+        if (source === 'SYNCING') return 'BINANCE...';
+        if (source === 'BINANCE') return 'BINANCE LIVE';
+        if (source === 'COINCAP') return 'LIVE FEED';
+        return 'BINANCE FEED'; 
     };
 
     return (
@@ -83,20 +84,31 @@ const MarketTicker: React.FC = React.memo(() => {
             </div>
             
             {/* Scrolling Ticker */}
-            <div className="flex-1 overflow-hidden relative h-full flex items-center mask-linear-fade">
-                <div className="flex animate-marquee w-max items-center pointer-events-auto cursor-help">
-                    {[...manipulatedData, ...manipulatedData, ...manipulatedData, ...manipulatedData].map((coin, idx) => (
-                        <div key={`${coin.ticker}-${idx}`} className="flex items-center gap-2 mx-5 group shrink-0">
-                            <span className="text-xs font-black text-slate-300 font-orbitron group-hover:text-white transition-colors">{coin.ticker}</span>
-                            <span className="text-xs font-mono text-brand-cyan/80">
-                                ${coin.price < 1 ? coin.price.toFixed(5) : coin.price.toLocaleString(undefined, {maximumFractionDigits: 2})}
+            <div className="flex-1 overflow-hidden relative h-full flex items-center">
+                <motion.div 
+                    className="flex w-max items-center pointer-events-auto cursor-pointer shrink-0"
+                    animate={{ x: ["0%", "-50%"] }}
+                    transition={{
+                        x: {
+                            repeat: Infinity,
+                            repeatType: "loop",
+                            duration: 90,
+                            ease: "linear",
+                        },
+                    }}
+                >
+                    {[...manipulatedData, ...manipulatedData].map((coin, idx) => (
+                        <div key={`${coin.ticker}-${idx}`} className="flex items-center gap-2.5 mx-6 group shrink-0 py-1 px-2 rounded-lg hover:bg-white/10 transition-colors">
+                            <span className="text-xs font-black text-slate-200 font-orbitron group-hover:text-brand-cyan transition-colors">{coin.ticker}</span>
+                            <span className="text-xs font-mono text-cyan-300 font-medium">
+                                ${coin.price < 1 ? coin.price.toFixed(4) : coin.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                             </span>
-                            <span className={`text-[11px] font-bold ${coin.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
-                                {coin.change >= 0 ? '▲' : '▼'}{Math.abs(coin.change).toFixed(1)}%
+                            <span className={`text-[11px] font-bold font-mono px-1.5 py-0.5 rounded ${coin.change >= 0 ? 'text-brand-green bg-brand-green/10' : 'text-brand-danger bg-brand-danger/10'}`}>
+                                {coin.change >= 0 ? '▲ +' : '▼ '}{coin.change.toFixed(2)}%
                             </span>
                         </div>
                     ))}
-                </div>
+                </motion.div>
             </div>
             
             <div className="relative z-20 flex items-center pr-2 pl-1 h-full shrink-0 pointer-events-auto">
