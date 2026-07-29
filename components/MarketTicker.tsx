@@ -3,13 +3,16 @@ import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
 import { getCryptoPrices, MASTER_ASSET_LIST } from '../services/priceService';
 import { useStore } from '../store';
-import { MarketPriceMap } from '../types';
+import { MarketPriceMap, Asset } from '../types';
 import { getTranslation } from '../utils/translations';
+import { triggerHaptic } from '../utils/haptics';
+import AssetDetailModal from './AssetDetailModal';
 
 const MarketTicker: React.FC = React.memo(() => {
     const { settings, updateSettings, showToast } = useStore();
     const [prices, setPrices] = useState<MarketPriceMap>({});
     const [source, setSource] = useState<string>('SYNCING');
+    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     
     const t = (key: string) => getTranslation(settings.language, key);
 
@@ -52,78 +55,119 @@ const MarketTicker: React.FC = React.memo(() => {
             if (settings.marketOverride === 'PUMP') change = Math.abs(change) + 5;
             if (settings.marketOverride === 'DUMP') change = -(Math.abs(change) + 5);
             
-            return { ticker: asset.ticker, price, change };
+            return { ticker: asset.ticker, name: asset.name, price, change };
         });
     }, [prices, settings.marketOverride]);
 
     const getSourceLabel = () => {
-        if (source === 'SYNCING') return 'BINANCE...';
-        if (source === 'BINANCE') return 'BINANCE LIVE';
-        if (source === 'COINCAP') return 'LIVE FEED';
-        return 'BINANCE FEED'; 
+        if (source === 'SYNCING') return 'LIVE...';
+        return 'LIVE'; 
     };
 
+    const handleCoinClick = (coin: { ticker: string; name: string; price: number; change: number }) => {
+        triggerHaptic('light');
+        setSelectedAsset({
+            ticker: coin.ticker,
+            name: coin.name || coin.ticker,
+            icon: '',
+            amount: 0,
+            value: coin.price,
+            change: coin.change,
+            buyPrice: coin.price
+        });
+    };
+
+    const isDaylight = settings.themeMode === 'daylight';
+
     return (
-        <motion.div 
-            initial={{ y: -50, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ type: 'spring', damping: 20, stiffness: 100, delay: 0.2 }}
-            className="fixed top-0 left-0 w-full h-9 z-[10] flex items-center overflow-hidden pointer-events-none select-none border-b border-white/5"
-        >
-            {/* Glass Background */}
-            <div className="absolute inset-0 bg-[#020617]/60 backdrop-blur-md"></div>
-            
-            {/* Status Pill */}
-            <div className={`relative flex items-center gap-2 pl-6 pr-4 h-full shrink-0 z-20 bg-gradient-to-r from-[#020617] to-transparent`}>
-                <div className="flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-md border border-white/5 backdrop-blur-sm">
-                    <div className={`w-1.5 h-1.5 rounded-full animate-pulse ${source === 'BINANCE' ? 'bg-green-500 shadow-[0_0_5px_#22c55e]' : 'bg-brand-cyan shadow-[0_0_5px_#00d9ff]'}`}></div>
-                    <span className="text-[10px] font-bold tracking-wider uppercase font-mono text-slate-300">
-                        {getSourceLabel()}
-                    </span>
+        <>
+            <motion.div 
+                initial={{ y: -50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ type: 'spring', damping: 20, stiffness: 100, delay: 0.2 }}
+                className={`fixed top-0 left-0 w-full h-9 z-[30] flex items-center overflow-hidden select-none border-b transition-colors ${
+                    isDaylight 
+                        ? 'bg-slate-100/95 border-slate-300 text-slate-900 shadow-sm' 
+                        : 'bg-[#020617]/90 border-white/10 text-white'
+                }`}
+            >
+                {/* Status Pill Badge */}
+                <div className={`relative flex items-center gap-1.5 pl-3 pr-3 h-full shrink-0 z-20 ${
+                    isDaylight ? 'bg-gradient-to-r from-slate-100 via-slate-100 to-transparent' : 'bg-gradient-to-r from-[#020617] via-[#020617] to-transparent'
+                }`}>
+                    <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-md border backdrop-blur-sm ${
+                        isDaylight 
+                            ? 'bg-slate-200/80 border-slate-300 text-slate-900 shadow-sm' 
+                            : 'bg-white/10 border-white/10 text-slate-200'
+                    }`}>
+                        <div className={`w-2 h-2 rounded-full animate-pulse ${source === 'BINANCE' || source === 'LIVE' ? 'bg-emerald-500 shadow-[0_0_6px_#22c55e]' : 'bg-cyan-500 shadow-[0_0_6px_#06b6d4]'}`}></div>
+                        <span className="text-[10px] font-black tracking-widest uppercase font-mono">
+                            {getSourceLabel()}
+                        </span>
+                    </div>
                 </div>
-            </div>
-            
-            {/* Scrolling Ticker */}
-            <div className="flex-1 overflow-hidden relative h-full flex items-center">
-                <motion.div 
-                    className="flex w-max items-center pointer-events-auto cursor-pointer shrink-0"
-                    animate={{ x: ["0%", "-50%"] }}
-                    transition={{
-                        x: {
-                            repeat: Infinity,
-                            repeatType: "loop",
-                            duration: 90,
-                            ease: "linear",
-                        },
-                    }}
-                >
-                    {[...manipulatedData, ...manipulatedData].map((coin, idx) => (
-                        <div key={`${coin.ticker}-${idx}`} className="flex items-center gap-2.5 mx-6 group shrink-0 py-1 px-2 rounded-lg hover:bg-white/10 transition-colors">
-                            <span className="text-xs font-black text-slate-200 font-orbitron group-hover:text-brand-cyan transition-colors">{coin.ticker}</span>
-                            <span className="text-xs font-mono text-cyan-300 font-medium">
-                                ${coin.price < 1 ? coin.price.toFixed(4) : coin.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
-                            </span>
-                            <span className={`text-[11px] font-bold font-mono px-1.5 py-0.5 rounded ${coin.change >= 0 ? 'text-brand-green bg-brand-green/10' : 'text-brand-danger bg-brand-danger/10'}`}>
-                                {coin.change >= 0 ? '▲ +' : '▼ '}{coin.change.toFixed(2)}%
-                            </span>
-                        </div>
-                    ))}
-                </motion.div>
-            </div>
-            
-            <div className="relative z-20 flex items-center pr-2 pl-1 h-full shrink-0 pointer-events-auto">
-                <button 
-                    onClick={toggleSunlightMode}
-                    title="Переключити світлу/темну тему"
-                    className="p-1 rounded-lg bg-white/10 hover:bg-white/20 border border-white/10 text-xs transition-all active:scale-90 flex items-center justify-center shadow-sm"
-                >
-                    {settings.themeMode === 'daylight' ? '☀️' : '🌙'}
-                </button>
-            </div>
-            
-            <div className="absolute top-0 right-0 w-12 h-full bg-gradient-to-l from-[#020617] to-transparent z-10 pointer-events-none"></div>
-        </motion.div>
+                
+                {/* Scrolling Ticker (with Hover/Touch Pause & Hardware-Accelerated crisp text) */}
+                <div className="flex-1 overflow-hidden relative h-full flex items-center pointer-events-auto cursor-pointer">
+                    <div className="flex w-max items-center shrink-0 animate-marquee">
+                        {[...manipulatedData, ...manipulatedData, ...manipulatedData].map((coin, idx) => (
+                            <button
+                                key={`${coin.ticker}-${idx}`} 
+                                onClick={() => handleCoinClick(coin)}
+                                title={`Клікніть для відкриття аналітики ${coin.ticker}`}
+                                className={`flex items-center gap-2 mx-3 px-2 py-1 rounded-md transition-all shrink-0 border ${
+                                    isDaylight 
+                                        ? 'bg-white/80 border-slate-200 hover:bg-sky-50 hover:border-sky-300 shadow-sm' 
+                                        : 'bg-white/5 border-white/5 hover:bg-white/15 hover:border-cyan-500/40'
+                                }`}
+                            >
+                                <span className={`text-xs font-black font-mono tracking-tight ${isDaylight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                    {coin.ticker}
+                                </span>
+                                <span className={`text-xs font-mono font-bold ${isDaylight ? 'text-sky-700' : 'text-cyan-300'}`}>
+                                    ${coin.price < 1 ? coin.price.toFixed(4) : coin.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                </span>
+                                <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded ${
+                                    coin.change >= 0 
+                                        ? (isDaylight ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20')
+                                        : (isDaylight ? 'text-rose-800 bg-rose-100 border border-rose-300' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20')
+                                }`}>
+                                    {coin.change >= 0 ? '▲ +' : '▼ '}{coin.change.toFixed(2)}%
+                                </span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+                
+                {/* Theme Toggle Button & Right Gradient */}
+                <div className={`relative z-20 flex items-center pr-3 pl-2 h-full shrink-0 pointer-events-auto ${
+                    isDaylight ? 'bg-gradient-to-l from-slate-100 via-slate-100 to-transparent' : 'bg-gradient-to-l from-[#020617] via-[#020617] to-transparent'
+                }`}>
+                    <button 
+                        onClick={toggleSunlightMode}
+                        title={isDaylight ? "Переключити на Нічний режим" : "Переключити на Денний режим"}
+                        className={`px-2 py-1 rounded-lg border text-xs font-bold transition-all active:scale-95 flex items-center gap-1 shadow-sm ${
+                            isDaylight 
+                                ? 'bg-amber-100 border-amber-300 text-amber-900 hover:bg-amber-200' 
+                                : 'bg-white/10 border-white/15 text-slate-200 hover:bg-white/20'
+                        }`}
+                    >
+                        <span>{isDaylight ? '☀️' : '🌙'}</span>
+                        <span className="text-[10px] hidden sm:inline uppercase tracking-wider">{isDaylight ? 'DAY' : 'NIGHT'}</span>
+                    </button>
+                </div>
+            </motion.div>
+
+            {/* Modal preview when user clicks on a ticker item */}
+            {selectedAsset && (
+                <AssetDetailModal 
+                    asset={selectedAsset} 
+                    onClose={() => setSelectedAsset(null)} 
+                />
+            )}
+        </>
     );
 });
 
 export default MarketTicker;
+
