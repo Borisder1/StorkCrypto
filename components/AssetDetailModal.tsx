@@ -239,14 +239,14 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                 <div className="p-6 border-b border-white/5 bg-brand-card/95 flex justify-between items-center relative">
                     <div className="flex items-center gap-4">
                         <div className="w-14 h-14 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center p-3 shadow-inner">
-                            <img src={`https://assets.coincap.io/assets/icons/${asset.ticker.toLowerCase()}@2x.png`} className="w-full h-full object-contain" onError={e => (e.currentTarget.src = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${asset.ticker.toLowerCase()}.png`)} />
+                            <img src={`https://assets.coincap.io/assets/icons/${asset.ticker.toLowerCase()}@2x.png`} alt={asset.name} className="w-full h-full object-contain" onError={e => (e.currentTarget.src = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${asset.ticker.toLowerCase()}.png`)} />
                         </div>
                         <div>
                             <h2 className="text-xl font-black text-white font-orbitron uppercase tracking-widest">{asset.name}</h2>
                             <p className={`text-sm font-bold font-mono ${asset.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>${asset.value.toFixed(2)} ({asset.change.toFixed(2)}%)</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-colors">✕</button>
+                    <button onClick={onClose} aria-label="Закрити вікно" className="w-8 h-8 rounded-full bg-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">✕</button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">

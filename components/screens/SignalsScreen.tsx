@@ -96,7 +96,7 @@ const HybridSignalCard = React.memo(({
                 <div className="flex justify-between items-start mb-6">
                     <div className="flex items-center gap-5">
                         <div className="w-14 h-14 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center p-2.5 shadow-inner">
-                            <img src={`https://assets.coincap.io/assets/icons/${signal.asset.toLowerCase()}@2x.png`} className="w-full h-full object-contain" />
+                            <img src={`https://assets.coincap.io/assets/icons/${signal.asset.toLowerCase()}@2x.png`} alt={signal.asset} className="w-full h-full object-contain" />
                         </div>
                         <div>
                             <h3 className="font-black text-xl text-white font-orbitron tracking-wider">{signal.asset}</h3>

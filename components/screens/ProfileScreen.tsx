@@ -185,7 +185,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <div className="relative mb-4 group cursor-pointer active:scale-95 transition-transform" onClick={() => setShowAvatarModal(true)}>
                             <div className={`absolute -inset-3 blur-xl opacity-40 rounded-full transition-colors ${subData.isPaid ? 'bg-brand-purple' : subData.isTrial ? 'bg-brand-green' : 'bg-slate-500'}`}></div>
                             <div className={`w-28 h-28 rounded-full bg-brand-bg border-4 flex items-center justify-center overflow-hidden shadow-2xl relative z-10 ${subData.isPaid ? 'border-brand-purple' : subData.isTrial ? 'border-brand-green' : 'border-slate-700'}`}>
-                                {avatarUrl ? <img src={avatarUrl} className="w-full h-full object-cover" /> :
+                                {avatarUrl ? <img src={avatarUrl} alt="User Avatar" className="w-full h-full object-cover" /> :
                                 <div className="text-4xl font-black text-slate-700 font-orbitron">{userStats.firstName ? userStats.firstName[0] : 'OP'}</div>}
                             </div>
                             <div className={`absolute bottom-0 right-0 w-8 h-8 rounded-full border-4 border-[#020617] flex items-center justify-center z-20 bg-brand-card text-white hover:bg-brand-cyan hover:text-black transition-colors`}>

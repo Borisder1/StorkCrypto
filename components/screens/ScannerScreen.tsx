@@ -26,6 +26,7 @@ const ScannerListItem = React.memo(({ coin, onAssetClick, style, isAlpha, t }: {
                         <div className="w-10 h-10 rounded-lg bg-black/40 flex items-center justify-center p-1.5 border border-white/5 group-hover:border-white/20 transition-colors">
                             <img 
                                 src={`https://assets.coincap.io/assets/icons/${coin.ticker.toLowerCase()}@2x.png`} 
+                                alt={coin.ticker}
                                 className="w-full h-full object-contain opacity-90" 
                                 loading="lazy"
                                 onError={(e) => { e.currentTarget.style.display = 'none'; }}

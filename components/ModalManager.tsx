@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import ErrorBoundary from './ErrorBoundary';
+import { useScrollLock } from '../utils/useScrollLock';
 
 // 🚀 CODE SPLITTING: Lazy load heavy modal modules to minimize initial JS Bundle size
 const ReferralModal = React.lazy(() => import('./ReferralModal'));
@@ -69,6 +70,50 @@ const ModalManager: React.FC = () => {
         showCompetitorMatrix,
         setShowCompetitorMatrix
     } = useStore();
+
+    const hasOpenModal = Boolean(
+        showReferral || showCalendar || isSubscriptionOpen || showAdInquiry || 
+        showAirdrop || showSentinel || showLeaderboard || showWhaleRadar || 
+        showStrategyBuilder || showSentimentPulse || showLiquidationHeatmap || 
+        showTaxCalculator || showCompetitorMatrix || isAIChatOpen || activeTab !== 'home'
+    );
+
+    useScrollLock(hasOpenModal);
+
+    // Global keyboard Escape handler to close modals cleanly
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (isAIChatOpen) { setIsAIChatOpen(false); return; }
+                if (showReferral) { setShowReferral(false); return; }
+                if (showCalendar) { setShowCalendar(false); return; }
+                if (isSubscriptionOpen) { setSubscriptionOpen(false); return; }
+                if (showAdInquiry) { setShowAdInquiry(false); return; }
+                if (showAirdrop) { setShowAirdrop(false); return; }
+                if (showSentinel) { setShowSentinel(false); return; }
+                if (showLeaderboard) { setShowLeaderboard(false); return; }
+                if (showWhaleRadar) { setShowWhaleRadar(false); return; }
+                if (showStrategyBuilder) { setShowStrategyBuilder(false); return; }
+                if (showSentimentPulse) { setShowSentimentPulse(false); return; }
+                if (showLiquidationHeatmap) { setShowLiquidationHeatmap(false); return; }
+                if (showTaxCalculator) { setShowTaxCalculator(false); return; }
+                if (showCompetitorMatrix) { setShowCompetitorMatrix(false); return; }
+                if (activeTab !== 'home') { navigateTo('home'); return; }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [
+        isAIChatOpen, showReferral, showCalendar, isSubscriptionOpen, showAdInquiry,
+        showAirdrop, showSentinel, showLeaderboard, showWhaleRadar,
+        showStrategyBuilder, showSentimentPulse, showLiquidationHeatmap,
+        showTaxCalculator, showCompetitorMatrix, activeTab, navigateTo,
+        setIsAIChatOpen, setShowReferral, setShowCalendar, setSubscriptionOpen,
+        setShowAdInquiry, setShowAirdrop, setShowSentinel, setShowLeaderboard,
+        setShowWhaleRadar, setShowStrategyBuilder, setShowSentimentPulse,
+        setShowLiquidationHeatmap, setShowTaxCalculator, setShowCompetitorMatrix
+    ]);
 
     const goHome = () => navigateTo('home');
 

@@ -28,6 +28,7 @@ const AssetEntry = React.memo(({ asset, totalPortfolioValue, t }: { asset: Asset
                     <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center p-1.5">
                         <img 
                             src={asset.icon?.startsWith('http') ? asset.icon : `https://assets.coincap.io/assets/icons/${asset.ticker.toLowerCase()}@2x.png`} 
+                            alt={asset.ticker}
                             className="w-full h-full object-contain rounded-full" 
                             onError={(e) => { e.currentTarget.src = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${asset.ticker.toLowerCase()}.png`; }}
                         />
