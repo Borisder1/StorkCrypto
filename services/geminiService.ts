@@ -241,7 +241,39 @@ const getGenAI = () => {
     return aiClient;
 };
 
+// Simple in-memory response cache & rate limiting protection
+interface CacheEntry {
+    data: any;
+    expiresAt: number;
+}
+const aiResponseCache = new Map<string, CacheEntry>();
+let lastCallTimestamp = 0;
+const MIN_CALL_INTERVAL_MS = 250; // Rate limit protection against burst spam
+
 export const safeGenerate = async (prompt: string, config: any = {}, maxRetries = 3, modelName: string = "gemini-3.5-flash", history: any[] = []): Promise<any> => {
+    // 0. Cache & Rate-limit Check
+    const cacheKey = `${prompt}_${config.responseMimeType || 'text'}_${modelName}`;
+    const cached = aiResponseCache.get(cacheKey);
+    if (cached && cached.expiresAt > Date.now()) {
+        return cached.data;
+    }
+
+    const now = Date.now();
+    if (now - lastCallTimestamp < MIN_CALL_INTERVAL_MS) {
+        await new Promise(res => setTimeout(res, MIN_CALL_INTERVAL_MS - (now - lastCallTimestamp)));
+    }
+    lastCallTimestamp = Date.now();
+
+    const setCache = (result: any, ttlSeconds = 60) => {
+        if (result) {
+            aiResponseCache.set(cacheKey, {
+                data: result,
+                expiresAt: Date.now() + ttlSeconds * 1000
+            });
+        }
+        return result;
+    };
+
     // 1. Try official Google GenAI SDK first as per gemini-api skill instructions
     try {
         const ai = getGenAI();
@@ -287,9 +319,9 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
 
             if (config.responseMimeType === 'application/json' && typeof resultText === 'string') {
                 const parsed = parseCleanJSON(resultText);
-                if (parsed !== null) return parsed;
+                if (parsed !== null) return setCache(parsed);
             }
-            return resultText;
+            return setCache(resultText);
         }
     } catch (sdkError) {
         console.warn("[AI] Primary SDK call failed, attempting fallback...", sdkError);

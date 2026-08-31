@@ -6,8 +6,13 @@
 
 import https from 'https';
 
-// КОНФІГУРАЦІЯ (Взято з вашого опису)
-const BOT_TOKEN = '7417393370:AAHltsez_OwNbdDm3Ajw6yoWl2JaO6lOIEE';
+// КОНФІГУРАЦІЯ
+const BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
+
+if (!BOT_TOKEN) {
+    console.error('❌ Помилка: Вкажіть TELEGRAM_BOT_TOKEN у змінних оточення (.env)');
+    process.exit(1);
+}
 const WEB_APP_URL = 'https://a310c93f.storkcrypto-app.pages.dev/';
 const BUTTON_TEXT = 'Stork Terminal'; // Назва кнопки
 

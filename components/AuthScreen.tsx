@@ -123,15 +123,27 @@ const AuthScreen: React.FC = () => {
                     <button 
                         onClick={() => handleSocialLogin('telegram')}
                         disabled={loading}
-                        className="w-full h-20 rounded-[2rem] bg-[#24A1DE] relative overflow-hidden group shadow-lg active:scale-[0.98] transition-all mb-4"
+                        className="w-full h-16 rounded-2xl bg-[#24A1DE] relative overflow-hidden group shadow-lg active:scale-[0.98] transition-all mb-3 cursor-pointer"
                     >
-                        <div className="absolute inset-0 flex items-center justify-center gap-4">
-                            <TelegramIcon className="w-8 h-8 text-white" />
+                        <div className="absolute inset-0 flex items-center justify-center gap-3">
+                            <TelegramIcon className="w-6 h-6 text-white" />
                             <div className="flex flex-col items-start">
-                                <span className="text-sm font-black text-white font-orbitron uppercase">{t('auth.telegram')}</span>
+                                <span className="text-xs font-black text-white font-orbitron uppercase">{t('auth.telegram')}</span>
                                 <span className="text-[9px] text-white/70 font-mono">{t('auth.connect_tg')}</span>
                             </div>
                         </div>
+                    </button>
+
+                    <button 
+                        onClick={() => {
+                            triggerHaptic('medium');
+                            login('guest');
+                        }}
+                        disabled={loading}
+                        className="w-full h-14 rounded-2xl bg-slate-900 border border-brand-cyan/40 hover:border-brand-cyan text-white relative overflow-hidden group shadow-lg active:scale-[0.98] transition-all mb-4 flex items-center justify-center gap-2 font-orbitron text-xs font-bold tracking-widest uppercase cursor-pointer"
+                    >
+                        <span className="w-2 h-2 rounded-full bg-brand-cyan animate-ping mr-1"></span>
+                        ЗАПУСТИТИ ТЕРМІНАЛ (WEB DEMO)
                     </button>
 
                     {error && <p className="mt-4 text-red-500 text-[10px] font-mono">{error}</p>}

@@ -331,6 +331,7 @@ export interface AppSettings {
     theme: ThemeColor;
     themeMode: ThemeMode;
     riskLevel: RiskLevel;
+    interfaceMode?: 'SIMPLE' | 'PRO';
     isAuthenticated: boolean;
     soundEnabled: boolean;
     adsEnabled: boolean;

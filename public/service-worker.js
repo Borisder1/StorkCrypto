@@ -1,4 +1,3 @@
-// StorkCrypto Service Worker - Emergency Unregister & Cache Purge
 self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
@@ -22,4 +21,3 @@ self.addEventListener('fetch', (event) => {
   // Pass-through without caching
   return;
 });
-

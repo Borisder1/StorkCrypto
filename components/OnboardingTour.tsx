@@ -10,26 +10,39 @@ export const OnboardingTour: React.FC = () => {
 
     if (settings.onboardingComplete) return null;
 
-    const tourSteps = [
+    const lang = settings?.language || 'ua';
+
+    const tourSteps = lang === 'ua' ? [
         {
-            title: "Вітаємо у StorkCrypto Terminal! 🚀",
-            icon: <BotIcon className="w-8 h-8 text-brand-cyan" />,
-            desc: "Це ваш інтелектуальний нейронний термінал для роботи з криптовалютами. Давайте за 30 секунд ознайомимося з основними можливостями."
-        },
-        {
-            title: "AI Торгові Сигнали 🧠",
+            title: "AI Ринкові Сигнали 🧠",
             icon: <ActivityIcon className="w-8 h-8 text-brand-green" />,
-            desc: "Розділ Signals надає алгоритмічні сетапи в режимі 24/7 з точними рівнями входу, цілями та розрахунком стоп-лосу від автономних AI-агентів."
+            desc: "Цілодобовий нейронний моніторинг ринку, аналіз рівнів входу, цілей та управління ризиками в реальному часі."
         },
         {
-            title: "Мультичейн Гаманець 👛",
+            title: "Whale Radar & Аналітика 🐋",
+            icon: <ZapIcon className="w-8 h-8 text-brand-cyan" />,
+            desc: "Відстеження великих транзакцій китів, теплові карти ліквідацій та індекс настроїв ринку Fear & Greed."
+        },
+        {
+            title: "Портфоліо та Гаманець 👛",
             icon: <WalletIcon className="w-8 h-8 text-purple-400" />,
-            desc: "Підключайте TON, MetaMask чи Web3 гаманці для відстеження балансів, швидкого обміну та моніторингу активів у єдиному вікні."
+            desc: "Підключайте TON або Web3 гаманець для аудиту активів або тренуйтеся з віртуальним балансом у Demo-режимі."
+        }
+    ] : [
+        {
+            title: "AI Market Signals 🧠",
+            icon: <ActivityIcon className="w-8 h-8 text-brand-green" />,
+            desc: "24/7 neural market surveillance with precise entry targets, stop-loss calculations, and real-time execution."
         },
         {
-            title: "Налаштування та Кастомізація ⚙️",
-            icon: <SettingsIcon className="w-8 h-8 text-amber-400" />,
-            desc: "Вибирайте кіберпанк-теми (Midnight, Solar, Matrix), керуйте сповіщеннями Sentinel Security та приєднуйтесь до Airdrop Station."
+            title: "Whale Radar & Heatmaps 🐋",
+            icon: <ZapIcon className="w-8 h-8 text-brand-cyan" />,
+            desc: "Track institutional whale flows, liquidation heatmaps, and live Fear & Greed sentiment index."
+        },
+        {
+            title: "Portfolio & Web3 Gateway 👛",
+            icon: <WalletIcon className="w-8 h-8 text-purple-400" />,
+            desc: "Connect your TON or Web3 wallet for live balance audit, or practice risk-free with the $10,000 Demo simulator."
         }
     ];
 

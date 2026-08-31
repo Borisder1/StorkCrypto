@@ -13,8 +13,12 @@ import TelegramBot from 'node-telegram-bot-api';
 import https from 'https';
 import http from 'http';
 
-// ВСТАВТЕ СЮДИ ТОКЕН ВАШОГО БОТА
-const token = process.env.TELEGRAM_BOT_TOKEN || '8501512462:AAFR_bSDLp3jiqKgDQnkimOAuwiWrA9xdWs'; 
+// TELEGRAM BOT TOKEN (завантажується з змінних оточення)
+const token = process.env.TELEGRAM_BOT_TOKEN; 
+
+if (!token) {
+  console.warn('⚠️ TELEGRAM_BOT_TOKEN is not defined in environment variables.');
+}
 
 const bot = new TelegramBot(token, { polling: true });
 

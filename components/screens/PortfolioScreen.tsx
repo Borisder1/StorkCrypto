@@ -15,7 +15,7 @@ import UpgradeBanner from '../UpgradeBanner';
 import Skeleton from '../Skeleton';
 import { PortfolioDistributionChart } from '../PortfolioDistributionChart';
 import { HelpIndicator } from '../HelpIndicator';
-import { TonConnectButton } from '@tonconnect/ui-react';
+import { getTonConnectUI } from '../../services/tonConnectService';
 
 // OPTIMIZATION: Memoized component to prevent re-renders on parent state changes
 const AssetEntry = React.memo(({ asset, totalPortfolioValue, t }: { asset: Asset, totalPortfolioValue: number, t: (key: string) => string }) => {
@@ -161,7 +161,17 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </div>
                     {balanceType === 'MAINNET' && (
                         <div className="mt-4 flex justify-center">
-                            <TonConnectButton />
+                            <button
+                                onClick={() => {
+                                    triggerHaptic('medium');
+                                    const tonConnectUI = getTonConnectUI();
+                                    tonConnectUI?.openModal().catch(e => console.error(e));
+                                }}
+                                className="px-4 py-2 bg-brand-cyan/20 border border-brand-cyan/40 hover:bg-brand-cyan/30 text-brand-cyan rounded-xl text-xs font-orbitron font-bold transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)] flex items-center gap-2"
+                            >
+                                <ShieldIcon className="w-4 h-4 text-brand-cyan" />
+                                {wallet.isConnected ? `${wallet.address?.slice(0, 4)}...${wallet.address?.slice(-4)}` : 'Connect TON Wallet'}
+                            </button>
                         </div>
                     )}
                 </div>

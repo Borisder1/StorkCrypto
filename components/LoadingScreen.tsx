@@ -1,9 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { useStore } from '../store';
-import { getTranslation } from '../utils/translations';
+import { triggerHaptic } from '../utils/haptics';
 
-// ⚡ Клас для частинок енергії, які летять від літер до прогрес-бару
+interface LoadingScreenProps {
+  onSkip?: () => void;
+}
+
+// ⚡ Клас для часток кібер-енергії, які летять від літер до прогрес-бару
 class EnergyParticle {
   x: number;
   y: number;
@@ -13,54 +15,62 @@ class EnergyParticle {
   speed: number;
   lifespan: number;
   opacity: number;
+  color: string;
 
   constructor(x: number, y: number, targetX: number, targetY: number) {
     this.x = x;
     this.y = y;
     this.tx = targetX;
     this.ty = targetY;
-    this.size = Math.random() * 2 + 1;
-    this.speed = Math.random() * 0.05 + 0.05;
+    this.size = Math.random() * 2.5 + 1;
+    this.speed = Math.random() * 0.06 + 0.04;
     this.lifespan = 1;
     this.opacity = 1;
+    this.color = Math.random() > 0.3 ? '#00d9ff' : '#00ff9d';
   }
 
   update() {
-    this.lifespan -= 0.02;
+    this.lifespan -= 0.018;
     this.opacity = Math.max(0, this.lifespan);
     const dx = this.tx - this.x;
     const dy = this.ty - this.y;
     this.x += dx * this.speed;
     this.y += dy * this.speed;
-    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
+    if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
       this.lifespan = 0;
     }
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = `rgba(0, 217, 255, ${this.opacity})`;
-    ctx.shadowColor = '#00d9ff';
-    ctx.shadowBlur = 10;
+    ctx.fillStyle = this.color === '#00d9ff'
+      ? `rgba(0, 217, 255, ${this.opacity})`
+      : `rgba(0, 255, 157, ${this.opacity})`;
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = 8;
     ctx.fillRect(this.x, this.y, this.size, this.size);
     ctx.shadowBlur = 0;
   }
 }
 
-interface LoadingScreenProps {
-    onSkip?: () => void;
-}
+const LETTERS = ['S', 'T', 'O', 'R', 'K', 'C', 'R', 'Y', 'P', 'T', 'O'];
 
 export function LoadingScreen({ onSkip }: LoadingScreenProps) {
-  const { settings } = useStore();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lettersWrapperRef = useRef<HTMLDivElement>(null);
+  const letterRefs = useRef<(HTMLDivElement | null)[]>([]);
   const progressBarRef = useRef<HTMLDivElement>(null);
   const scannerLineRef = useRef<HTMLDivElement>(null);
   const progressContainerRef = useRef<HTMLDivElement>(null);
-  
+
   const [progress, setProgress] = useState(0);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [progressVisible, setProgressVisible] = useState(false);
+
+  // Зберігаємо колбек у ref, щоб уникнути зайвих перезапусків useEffect
+  const onSkipRef = useRef(onSkip);
+  useEffect(() => {
+    onSkipRef.current = onSkip;
+  }, [onSkip]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -69,175 +79,157 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
 
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    const updateCanvasSize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    updateCanvasSize();
 
     const particles: EnergyParticle[] = [];
     let animationFrameId: number | null = null;
+    let isCleanedUp = false;
 
-    const word = 'STORKCRYPTO';
-    const letterElements: Array<{
-      element: HTMLDivElement;
-      revealed: boolean;
-    }> = [];
-
-    // 📝 Створюємо літери динамічно
-    const lettersWrapper = lettersWrapperRef.current;
-    if (lettersWrapper) {
-        // Clear previous content
-        lettersWrapper.innerHTML = '';
-        
-        word.split('').forEach((char) => {
-        const container = document.createElement('div');
-        container.className = 'letter-container';
-        
-        const inner = document.createElement('div');
-        inner.className = 'letter-inner';
-        
-        const finalFace = document.createElement('div');
-        finalFace.className = 'letter-face final-face';
-        finalFace.textContent = char;
-        
-        const scramblerFace = document.createElement('div');
-        scramblerFace.className = 'letter-face scrambler-face';
-        scramblerFace.textContent = '?';
-        
-        inner.appendChild(finalFace);
-        inner.appendChild(scramblerFace);
-        container.appendChild(inner);
-        lettersWrapper.appendChild(container);
-        
-        letterElements.push({ element: container, revealed: false });
-      });
-    }
-
-    // 🎬 Анімація частинок
+    // 🎬 Анімаційний цикл часток на Canvas
     function animateParticles() {
-      if (!ctx || !canvas) return;
+      if (isCleanedUp || !ctx || !canvas) return;
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      particles.forEach((p, index) => {
+
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
         p.draw(ctx);
         p.update();
         if (p.lifespan <= 0) {
-          particles.splice(index, 1);
+          particles.splice(i, 1);
         }
-      });
-      
-      if (particles.length > 0 || animationFrameId) {
-        animationFrameId = requestAnimationFrame(animateParticles);
       }
-    }
 
-    function startAnimation() {
-      if (!animationFrameId) {
-        animateParticles();
-      }
+      animationFrameId = requestAnimationFrame(animateParticles);
     }
+    animationFrameId = requestAnimationFrame(animateParticles);
 
-    // 🚀 ГОЛОВНА ПОСЛІДОВНІСТЬ ЗАВАНТАЖЕННЯ
+    // 🚀 ГОЛОВНА 6.5-СЕКУНДНА ПОСЛІДОВНІСТЬ (За маніфестом)
     async function startLoadingSequence() {
-      const wrapperRect = lettersWrapper?.getBoundingClientRect();
-      if (!wrapperRect || !scannerLineRef.current) return;
+      if (isCleanedUp) return;
 
-      // ⚡ ФАЗА 1: Сканування літер (2.5 секунди)
+      const lettersWrapper = lettersWrapperRef.current;
+      const scannerLine = scannerLineRef.current;
+      if (!lettersWrapper || !scannerLine) return;
+
+      const wrapperRect = lettersWrapper.getBoundingClientRect();
       setScannerVisible(true);
-      
-      // Встановлюємо початкову позицію сканера (Зверху)
-      scannerLineRef.current.style.top = `${wrapperRect.top}px`;
-      // Центруємо по горизонталі
-      scannerLineRef.current.style.left = '50%';
-      scannerLineRef.current.style.transform = 'translateX(-50%)';
+      scannerLine.style.top = `${wrapperRect.top}px`;
 
-      let startTime = performance.now();
-      
-      function scan(time: number) {
-        const elapsed = time - startTime;
-        const scanDuration = 2500;
-        const progress = Math.min(elapsed / scanDuration, 1);
-        
-        // Рух зверху вниз (по осі Y)
-        const currentY = wrapperRect!.top + wrapperRect!.height * progress;
-        
+      // ⚡ ФАЗА 1: Рух сканера зверху вниз та 3D-переворот літер (0 - 2.5с)
+      const scanStartTime = performance.now();
+      const scanDuration = 2500;
+      const revealedIndices = new Set<number>();
+
+      function scan(currentTime: number) {
+        if (isCleanedUp) return;
+        const elapsed = currentTime - scanStartTime;
+        const scanProgress = Math.min(elapsed / scanDuration, 1);
+        const currentY = wrapperRect.top + wrapperRect.height * scanProgress;
+
         if (scannerLineRef.current) {
-          // Рухаємо лише по Y, X фіксований по центру
-          scannerLineRef.current.style.transform = `translateX(-50%) translateY(${currentY - wrapperRect!.top}px)`;
+          scannerLineRef.current.style.transform = `translateX(-50%) translateY(${currentY - wrapperRect.top}px)`;
         }
 
-        // Розкриваємо літери коли сканер проходить через них (перевірка по Y)
-        letterElements.forEach((el) => {
-          const letterRect = el.element.getBoundingClientRect();
-          // Додаємо невеликий offset, щоб літера відкривалась коли лінія торкається її верху
-          if (currentY > letterRect.top && !el.revealed) {
-            el.element.classList.add('revealed');
-            el.revealed = true;
+        // Перевіряємо положення кожної літери
+        letterRefs.current.forEach((el, index) => {
+          if (!el || revealedIndices.has(index)) return;
+          const letterRect = el.getBoundingClientRect();
+          if (currentY >= letterRect.top + letterRect.height * 0.3) {
+            el.classList.add('revealed');
+            revealedIndices.add(index);
+            try { triggerHaptic('light'); } catch (_) {}
           }
         });
 
-        if (progress < 1) {
+        if (scanProgress < 1) {
           requestAnimationFrame(scan);
         } else {
+          // Завершення сканування
           setScannerVisible(false);
           startEnergyTransfer();
         }
       }
       requestAnimationFrame(scan);
 
-      // ⚡ ФАЗА 2: Передача енергії до прогрес-бару (3.5 секунди)
+      // ⚡ ФАЗА 2: Передача енергетичних часток до прогрес-бару (2.5 - 6.0с)
       async function startEnergyTransfer() {
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        setProgressVisible(true);
-        letterElements.forEach((el) => el.element.classList.add('draining'));
+        if (isCleanedUp) return;
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        if (isCleanedUp) return;
 
-        const chargeDuration = 3500;
+        setProgressVisible(true);
+        letterRefs.current.forEach((el) => el?.classList.add('draining'));
+
+        const chargeDuration = 3200;
+        const chargeStartTime = Date.now();
+
+        // Генератор частинок
         const chargeInterval = setInterval(() => {
-          const textRect = lettersWrapper?.getBoundingClientRect();
+          if (isCleanedUp) {
+            clearInterval(chargeInterval);
+            return;
+          }
+          const textRect = lettersWrapperRef.current?.getBoundingClientRect();
           const barRect = progressContainerRef.current?.getBoundingClientRect();
           const progressBarWidth = progressBarRef.current?.offsetWidth || 0;
-          
+
           if (textRect && barRect) {
-            // Генеруємо 5 частинок кожні 50мс
-            for (let i = 0; i < 5; i++) {
-              const x = textRect.left + Math.random() * textRect.width;
+            // Створюємо пучок частинок, що летять від випадкових літер до прогрес-бару
+            for (let i = 0; i < 6; i++) {
+              const x = textRect.left + (Math.random() * 0.8 + 0.1) * textRect.width;
               const y = textRect.top + Math.random() * textRect.height;
-              const targetX = barRect.left + progressBarWidth;
+              const targetX = barRect.left + progressBarWidth + (Math.random() * 10 - 5);
               const targetY = barRect.top + barRect.height / 2;
               particles.push(new EnergyParticle(x, y, targetX, targetY));
             }
-            startAnimation();
           }
-        }, 50);
+        }, 40);
 
-        let transferStartTime = Date.now();
-        
         function updateProgressBar() {
-          const elapsed = Date.now() - transferStartTime;
+          if (isCleanedUp) return;
+          const elapsed = Date.now() - chargeStartTime;
           const currentProgress = Math.min(elapsed / chargeDuration, 1);
-          setProgress(currentProgress * 100);
+          setProgress(Math.floor(currentProgress * 100));
+
           if (currentProgress < 1) {
             requestAnimationFrame(updateProgressBar);
           }
         }
         updateProgressBar();
-        
+
         await new Promise((resolve) => setTimeout(resolve, chargeDuration));
         clearInterval(chargeInterval);
+
+        // ⚡ ФАЗА 3: Фіналізація (6.0 - 6.5с)
+        if (!isCleanedUp) {
+          setProgress(100);
+          try { triggerHaptic('success'); } catch (_) {}
+          setTimeout(() => {
+            if (!isCleanedUp && onSkipRef.current) {
+              onSkipRef.current();
+            }
+          }, 500);
+        }
       }
     }
 
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+    const resizeHandler = () => {
+      updateCanvasSize();
     };
+    window.addEventListener('resize', resizeHandler);
 
-    window.addEventListener('resize', handleResize);
-
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       startLoadingSequence();
-    }, 100);
+    }, 150);
 
     return () => {
-      window.removeEventListener('resize', handleResize);
+      isCleanedUp = true;
+      clearTimeout(timer);
+      window.removeEventListener('resize', resizeHandler);
       if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
       }
@@ -245,38 +237,40 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
   }, []);
 
   return (
-    <motion.div 
-        initial={{ opacity: 1 }}
-        exit={{ opacity: 0, scale: 1.05 }}
-        transition={{ duration: 0.8, ease: "easeInOut" }}
-        className="fixed inset-0 z-[9999] bg-[#0a0a14] flex flex-col items-center justify-center overflow-hidden"
+    <div
+      className="fixed inset-0 z-50 bg-[#020617] flex flex-col items-center justify-center overflow-hidden select-none"
+      role="status"
+      aria-live="polite"
     >
-      {/* 🎨 Анімований фоновий грід */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute inset-0" style={{
-          backgroundImage: `
-            linear-gradient(90deg, #00d9ff 1px, transparent 1px),
-            linear-gradient(0deg, #00d9ff 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px',
-          animation: 'gridMove 20s linear infinite'
-        }} />
+      {/* 🎨 Анімована кіберпанкова фонова сітка */}
+      <div className="absolute inset-0 opacity-25 pointer-events-none">
+        <div
+          className="absolute inset-0"
+          style={{
+            backgroundImage: `
+              linear-gradient(90deg, rgba(0, 217, 255, 0.4) 1px, transparent 1px),
+              linear-gradient(0deg, rgba(0, 217, 255, 0.4) 1px, transparent 1px)
+            `,
+            backgroundSize: '40px 40px',
+            animation: 'cyberGridMove 20s linear infinite'
+          }}
+        />
       </div>
 
       <style>{`
-        @keyframes gridMove {
+        @keyframes cyberGridMove {
           0% { transform: translate(0, 0); }
-          100% { transform: translate(50px, 50px); }
+          100% { transform: translate(40px, 40px); }
         }
 
         .letter-container {
           position: relative;
-          margin: clamp(0px, 0.1vh, 2px) 0; /* Vertical spacing */
+          margin: clamp(0px, 0.15vh, 2px) 0;
           font-family: 'Orbitron', monospace;
-          font-size: clamp(18px, 4vh, 28px); /* Reduced size */
+          font-size: clamp(20px, 4.4vh, 32px);
           font-weight: 900;
           width: 1.2em;
-          height: 1.5em;
+          height: 1.45em;
           color: #00d9ff;
           text-shadow: 0 0 20px rgba(0, 217, 255, 0.8), 0 0 40px rgba(0, 217, 255, 0.4);
           transition: color 1s, text-shadow 1s, opacity 0.5s;
@@ -289,7 +283,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           width: 100%;
           height: 100%;
           transform-style: preserve-3d;
-          transform: rotateX(-90deg); /* Start hidden/rotated */
+          transform: rotateX(-90deg);
           transition: transform 0.6s cubic-bezier(0.6, 0, 0.2, 1);
         }
 
@@ -298,15 +292,15 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         }
 
         .letter-container.draining {
-          animation: pulse 2s infinite;
+          animation: cyberPulse 2s infinite;
         }
 
-        @keyframes pulse {
+        @keyframes cyberPulse {
           0%, 100% {
             text-shadow: 0 0 20px rgba(0, 217, 255, 0.8), 0 0 40px rgba(0, 217, 255, 0.4);
           }
           50% {
-            text-shadow: 0 0 30px rgba(0, 217, 255, 1), 0 0 60px rgba(0, 217, 255, 0.6), 0 0 80px rgba(255, 255, 255, 0.3);
+            text-shadow: 0 0 30px rgba(0, 217, 255, 1), 0 0 60px rgba(0, 217, 255, 0.7), 0 0 80px rgba(0, 255, 157, 0.5);
           }
         }
 
@@ -323,46 +317,47 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         }
 
         .scrambler-face {
-          transform: rotateX(90deg) translateZ(0.75em);
-          color: #555;
+          transform: rotateX(90deg) translateZ(0.72em);
+          color: #334155;
+          text-shadow: none;
         }
 
         .final-face {
-          transform: translateZ(0.75em);
+          transform: translateZ(0.72em);
         }
 
         .scanner-line {
           position: absolute;
           top: 0;
           left: 50%;
-          /* Horizontal Scanner Bar */
-          width: 300px;
-          height: 3px; 
-          background: linear-gradient(90deg, transparent, #00d9ff 20%, #ffffff 50%, #00d9ff 80%, transparent);
-          box-shadow: 0 0 20px #00d9ff, 0 0 40px #00d9ff, 0 0 60px #00d9ff;
-          transition: opacity 0.5s;
-          /* Centered horizontally */
           transform: translateX(-50%);
+          width: 280px;
+          height: 3px;
+          background: linear-gradient(90deg, transparent, #00d9ff 25%, #ffffff 50%, #00d9ff 75%, transparent);
+          box-shadow: 0 0 20px #00d9ff, 0 0 40px #00d9ff, 0 0 60px #00d9ff;
+          transition: opacity 0.4s;
+          pointer-events: none;
         }
 
         .progress-container {
-          width: clamp(280px, 70vw, 450px);
+          width: clamp(260px, 75vw, 420px);
           height: 12px;
           background: rgba(0, 217, 255, 0.1);
+          border: 1px solid rgba(0, 217, 255, 0.3);
           border-radius: 6px;
           overflow: hidden;
-          transition: opacity 1s, transform 0.5s;
+          transition: opacity 0.8s, transform 0.5s;
           position: relative;
           box-shadow: 0 0 20px rgba(0, 217, 255, 0.2), inset 0 0 10px rgba(0, 217, 255, 0.1);
         }
 
         .progress-bar {
           height: 100%;
-          background: linear-gradient(90deg, #00d9ff, #00e5ff, #ffffff, #00e5ff, #00d9ff);
+          background: linear-gradient(90deg, #00d9ff, #00ff9d, #ffffff, #00d9ff);
           background-size: 200% 100%;
           animation: progressGlow 2s ease-in-out infinite;
           transition: width 0.1s linear;
-          box-shadow: 0 0 20px #00d9ff, 0 0 40px #00d9ff, 0 0 60px rgba(255, 255, 255, 0.5);
+          box-shadow: 0 0 20px #00d9ff, 0 0 40px #00ff9d, 0 0 60px rgba(255, 255, 255, 0.5);
         }
 
         @keyframes progressGlow {
@@ -371,18 +366,34 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         }
       `}</style>
 
-      {/* 🎨 Canvas для частинок */}
+      {/* 🎨 Canvas для частинок кібер-енергії */}
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-10" />
 
-      {/* 📝 Контейнер з літерами STORKCRYPTO - Vertical Layout */}
-      <div className="text-container mb-8 relative z-20" style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}>
-        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }} />
+      {/* 📝 Контейнер з вертикальними літерами STORKCRYPTO */}
+      <div
+        className="text-container mb-6 relative z-20"
+        style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}
+      >
+        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+          {LETTERS.map((char, index) => (
+            <div
+              key={index}
+              ref={(el) => { letterRefs.current[index] = el; }}
+              className="letter-container"
+            >
+              <div className="letter-inner">
+                <div className="letter-face final-face">{char}</div>
+                <div className="letter-face scrambler-face">?</div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
-      {/* 📊 Прогрес-бар */}
+      {/* 📊 Прогрес-бар з відсотками */}
       <div
         ref={progressContainerRef}
-        className="progress-container relative z-20"
+        className="progress-container relative z-20 mb-3"
         style={{ opacity: progressVisible ? 1 : 0 }}
       >
         <div
@@ -392,25 +403,22 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         />
       </div>
 
-      {/* ⚡ Лінія сканера */}
+      {/* ⚡ Лінія лазерного сканера */}
       <div
         ref={scannerLineRef}
         className="scanner-line z-20"
         style={{ opacity: scannerVisible ? 1 : 0 }}
       />
 
-      {/* Кнопка пропуску (відображається тільки в розробці для максимальної безпеки продукту) */}
-      {(import.meta.env.DEV || window.location.hostname === 'localhost' || window.location.hostname.includes('127.0.0.1')) && (
-        <button 
+      {/* Кнопка швидкого входу (Skip) */}
+      {onSkip && (
+        <button
           onClick={onSkip}
-          className="absolute bottom-12 z-50 px-4 py-2 rounded-lg border border-[#00E5FF] bg-[#00E5FF]/10 text-[#00E5FF] font-orbitron text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-[#00E5FF]/20 hover:shadow-[0_0_25px_rgba(0,229,255,0.8)] cursor-pointer backdrop-blur-md shadow-[0_0_15px_rgba(0,229,255,0.5)] active:scale-95 group"
+          className="relative z-30 mt-3 px-4 py-1.5 rounded-xl border border-brand-cyan/30 bg-brand-cyan/10 hover:bg-brand-cyan/20 text-brand-cyan text-[10px] font-mono tracking-widest uppercase transition-all duration-200 backdrop-blur-md cursor-pointer active:scale-95 shadow-[0_0_15px_rgba(0,217,255,0.15)]"
         >
-          <span className="relative z-10 flex items-center gap-2">
-            {getTranslation(settings?.language || 'en', 'loading.skip').replace(' >>', '')} <span className="group-hover:translate-x-1 transition-transform duration-300">&gt;&gt;</span>
-          </span>
-          <div className="absolute inset-0 rounded-lg bg-[#00E5FF]/20 blur-md -z-10 group-hover:animate-pulse"></div>
+          ПРОПУСТИТИ &gt;&gt;
         </button>
       )}
-    </motion.div>
+    </div>
   );
 }

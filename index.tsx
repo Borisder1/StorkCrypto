@@ -1,9 +1,8 @@
-import * as React from 'react';
-import * as ReactDOM from 'react-dom/client';
+import React from 'react';
+import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 import ErrorBoundary from './components/ErrorBoundary';
-import { TonConnectUIProvider } from '@tonconnect/ui-react';
 
 // Suppress TON Connect SDK errors that commonly occur in sandbox/iframe environments
 const shouldSuppressError = (msg: string) => {
@@ -103,14 +102,7 @@ if (!rootElement) {
         
         root.render(
           <ErrorBoundary>
-            <TonConnectUIProvider 
-                manifestUrl={MANIFEST_URL}
-                actionsConfiguration={{
-                    twaReturnUrl: 'https://t.me/StorkCryptoBot/app'
-                }}
-            >
-              <App />
-            </TonConnectUIProvider>
+            <App />
           </ErrorBoundary>
         );
         console.log("[System] React Application Mounted.");
@@ -121,7 +113,9 @@ if (!rootElement) {
 }
 
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {});
-  });
+  navigator.serviceWorker.getRegistrations().then((registrations) => {
+    for (const registration of registrations) {
+      registration.unregister();
+    }
+  }).catch(() => {});
 }

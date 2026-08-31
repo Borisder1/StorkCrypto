@@ -22,7 +22,9 @@ export const getDeviceId = (): string => {
 
     let deviceId = localStorage.getItem('stork_device_id');
     if (!deviceId) {
-        deviceId = crypto.randomUUID();
+        deviceId = (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function')
+            ? crypto.randomUUID()
+            : 'dev_' + Math.random().toString(36).substring(2) + '_' + Date.now().toString(36);
         localStorage.setItem('stork_device_id', deviceId);
     }
     return deviceId;

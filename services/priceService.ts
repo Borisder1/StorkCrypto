@@ -85,9 +85,42 @@ export interface OHLCData {
     volume: number;
 }
 
-const CACHE = {
-    PRICES: { data: {} as MarketPriceMap, timestamp: 0, ttl: 15000 },
-    SENTIMENT: { data: null as any, timestamp: 0, ttl: 3600000 } // 1 hour TTL
+export const BASELINE_PRICES: Record<string, { usd: number, change: number }> = {
+    BTC: { usd: 67350, change: 1.2 },
+    ETH: { usd: 3480, change: 0.8 },
+    SOL: { usd: 145, change: -2.3 },
+    BNB: { usd: 580, change: 0.4 },
+    XRP: { usd: 0.52, change: -0.1 },
+    ADA: { usd: 0.45, change: -1.2 },
+    AVAX: { usd: 35, change: 3.4 },
+    DOT: { usd: 6.2, change: -0.7 },
+    TON: { usd: 7.15, change: 4.8 },
+    NOT: { usd: 0.0125, change: 6.4 },
+    DOGS: { usd: 0.00068, change: 11.2 },
+    INJ: { usd: 24.50, change: 3.8 },
+    TAO: { usd: 320.00, change: 7.4 },
+    RENDER: { usd: 6.15, change: 4.2 },
+    FET: { usd: 1.65, change: 5.2 },
+    TIA: { usd: 5.80, change: -1.1 },
+    SEI: { usd: 0.38, change: 2.9 },
+    STX: { usd: 1.72, change: 0.6 },
+    ONDO: { usd: 0.88, change: 5.1 },
+    PENDLE: { usd: 4.10, change: 8.3 },
+    JUP: { usd: 0.82, change: 3.1 },
+    ENA: { usd: 0.55, change: -2.0 },
+    PEPE: { usd: 0.000012, change: 8.5 },
+    DOGE: { usd: 0.14, change: 2.1 },
+    SHIB: { usd: 0.000021, change: 1.1 },
+    WIF: { usd: 2.85, change: -3.6 },
+    BONK: { usd: 0.000024, change: 4.8 },
+    FLOKI: { usd: 0.00018, change: 3.9 },
+    NEAR: { usd: 5.9, change: -1.9 },
+    LINK: { usd: 15.2, change: 0.5 },
+    SUI: { usd: 1.15, change: 2.7 },
+    APT: { usd: 8.4, change: -1.4 },
+    ARB: { usd: 0.95, change: -2.2 },
+    OP: { usd: 1.85, change: -0.8 },
+    KAS: { usd: 0.16, change: 1.9 }
 };
 
 export const MASTER_ASSET_LIST = [
@@ -127,6 +160,43 @@ export const MASTER_ASSET_LIST = [
     { ticker: 'OP', name: 'Optimism', id: 'optimism', category: 'L2' },
     { ticker: 'KAS', name: 'Kaspa', id: 'kaspa', category: 'L1' },
 ];
+
+export const getInitialPrices = (): MarketPriceMap => {
+    const map: MarketPriceMap = {};
+    const now = Date.now();
+    MASTER_ASSET_LIST.forEach(asset => {
+        const base = BASELINE_PRICES[asset.ticker] || { usd: 1.0, change: 0.0 };
+        map[asset.id] = {
+            usd: base.usd,
+            usd_24h_change: base.change,
+            lastUpdate: now,
+            source: 'CACHE'
+        };
+    });
+    return map;
+};
+
+export const formatCryptoPrice = (price: number): string => {
+    if (!price || isNaN(price) || price === 0) return '—';
+    if (price >= 1000) {
+        return `$${price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    if (price >= 1) {
+        return `$${price.toFixed(2)}`;
+    }
+    if (price >= 0.01) {
+        return `$${price.toFixed(4)}`;
+    }
+    if (price >= 0.0001) {
+        return `$${price.toFixed(6)}`;
+    }
+    return `$${price.toFixed(8)}`;
+};
+
+const CACHE = {
+    PRICES: { data: getInitialPrices(), timestamp: Date.now(), ttl: 15000 },
+    SENTIMENT: { data: null as any, timestamp: 0, ttl: 3600000 } // 1 hour TTL
+};
 
 export const SUPPORTED_ASSET_IDS = MASTER_ASSET_LIST.map(a => a.id);
 

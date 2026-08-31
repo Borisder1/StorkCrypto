@@ -28,14 +28,11 @@ const THEME_BG_MODES = {
 };
 
 const App: React.FC = () => {
-    // 🔒 SYSTEM CRITICAL: LOADING SEQUENCE RESTORED. IMMUTABLE.
-    // DO NOT REMOVE OR SHORTEN THIS TIMER.
+    // ⚡ Canonical 6.5s 3D Vertical sequence from Manifesto
     const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        // Force Boot Timer - 6.5s Signature Sequence
-        const timer = setTimeout(() => setIsLoading(false), 6500);
-        return () => clearTimeout(timer);
+    const handleSkip = React.useCallback(() => {
+        setIsLoading(false);
     }, []);
 
     const { 
@@ -123,8 +120,8 @@ const App: React.FC = () => {
         }
     }, [syncUserData, settings.themeMode, updateSettings, redeemReferral]);
 
-    // ⚡ RENDER LOADING SCREEN (High Priority)
-    if (isLoading) return <LoadingScreen onSkip={() => setIsLoading(false)} />;
+    // ⚡ RENDER LOADING SCREEN (High Priority - 6.5s)
+    if (isLoading) return <LoadingScreen onSkip={handleSkip} />;
 
     if (maintenanceMode && settings?.isAuthenticated) return <MaintenanceScreen />; 
 

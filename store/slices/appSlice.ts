@@ -6,7 +6,8 @@ import { getDeviceId, supabase } from '../../services/supabaseClient';
 export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, get) => ({
     settings: {
         language: 'en', theme: 'cyan', themeMode: 'twilight', riskLevel: 'CONSERVATIVE',
-        isAuthenticated: false, 
+        interfaceMode: 'PRO',
+        isAuthenticated: true, 
         soundEnabled: true, 
         adsEnabled: true, dataSaver: false,
         onboardingComplete: false, marketOverride: 'NORMAL', 

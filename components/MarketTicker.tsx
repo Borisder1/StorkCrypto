@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import { motion } from 'motion/react';
-import { getCryptoPrices, MASTER_ASSET_LIST } from '../services/priceService';
+import { getCryptoPrices, getInitialPrices, formatCryptoPrice, MASTER_ASSET_LIST } from '../services/priceService';
 import { useStore } from '../store';
 import { MarketPriceMap, Asset } from '../types';
 import { getTranslation } from '../utils/translations';
@@ -10,7 +10,7 @@ import AssetDetailModal from './AssetDetailModal';
 
 const MarketTicker: React.FC = React.memo(() => {
     const { settings, updateSettings, showToast } = useStore();
-    const [prices, setPrices] = useState<MarketPriceMap>({});
+    const [prices, setPrices] = useState<MarketPriceMap>(getInitialPrices);
     const [source, setSource] = useState<string>('SYNCING');
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     
@@ -33,9 +33,13 @@ const MarketTicker: React.FC = React.memo(() => {
                 if (isMounted) {
                     setPrices(data);
                     const firstId = MASTER_ASSET_LIST[0].id;
-                    setSource(data[firstId]?.source || 'CACHE');
+                    setSource(data[firstId]?.source || 'LIVE');
                 }
-            } catch (e) {}
+            } catch (e) {
+                if (isMounted) {
+                    setSource('CACHE');
+                }
+            }
         };
 
         loadData();
@@ -59,10 +63,26 @@ const MarketTicker: React.FC = React.memo(() => {
         });
     }, [prices, settings.marketOverride]);
 
-    const getSourceLabel = () => {
-        if (source === 'SYNCING') return 'LIVE...';
-        return 'LIVE'; 
+    const getStatusConfig = () => {
+        if (settings.marketOverride === 'PUMP' || settings.marketOverride === 'DUMP') {
+            return { label: 'DEMO', dotClass: 'bg-amber-400 shadow-[0_0_6px_#f59e0b]' };
+        }
+        if (source === 'BINANCE' || source === 'LIVE') {
+            return { label: 'LIVE', dotClass: 'bg-emerald-500 shadow-[0_0_6px_#22c55e]' };
+        }
+        if (source === 'COINCAP') {
+            return { label: 'LIVE', dotClass: 'bg-cyan-500 shadow-[0_0_6px_#06b6d4]' };
+        }
+        if (source === 'CACHE') {
+            return { label: 'STALE', dotClass: 'bg-yellow-500 shadow-[0_0_6px_#eab308]' };
+        }
+        if (source === 'SYNCING') {
+            return { label: 'SYNCING', dotClass: 'bg-cyan-400 animate-pulse' };
+        }
+        return { label: 'OFFLINE', dotClass: 'bg-slate-500' };
     };
+
+    const status = getStatusConfig();
 
     const handleCoinClick = (coin: { ticker: string; name: string; price: number; change: number }) => {
         triggerHaptic('light');
@@ -100,9 +120,9 @@ const MarketTicker: React.FC = React.memo(() => {
                             ? 'bg-slate-200/80 border-slate-300 text-slate-900 shadow-sm' 
                             : 'bg-white/10 border-white/10 text-slate-200'
                     }`}>
-                        <div className={`w-2 h-2 rounded-full animate-pulse ${source === 'BINANCE' || source === 'LIVE' ? 'bg-emerald-500 shadow-[0_0_6px_#22c55e]' : 'bg-cyan-500 shadow-[0_0_6px_#06b6d4]'}`}></div>
+                        <div className={`w-2 h-2 rounded-full ${status.dotClass}`}></div>
                         <span className="text-[10px] font-black tracking-widest uppercase font-mono">
-                            {getSourceLabel()}
+                            {status.label}
                         </span>
                     </div>
                 </div>
@@ -125,7 +145,7 @@ const MarketTicker: React.FC = React.memo(() => {
                                     {coin.ticker}
                                 </span>
                                 <span className={`text-xs font-mono font-bold ${isDaylight ? 'text-sky-700' : 'text-cyan-300'}`}>
-                                    ${coin.price < 1 ? coin.price.toFixed(4) : coin.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                                    {formatCryptoPrice(coin.price)}
                                 </span>
                                 <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded ${
                                     coin.change >= 0 

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { useTonConnectUI } from '@tonconnect/ui-react';
 import { ShieldIcon, TelegramIcon, ActivityIcon, ZapIcon, GlobeIcon, LinkIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { useStore } from '../store';
 import { walletService } from '../services/walletService';
+import { getTonConnectUI } from '../services/tonConnectService';
 
 interface WalletConnectModalProps {
     onClose: () => void;
@@ -13,7 +13,7 @@ interface WalletConnectModalProps {
 type ModalCategory = 'ton' | 'exchange' | 'web3' | 'custom';
 
 export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose }) => {
-    const [tonConnectUI] = useTonConnectUI();
+    const tonConnectUI = getTonConnectUI();
     const { wallet, connectWallet, disconnectWallet, showToast } = useStore();
     const [activeTab, setActiveTab] = useState<ModalCategory>('ton');
     const [customAddress, setCustomAddress] = useState('');
@@ -36,6 +36,9 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
     // Handle TON Connect launch with session cleanup
     const handleTonConnect = async () => {
         triggerHaptic('medium');
+        const tonConnectUI = getTonConnectUI();
+        if (!tonConnectUI) return;
+
         try {
             // If already connected in SDK, force disconnect first for fresh session
             if (tonConnectUI.connected) {
@@ -47,7 +50,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
 
         onClose();
         setTimeout(() => {
-            tonConnectUI.openModal();
+            tonConnectUI.openModal().catch(err => console.error('[TON Connect] Open modal error:', err));
         }, 120);
     };
 
@@ -60,7 +63,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                 const eth = (window as any).ethereum;
                 const accounts = await eth.request({ method: 'eth_requestAccounts' });
                 if (accounts && accounts.length > 0) {
-                    if (tonConnectUI.connected) {
+                    if (tonConnectUI?.connected) {
                         await tonConnectUI.disconnect().catch(() => {});
                     }
                     await connectWallet(accounts[0], 'MetaMask (Web3 Extension)', 'ETH');
@@ -121,7 +124,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
             setIsConnecting(true);
 
             try {
-                if (tonConnectUI.connected) {
+                if (tonConnectUI?.connected) {
                     await tonConnectUI.disconnect().catch(() => {});
                 }
 
@@ -148,7 +151,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
         setIsConnecting(true);
 
         try {
-            if (tonConnectUI.connected) {
+            if (tonConnectUI?.connected) {
                 await tonConnectUI.disconnect().catch(() => {});
             }
 
@@ -209,7 +212,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
         setIsConnecting(true);
 
         try {
-            if (tonConnectUI.connected) {
+            if (tonConnectUI?.connected) {
                 await tonConnectUI.disconnect().catch(() => {});
             }
 
@@ -227,7 +230,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
     const handleFullDisconnect = async () => {
         triggerHaptic('medium');
         try {
-            if (tonConnectUI.connected) {
+            if (tonConnectUI?.connected) {
                 await tonConnectUI.disconnect();
             }
         } catch (e) {
