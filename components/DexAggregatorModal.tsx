@@ -183,6 +183,16 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
 
     // Load actual prices dynamically from the aggregate price engine
     useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
+    useEffect(() => {
         const fetchPrices = async () => {
             try {
                 const results = await getCryptoPrices();
@@ -330,6 +340,7 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose(); }}
+                        aria-label="Close DEX Aggregator"
                         className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
                         id="dex_back_btn"
                     >

@@ -152,10 +152,11 @@ const App: React.FC = () => {
 
                     <button 
                         onClick={() => { triggerHaptic('medium'); setIsAIChatOpen(!isAIChatOpen); }} 
-                        className={`fixed bottom-20 right-4 z-50 w-9 h-9 rounded-xl flex items-center justify-center transition-all duration-300 border border-brand-cyan/50 shadow-[0_0_15px_rgba(0,217,255,0.3)] ${isAIChatOpen ? 'scale-0' : 'bg-brand-cyan text-black'}`}
+                        aria-label="Open AI Assistant"
+                        className={`fixed bottom-20 right-4 z-50 w-11 h-11 rounded-xl flex items-center justify-center transition-all duration-300 border border-brand-cyan/50 shadow-[0_0_15px_rgba(0,217,255,0.3)] ${isAIChatOpen ? 'scale-0' : 'bg-brand-cyan text-black'}`}
                         style={{ backgroundColor: isAIChatOpen ? 'transparent' : 'var(--primary-color)' }}
                     >
-                        <BotIcon className="w-4 h-4" />
+                        <BotIcon className="w-5 h-5" />
                     </button>
 
                     <BottomNav items={navItems} activeTab={activeTab} onTabChange={navigateTo} />

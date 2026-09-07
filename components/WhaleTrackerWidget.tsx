@@ -11,7 +11,7 @@ import WhaleHistoryModal from './WhaleHistoryModal';
 const WHALE_THRESHOLD_USD = 100000; 
 
 export const WhaleTrackerWidget: React.FC = () => {
-    const { addWhaleTransaction, getWhaleStats, userStats, setSubscriptionOpen } = useStore();
+    const { addWhaleTransaction, getWhaleStats, userStats, setSubscriptionOpen, whaleHistory } = useStore();
     const [recentTxs, setRecentTxs] = useState<WhaleTransaction[]>([
         {
             id: 'seed-1',
@@ -50,6 +50,13 @@ export const WhaleTrackerWidget: React.FC = () => {
     const [showHistory, setShowHistory] = useState(false);
     const lastSoundRef = useRef(0);
     
+    // Initialize store history with seed data if currently empty
+    useEffect(() => {
+        if (whaleHistory.length === 0) {
+            recentTxs.forEach(tx => addWhaleTransaction(tx));
+        }
+    }, [whaleHistory.length]);
+
     const stats = getWhaleStats();
     const isPro = userStats.subscriptionTier !== 'FREE';
     const canAccessHistory = userStats.level >= 15 || isPro;
@@ -123,7 +130,13 @@ export const WhaleTrackerWidget: React.FC = () => {
                             <h3 className="text-white font-black text-[10px] font-orbitron tracking-widest uppercase">
                                 {t('whale.radar')}
                             </h3>
-                            <p className="text-[8px] text-brand-cyan font-mono uppercase">{t('whale.net_flow')}: {stats.netFlow1h > 0 ? '+' : ''}${(stats.netFlow1h / 1000).toFixed(0)}k</p>
+                            <p className="text-[8px] text-brand-cyan font-mono uppercase">
+                                {t('whale.net_flow')}: {
+                                    whaleHistory.length === 0 
+                                        ? 'ANALYZING...' 
+                                        : `${stats.netFlow1h > 0 ? '+' : ''}${(stats.netFlow1h / 1000).toFixed(0)}k (${stats.sentimentBias})`
+                                }
+                            </p>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -151,7 +164,11 @@ export const WhaleTrackerWidget: React.FC = () => {
                         recentTxs.map(tx => (
                             <div key={tx.id} className="flex items-center justify-between p-2 hover:bg-white/5 transition-colors border-l-2 border-transparent hover:border-brand-cyan pl-2">
                                 <div className="flex items-center gap-3">
-                                    <img src={`https://assets.coincap.io/assets/icons/${tx.asset.toLowerCase()}@2x.png`} className="w-5 h-5 grayscale opacity-70" />
+                                    <img 
+                                        src={`https://assets.coincap.io/assets/icons/${tx.asset.toLowerCase()}@2x.png`} 
+                                        alt={`${tx.asset} icon`} 
+                                        className="w-5 h-5 grayscale opacity-70" 
+                                    />
                                     <div className="flex flex-col">
                                         <span className="text-[10px] font-bold text-white leading-none">{tx.asset}</span>
                                         <span className="text-[8px] text-slate-500 font-mono">{tx.timestamp}</span>

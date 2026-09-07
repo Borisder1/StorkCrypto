@@ -179,7 +179,24 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     
     whaleHistory: [],
     addWhaleTransaction: (tx) => set(state => ({ whaleHistory: [tx, ...state.whaleHistory].slice(0, 50) })),
-    getWhaleStats: () => ({ buyVolume1h: 0, sellVolume1h: 0, netFlow1h: 0, sentimentBias: 'NEUTRAL' }),
+    getWhaleStats: () => {
+        const history = get().whaleHistory;
+        if (!history || history.length === 0) {
+            return { buyVolume1h: 0, sellVolume1h: 0, netFlow1h: 0, sentimentBias: 'NEUTRAL' as const };
+        }
+        let buy = 0;
+        let sell = 0;
+        history.forEach(tx => {
+            if (tx.type === 'WHALE_ACCUMULATION') {
+                buy += tx.valueUsd || 0;
+            } else if (tx.type === 'EXCHANGE_INFLOW') {
+                sell += tx.valueUsd || 0;
+            }
+        });
+        const netFlow = buy - sell;
+        const bias = netFlow > 100000 ? 'BULLISH' : (netFlow < -100000 ? 'BEARISH' : 'NEUTRAL');
+        return { buyVolume1h: buy, sellVolume1h: sell, netFlow1h: netFlow, sentimentBias: bias as any };
+    },
 
     grantXp: (amount, reason) => {
         const state = get();

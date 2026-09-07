@@ -54,6 +54,20 @@ class EnergyParticle {
 
 const LETTERS = ['S', 'T', 'O', 'R', 'K', 'C', 'R', 'Y', 'P', 'T', 'O'];
 
+const CIPHER_POOL: string[][] = [
+  ['S', '0x53', 'NODE', 'S'],
+  ['T', '0x54', 'HASH', 'T'],
+  ['O', '0x4F', 'SYNC', 'O'],
+  ['R', '0x52', 'SCAN', 'R'],
+  ['K', '0x4B', 'LIVE', 'K'],
+  ['C', '0x43', '0x57', 'C'],
+  ['R', '0x52', 'BLOCK', 'R'],
+  ['Y', '0x59', 'ON_CHAIN', 'Y'],
+  ['P', '0x50', 'SIGNAL', 'P'],
+  ['T', '0x54', 'READY', 'T'],
+  ['O', '0x4F', 'LINK', 'O']
+];
+
 export function LoadingScreen({ onSkip }: LoadingScreenProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const lettersWrapperRef = useRef<HTMLDivElement>(null);
@@ -65,12 +79,30 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
   const [progress, setProgress] = useState(0);
   const [scannerVisible, setScannerVisible] = useState(false);
   const [progressVisible, setProgressVisible] = useState(false);
+  const [scrambleSymbols, setScrambleSymbols] = useState<string[]>(() =>
+    CIPHER_POOL.map(pool => pool[0])
+  );
+  const [statusPhase, setStatusPhase] = useState<string>('INIT_NEURAL_LINK');
 
   // Зберігаємо колбек у ref, щоб уникнути зайвих перезапусків useEffect
   const onSkipRef = useRef(onSkip);
   useEffect(() => {
     onSkipRef.current = onSkip;
   }, [onSkip]);
+
+  // Контрольований перебір крипто-символів для нерозкритих літер (без хаотичного шуму)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setScrambleSymbols((prev) =>
+        prev.map((_, i) => {
+          const pool = CIPHER_POOL[i];
+          const step = Math.floor((Date.now() / 240 + i) % pool.length);
+          return pool[step];
+        })
+      );
+    }, 240);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -118,6 +150,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
       const wrapperRect = lettersWrapper.getBoundingClientRect();
       setScannerVisible(true);
       scannerLine.style.top = `${wrapperRect.top}px`;
+      setStatusPhase('INITIALIZING // NEURAL CORE');
 
       // ⚡ ФАЗА 1: Рух сканера зверху вниз та 3D-переворот літер (0 - 2.5с)
       const scanStartTime = performance.now();
@@ -129,6 +162,12 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         const elapsed = currentTime - scanStartTime;
         const scanProgress = Math.min(elapsed / scanDuration, 1);
         const currentY = wrapperRect.top + wrapperRect.height * scanProgress;
+
+        if (elapsed > 900 && elapsed < 1800) {
+          setStatusPhase('GRID_BUILD // 0x574F524B');
+        } else if (elapsed >= 1800) {
+          setStatusPhase('SIGNAL_SCAN // BLOCK_VERIFY');
+        }
 
         if (scannerLineRef.current) {
           scannerLineRef.current.style.transform = `translateX(-50%) translateY(${currentY - wrapperRect.top}px)`;
@@ -161,6 +200,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         await new Promise((resolve) => setTimeout(resolve, 300));
         if (isCleanedUp) return;
 
+        setStatusPhase('ON_CHAIN_SYNC // MARKET_FEED');
         setProgressVisible(true);
         letterRefs.current.forEach((el) => el?.classList.add('draining'));
 
@@ -195,6 +235,14 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           const currentProgress = Math.min(elapsed / chargeDuration, 1);
           setProgress(Math.floor(currentProgress * 100));
 
+          if (currentProgress > 0.35 && currentProgress <= 0.7) {
+            setStatusPhase('DATA_CONVERGENCE // NEURAL_LINK');
+          } else if (currentProgress > 0.7 && currentProgress < 0.95) {
+            setStatusPhase('STORKCRYPTO // ACTIVE');
+          } else if (currentProgress >= 0.95) {
+            setStatusPhase('NEURAL LINK: ESTABLISHED');
+          }
+
           if (currentProgress < 1) {
             requestAnimationFrame(updateProgressBar);
           }
@@ -207,6 +255,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         // ⚡ ФАЗА 3: Фіналізація (6.0 - 6.5с)
         if (!isCleanedUp) {
           setProgress(100);
+          setStatusPhase('SYSTEM READY // CONNECTED');
           try { triggerHaptic('success'); } catch (_) {}
           setTimeout(() => {
             if (!isCleanedUp && onSkipRef.current) {
@@ -318,8 +367,12 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
 
         .scrambler-face {
           transform: rotateX(90deg) translateZ(0.72em);
-          color: #334155;
-          text-shadow: none;
+          color: rgba(0, 217, 255, 0.75);
+          font-family: 'JetBrains Mono', 'Orbitron', monospace;
+          font-size: clamp(10px, 2.2vh, 15px);
+          font-weight: 700;
+          letter-spacing: -0.05em;
+          text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
         }
 
         .final-face {
@@ -383,24 +436,32 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
             >
               <div className="letter-inner">
                 <div className="letter-face final-face">{char}</div>
-                <div className="letter-face scrambler-face">?</div>
+                <div className="letter-face scrambler-face">{scrambleSymbols[index] || char}</div>
               </div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* 📊 Прогрес-бар з відсотками */}
+      {/* 📊 Прогрес-бар з відсотками та телеметрією */}
       <div
-        ref={progressContainerRef}
-        className="progress-container relative z-20 mb-3"
-        style={{ opacity: progressVisible ? 1 : 0 }}
+        className="w-full max-w-[320px] px-4 relative z-20 mb-3 flex flex-col items-center"
+        style={{ opacity: progressVisible ? 1 : 0, transition: 'opacity 0.8s, transform 0.5s' }}
       >
+        <div className="flex justify-between items-center w-full text-[8px] font-mono text-brand-cyan/80 tracking-widest uppercase mb-1.5 px-0.5">
+          <span>{statusPhase}</span>
+          <span className="font-bold text-white">{progress}%</span>
+        </div>
         <div
-          ref={progressBarRef}
-          className="progress-bar"
-          style={{ width: `${progress}%` }}
-        />
+          ref={progressContainerRef}
+          className="progress-container w-full"
+        >
+          <div
+            ref={progressBarRef}
+            className="progress-bar"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
       </div>
 
       {/* ⚡ Лінія лазерного сканера */}

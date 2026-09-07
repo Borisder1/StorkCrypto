@@ -614,7 +614,13 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                      <div className="bg-brand-card border border-white/10 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
                          <div className="flex justify-between items-center mb-6">
                              <h2 className="text-white font-black uppercase tracking-widest font-orbitron">{t('home.customize')}</h2>
-                             <button onClick={() => setShowCustomize(false)} className="text-slate-400 hover:text-white">✕</button>
+                             <button 
+                                 onClick={() => setShowCustomize(false)} 
+                                 aria-label="Close customize modal"
+                                 className="w-8 h-8 rounded-lg flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 transition-colors"
+                             >
+                                 ✕
+                             </button>
                          </div>
                          
                          {userStats.subscriptionTier === 'FREE' ? (

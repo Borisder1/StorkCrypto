@@ -16,6 +16,7 @@ const UpgradeBanner: React.FC = () => {
     const expiryTime = new Date(userStats.trialEndsAt).getTime();
     const now = Date.now();
     const msUntilExpiry = expiryTime - now;
+    const isTrialExpired = isFree && msUntilExpiry <= 0;
     const daysUntilExpiry = msUntilExpiry / (1000 * 60 * 60 * 24);
 
     const shouldShow = isFree || (daysUntilExpiry <= 3 && daysUntilExpiry > 0);
@@ -54,11 +55,12 @@ const UpgradeBanner: React.FC = () => {
     };
 
     const isPaidExpiring = !isFree && isUrgent;
+    const isExpiredNotice = isTrialExpired || (isPaidExpiring && msUntilExpiry <= 0);
     
-    const borderColor = isPaidExpiring ? 'border-red-500/50' : 'border-brand-green/30';
-    const glowColor = isPaidExpiring ? 'from-red-500/20 via-orange-500/20 to-red-500/20' : 'from-brand-green/20 via-brand-cyan/20 to-brand-green/20';
-    const btnColor = isPaidExpiring ? 'bg-red-500 text-white' : 'bg-brand-green text-black';
-    const icon = isPaidExpiring ? <ActivityIcon className="w-5 h-5 text-red-400 animate-pulse" /> : <ZapIcon className="w-5 h-5 text-black" />;
+    const borderColor = isExpiredNotice ? 'border-amber-500/40' : (isPaidExpiring ? 'border-red-500/50' : 'border-brand-green/30');
+    const glowColor = isExpiredNotice ? 'from-amber-500/20 via-orange-500/20 to-amber-500/20' : (isPaidExpiring ? 'from-red-500/20 via-orange-500/20 to-red-500/20' : 'from-brand-green/20 via-brand-cyan/20 to-brand-green/20');
+    const btnColor = isExpiredNotice ? 'bg-amber-400 text-black font-black' : (isPaidExpiring ? 'bg-red-500 text-white' : 'bg-brand-green text-black');
+    const icon = isExpiredNotice ? <ShieldIcon className="w-5 h-5 text-amber-300" /> : (isPaidExpiring ? <ActivityIcon className="w-5 h-5 text-red-400 animate-pulse" /> : <ZapIcon className="w-5 h-5 text-black" />);
 
     return (
         <div className="relative group w-full mb-4 cursor-pointer animate-fade-in px-2" onClick={handleUpgrade}>
@@ -69,16 +71,34 @@ const UpgradeBanner: React.FC = () => {
                 <div className="absolute inset-0 -translate-x-full animate-[shimmer_2s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent pointer-events-none"></div>
 
                 <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.4)] ${isPaidExpiring ? 'from-red-900 to-black' : 'from-brand-green to-brand-cyan'}`}>
+                    <div className={`w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center shadow-[0_0_15px_rgba(0,0,0,0.4)] ${isExpiredNotice ? 'from-amber-950 to-black border border-amber-500/30' : (isPaidExpiring ? 'from-red-900 to-black' : 'from-brand-green to-brand-cyan')}`}>
                         {icon}
                     </div>
                     <div>
-                        <h3 className={`text-xs font-bold font-orbitron tracking-wide flex items-center gap-2 ${isPaidExpiring ? 'text-red-400' : 'text-white'}`}>
-                            {isPaidExpiring ? t('upgrade.renewal_imminent') : (isFree ? t('upgrade.trial_active') : t('upgrade.upgrade_pro'))}
-                            {!isPaidExpiring && <span className="text-[7px] bg-brand-green text-black px-1 rounded font-black animate-pulse">{t('upgrade.live')}</span>}
+                        <h3 className={`text-xs font-bold font-orbitron tracking-wide flex items-center gap-2 ${isExpiredNotice ? 'text-amber-400' : (isPaidExpiring ? 'text-red-400' : 'text-white')}`}>
+                            {isExpiredNotice 
+                                ? t('upgrade.trial_expired') 
+                                : (isPaidExpiring 
+                                    ? t('upgrade.renewal_imminent') 
+                                    : (isFree ? t('upgrade.trial_active') : t('upgrade.upgrade_pro')))}
+                            {/* Never show LIVE badge if trial/plan is expired */}
+                            {!isExpiredNotice && !isPaidExpiring && (
+                                <span className="text-[7px] bg-brand-green text-black px-1 rounded font-black animate-pulse">
+                                    {t('upgrade.live')}
+                                </span>
+                            )}
+                            {isExpiredNotice && (
+                                <span className="text-[7px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-1 rounded font-mono font-bold">
+                                    {t('profile.basic')}
+                                </span>
+                            )}
                         </h3>
                         <p className="text-[9px] text-slate-300 font-mono">
-                            {isPaidExpiring ? `${t('upgrade.system_locking')} ${timeLeftLabel}` : `${t('upgrade.expires')} ${timeLeftLabel || '...'}`}
+                            {isPaidExpiring 
+                                ? `${t('upgrade.system_locking')} ${timeLeftLabel}` 
+                                : (isExpiredNotice 
+                                    ? `${t('upgrade.expires')} ${timeLeftLabel}` 
+                                    : `${t('upgrade.expires')} ${timeLeftLabel || '...'}`)}
                         </p>
                     </div>
                 </div>
@@ -88,7 +108,7 @@ const UpgradeBanner: React.FC = () => {
                     className={`font-bold text-[9px] px-3 py-1.5 rounded-lg shadow-lg hover:scale-105 transition-transform flex items-center gap-1 ${btnColor}`}
                 >
                     <ShieldIcon className="w-3 h-3" />
-                    {isPaidExpiring ? t('upgrade.renew') : t('upgrade.extend')}
+                    {isExpiredNotice ? t('upgrade.upgrade_pro') : (isPaidExpiring ? t('upgrade.renew') : t('upgrade.extend'))}
                 </button>
             </div>
         </div>

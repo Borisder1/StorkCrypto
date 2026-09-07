@@ -87,7 +87,15 @@ const ScannerListItem = React.memo(({ coin, onAssetClick, isAlpha, t }: {
                         </div>
 
                         <div className="flex flex-col items-end min-w-[50px]">
-                            <p className="font-mono text-xs font-bold text-white tracking-tight">${coin.price < 1 ? coin.price.toFixed(4) : coin.price.toFixed(2)}</p>
+                            {coin.price && coin.price > 0 ? (
+                                <p className="font-mono text-xs font-bold text-white tracking-tight">
+                                    ${coin.price < 1 ? coin.price.toFixed(4) : coin.price.toFixed(2)}
+                                </p>
+                            ) : (
+                                <span className="font-mono text-[9px] font-bold text-slate-500 tracking-tight bg-white/5 px-1.5 py-0.5 rounded">
+                                    N/A
+                                </span>
+                            )}
                             <span className={`text-[9px] font-bold ${coin.change >= 0 ? 'text-brand-green' : 'text-brand-danger'}`}>
                                 {coin.change > 0 ? '+' : ''}{coin.change.toFixed(2)}%
                             </span>
