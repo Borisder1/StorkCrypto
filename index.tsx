@@ -15,7 +15,9 @@ const shouldSuppressError = (msg: string) => {
         msg.includes('_TonConnectError') ||
         msg.includes('unpause') ||
         msg.includes('Operation aborted') ||
-        msg.includes('isTrusted')
+        msg.includes('isTrusted') ||
+        msg.includes('openInvoice') ||
+        msg.includes('[Telegram.WebApp]')
     );
 };
 
@@ -61,7 +63,9 @@ window.addEventListener('unhandledrejection', (event) => {
         String(reason.message).includes('TonConnect') ||
         String(reason.message).includes('Bridge error') ||
         String(reason.message).includes('dispose') ||
-        String(reason.message).includes('unpause')
+        String(reason.message).includes('unpause') ||
+        String(reason).includes('openInvoice') ||
+        String(reason.message).includes('openInvoice')
     )) {
         event.preventDefault();
         event.stopPropagation();
@@ -71,12 +75,14 @@ window.addEventListener('unhandledrejection', (event) => {
 window.addEventListener('error', (event) => {
     const error = event.error;
     const msg = event.message || '';
-    if (msg.includes('TonConnect') || msg.includes('TON_CONNECT_SDK') || msg.includes('Bridge error') || 
+    if (msg.includes('TonConnect') || msg.includes('TON_CONNECT_SDK') || msg.includes('Bridge error') || msg.includes('openInvoice') || msg.includes('[Telegram.WebApp]') ||
         (error && (
             String(error).includes('TonConnect') || 
             String(error.message).includes('Bridge error') ||
             String(error.message).includes('dispose') ||
-            String(error.message).includes('unpause')
+            String(error.message).includes('unpause') ||
+            String(error).includes('openInvoice') ||
+            String(error.message).includes('openInvoice')
         ))
     ) {
         event.preventDefault();

@@ -107,8 +107,21 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
         return `${h}h ${m}m ${t('airdrop.to_fill')}`;
     };
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     return (
         <motion.div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="airdrop-modal-title"
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
@@ -121,13 +134,14 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose(); }}
+                        aria-label="Закрити майнінг хаб"
                         className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
                     >
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
                     </button>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">{t('airdrop.mining_hub')}</h1>
+                            <h1 id="airdrop-modal-title" className="font-orbitron text-lg font-black text-white tracking-widest uppercase">{t('airdrop.mining_hub')}</h1>
                             <HelpIndicator id="airdrop_terminal" />
                         </div>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('airdrop.neural_hash')}: {mining.miningRate.toFixed(2)} / SEC</p>

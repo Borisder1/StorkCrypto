@@ -210,6 +210,16 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
         fetchPrices();
     }, []);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     // Fetch user balances based on wallet state (Web3 vs Demo/Sandbox)
     const getBalance = (ticker: string) => {
         if (wallet.isConnected) {
@@ -327,6 +337,9 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
 
     return (
         <motion.div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="dex-aggregator-title"
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
@@ -348,7 +361,7 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                     </button>
                     <div>
                         <div className="flex items-center gap-1.5">
-                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">{t('title')}</h1>
+                            <h1 id="dex-aggregator-title" className="font-orbitron text-lg font-black text-white tracking-widest uppercase italic">{t('title')}</h1>
                             <HelpIndicator id="dex_aggregator" />
                         </div>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('status')}</p>
@@ -397,25 +410,30 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                                 <div className="flex justify-between items-center mb-1">
                                     <p className="text-[9px] text-slate-500 font-black uppercase">{t('pay')}</p>
                                     <button 
+                                        type="button"
                                         onClick={autoFillMax}
-                                        className="text-[8px] text-brand-cyan font-bold uppercase hover:underline"
+                                        aria-label={`Заповнити максимум ${getBalance(fromAsset).toFixed(4)} ${fromAsset}`}
+                                        className="text-[8px] text-brand-cyan font-bold uppercase hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-cyan rounded px-1"
                                     >
                                         {t('balance')}: {getBalance(fromAsset).toFixed(4)} Max
                                     </button>
                                 </div>
-                                <div className="flex justify-between items-center">
+                                <div className="flex justify-between items-center gap-2">
                                     <input 
                                         type="number" 
+                                        inputMode="decimal"
                                         placeholder="0.0" 
+                                        aria-label={t('pay')}
                                         value={fromAmount}
                                         onChange={(e) => setFromAmount(e.target.value)}
-                                        className="bg-transparent text-2xl font-black text-white font-mono w-2/3 outline-none" 
+                                        className="bg-transparent text-2xl font-black text-white font-mono w-2/3 outline-none focus-visible:ring-1 focus-visible:ring-brand-cyan/50 rounded-lg px-1" 
                                         id="swap_input_from"
                                     />
                                     <select 
                                         value={fromAsset}
+                                        aria-label="Виберіть вихідний актив для обміну"
                                         onChange={(e) => { triggerHaptic('light'); setFromAsset(e.target.value); }}
-                                        className="bg-brand-card border border-white/10 rounded-xl px-3 py-2 text-white font-black text-xs outline-none"
+                                        className="bg-brand-card border border-white/10 rounded-xl px-3 py-2 text-white font-black text-xs outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
                                         id="swap_select_from"
                                     >
                                         {Object.keys(prices).map(ticker => (
@@ -423,12 +441,39 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                                         ))}
                                     </select>
                                 </div>
+
+                                {/* QUICK PERCENTAGE FILL CHIPS */}
+                                <div className="flex gap-1.5 mt-2.5 pt-2 border-t border-white/5">
+                                    {[25, 50, 75, 100].map(pct => (
+                                        <button
+                                            key={pct}
+                                            type="button"
+                                            onClick={() => {
+                                                triggerHaptic('light');
+                                                const bal = getBalance(fromAsset);
+                                                const maxVal = fromAsset === 'TON' ? Math.max(0, bal - 0.5) : bal;
+                                                const calculated = maxVal * (pct / 100);
+                                                setFromAmount(calculated > 0 ? (calculated < 1 ? calculated.toFixed(4) : calculated.toFixed(2)) : '0');
+                                            }}
+                                            aria-label={`Заповнити ${pct}% балансу ${fromAsset}`}
+                                            className="flex-1 py-1 rounded-lg bg-white/5 border border-white/10 hover:border-brand-cyan/40 hover:bg-brand-cyan/10 text-[9px] font-mono font-bold text-slate-300 active:scale-95 transition-all focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-brand-cyan"
+                                        >
+                                            {pct === 100 ? 'MAX' : `${pct}%`}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
 
                             {/* MIDWAY FLIP BUTTON */}
-                            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-[#070c18] border border-white/10 rounded-xl flex items-center justify-center z-10 cursor-pointer active:scale-95 hover:border-brand-cyan/40 transition-all shadow-xl" onClick={handleFlip} id="swap_flip_btn">
+                            <button 
+                                type="button"
+                                aria-label="Поміняти місцями активи відправки та отримання"
+                                onClick={handleFlip} 
+                                id="swap_flip_btn"
+                                className="absolute top-[42%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-[#070c18] border border-white/10 rounded-xl flex items-center justify-center z-10 cursor-pointer active:scale-95 hover:border-brand-cyan/40 transition-all shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
+                            >
                                 <ZapIcon className="w-5 h-5 text-brand-cyan" />
-                            </div>
+                            </button>
 
                             {/* TO ASSET */}
                             <div className="bg-black/50 border border-white/5 rounded-2xl p-4">
@@ -436,14 +481,18 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                                     <p className="text-[9px] text-slate-500 font-black uppercase">{t('receive')}</p>
                                     <p className="text-[8px] text-slate-500 font-mono">{t('balance')}: {getBalance(toAsset).toFixed(4)}</p>
                                 </div>
-                                <div className="flex justify-between items-center">
-                                    <div className="text-2xl font-black text-white/50 font-mono w-2/3 truncate">
+                                <div className="flex justify-between items-center gap-2">
+                                    <div 
+                                        aria-label={`${t('receive')}: ${outputAmount > 0 ? outputAmount.toFixed(5) : '0.00'} ${toAsset}`}
+                                        className="text-2xl font-black text-white/50 font-mono w-2/3 truncate"
+                                    >
                                         {outputAmount > 0 ? outputAmount.toFixed(5) : '0.00'}
                                     </div>
                                     <select 
                                         value={toAsset}
+                                        aria-label="Виберіть цільовий актив для отримання"
                                         onChange={(e) => { triggerHaptic('light'); setToAsset(e.target.value); }}
-                                        className="bg-brand-card border border-white/10 rounded-xl px-3 py-2 text-white font-black text-xs outline-none"
+                                        className="bg-brand-card border border-white/10 rounded-xl px-3 py-2 text-white font-black text-xs outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
                                         id="swap_select_to"
                                     >
                                         {Object.keys(prices).map(ticker => (
@@ -473,8 +522,11 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                                 {['0.1', '0.5', '1.0'].map(val => (
                                     <button
                                         key={val}
+                                        type="button"
                                         onClick={() => { triggerHaptic('light'); setSlippage(val); }}
-                                        className={`py-1.5 rounded-lg text-[9px] font-bold border transition-all ${slippage === val ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/30 border-white/5 text-slate-500'}`}
+                                        aria-label={`Встановити проковзування ${val}%`}
+                                        aria-pressed={slippage === val}
+                                        className={`py-1.5 rounded-lg text-[9px] font-bold border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${slippage === val ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-black/30 border-white/5 text-slate-500'}`}
                                     >
                                         {val}%
                                     </button>
@@ -482,9 +534,10 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                                 <input
                                     type="number"
                                     placeholder="Custom"
+                                    aria-label="Користувацьке значення проковзування"
                                     value={['0.1', '0.5', '1.0'].includes(slippage) ? '' : slippage}
                                     onChange={(e) => setSlippage(e.target.value)}
-                                    className="bg-black/30 border border-white/5 rounded-lg py-1 px-2 text-[9px] text-center text-white font-bold outline-none focus:border-brand-cyan/40"
+                                    className="bg-black/30 border border-white/5 rounded-lg py-1 px-2 text-[9px] text-center text-white font-bold outline-none focus:border-brand-cyan/40 focus-visible:ring-2 focus-visible:ring-brand-cyan"
                                 />
                             </div>
 
@@ -598,7 +651,8 @@ const DexAggregatorModal: React.FC<DexAggregatorModalProps> = ({ onClose }) => {
                         <button 
                             disabled={!isValid}
                             onClick={triggerSwap}
-                            className={`w-full mt-5 py-4 font-black font-orbitron rounded-2xl uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all shadow-xl ${
+                            aria-label={`Виконати обмін ${fromAmount || '0'} ${fromAsset} на ${outputAmount > 0 ? outputAmount.toFixed(4) : '0'} ${toAsset}`}
+                            className={`w-full mt-5 py-4 font-black font-orbitron rounded-2xl uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${
                                 isValid 
                                 ? 'bg-brand-cyan hover:bg-white text-black active:scale-95' 
                                 : 'bg-slate-800 text-slate-500 cursor-not-allowed opacity-60'

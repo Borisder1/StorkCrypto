@@ -196,7 +196,7 @@ export interface Quest {
     progress: number;
     target: number;
     isClaimed: boolean;
-    type: 'TRADE' | 'SCAN' | 'SOCIAL';
+    type: 'TRADE' | 'SCAN' | 'SOCIAL' | 'ACADEMY';
 }
 
 export interface CopiedTrader {
@@ -462,7 +462,7 @@ export interface AppSlice {
     removeAlert: (id: string) => void;
     quests: Quest[];
     claimQuestReward: (id: string) => void;
-    updateQuestProgress: (type: 'TRADE' | 'SCAN' | 'SOCIAL', amount: number) => void; 
+    updateQuestProgress: (type: 'TRADE' | 'SCAN' | 'SOCIAL' | 'ACADEMY', amount: number) => void; 
     copiedTraders: CopiedTrader[];
     copyTrader: (trader: CopiedTrader, config: CopyVaultConfig) => void;
     stopCopying: (id: string) => void;

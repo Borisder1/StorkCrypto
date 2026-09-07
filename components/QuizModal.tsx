@@ -76,12 +76,20 @@ const QUIZ_LANGS: Record<string, Record<string, string>> = {
 };
 
 const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
-    const { grantXp, settings } = useStore();
+    const { grantXp, updateQuestProgress, settings } = useStore();
     const lang = settings?.language || 'en';
     const dict = QUIZ_LANGS[lang] || QUIZ_LANGS['en'];
 
     const [status, setStatus] = useState<'QUESTION' | 'SUCCESS' | 'FAILURE'>('QUESTION');
     const [timeLeft, setTimeLeft] = useState(15);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
 
     // Question Generator based on localized database
     const generateQuestion = (t: AcademyTerm) => {
@@ -140,6 +148,7 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
             triggerHaptic('success');
             setStatus('SUCCESS');
             grantXp(50, `Drill: ${term.term}`);
+            updateQuestProgress('ACADEMY', 1);
             setTimeout(onClose, 2000);
         } else {
             triggerHaptic('error');
@@ -149,11 +158,25 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 overflow-y-auto overscroll-contain">
+        <div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="quiz-modal-title"
+            className="fixed inset-0 z-[150] flex items-center justify-center p-6 overflow-y-auto overscroll-contain"
+        >
             <div className="absolute inset-0 bg-black/95 backdrop-blur-xl animate-fade-in" onClick={onClose}></div>
             
             <div className="relative z-10 w-full max-w-sm bg-brand-card border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_50px_rgba(0,217,255,0.2)] animate-zoom-in my-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col">
                 
+                {/* Close Button Top Right */}
+                <button 
+                    onClick={onClose}
+                    aria-label="Закрити тренування"
+                    className="absolute top-4 right-4 z-20 w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
+                >
+                    ✕
+                </button>
+
                 {/* Header */}
                 <div className="p-6 text-center border-b border-white/5 relative overflow-hidden">
                     <div className="absolute top-0 left-0 w-full h-1 bg-slate-800">
@@ -166,7 +189,7 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
                     <div className="w-16 h-16 bg-brand-cyan/10 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-brand-cyan/30">
                         <BotIcon className="w-8 h-8 text-brand-cyan animate-pulse" />
                     </div>
-                    <h2 className="font-orbitron font-bold text-white text-md tracking-wider mb-1">{dict['title']}</h2>
+                    <h2 id="quiz-modal-title" className="font-orbitron font-bold text-white text-md tracking-wider mb-1">{dict['title']}</h2>
                     <p className="text-[9px] text-slate-400 font-mono">{dict['subject']}: {term.term}</p>
                 </div>
                 
@@ -181,7 +204,7 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
                                     <button
                                         key={idx}
                                         onClick={() => handleAnswer(opt.correct)}
-                                        className="w-full p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-brand-cyan/20 hover:border-brand-cyan/50 transition-all text-xs font-mono text-left active:scale-[0.98]"
+                                        className="w-full p-4 rounded-xl border border-white/10 bg-white/5 hover:bg-brand-cyan/20 hover:border-brand-cyan/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan transition-all text-xs font-mono text-left active:scale-[0.98]"
                                     >
                                         <span className="text-slate-500 mr-2">{String.fromCharCode(65 + idx)}.</span> 
                                         <span className="text-slate-200">{opt.text}</span>

@@ -130,6 +130,16 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
         } catch (e) {} finally { setScanning(false); }
     };
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     useEffect(() => { performScan(); }, [activeTab]);
 
     const filteredData = useMemo(() => {
@@ -144,6 +154,9 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
 
     return (
         <motion.div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="scanner-modal-title"
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
@@ -156,16 +169,22 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose(); }}
+                        aria-label="Закрити сканер ринку"
                         className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
                     >
                         <ChevronRightIcon className="w-5 h-5 rotate-180" />
                     </button>
                     <div>
-                        <h1 className="font-orbitron text-base sm:text-lg font-black text-white tracking-widest uppercase">{t('scanner.title')}</h1>
+                        <h1 id="scanner-modal-title" className="font-orbitron text-base sm:text-lg font-black text-white tracking-widest uppercase">{t('scanner.title')}</h1>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('scanner.status')}</p>
                     </div>
                 </div>
-                <button onClick={performScan} disabled={scanning || activeTab === 'GLOBE'} className="w-8 h-8 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan font-black">
+                <button 
+                    onClick={performScan} 
+                    disabled={scanning || activeTab === 'GLOBE'} 
+                    aria-label="Оновити сканування ринку"
+                    className="w-8 h-8 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan font-black"
+                >
                     <SearchIcon className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
                 </button>
             </div>

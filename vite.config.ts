@@ -9,6 +9,8 @@ export default defineConfig(({ mode }) => {
       server: {
         port: 3000,
         host: '0.0.0.0',
+        strictPort: true,
+        cors: true,
         proxy: {
           '/api/chat': {
             target: 'https://integrate.api.nvidia.com/v1/chat/completions',

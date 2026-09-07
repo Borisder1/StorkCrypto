@@ -204,6 +204,16 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
         };
     }, [candleData, chartType, activeTab]);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     const handleAddAlert = () => {
         if (!alertPrice) return;
         triggerHaptic('success');
@@ -230,6 +240,9 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
         >
             <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose}></div>
             <motion.div 
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="asset-detail-title"
                 initial={{ y: '100%', opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 exit={{ y: '100%', opacity: 0 }}
@@ -242,7 +255,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                             <img src={`https://assets.coincap.io/assets/icons/${asset.ticker.toLowerCase()}@2x.png`} alt={asset.name} className="w-full h-full object-contain" onError={e => (e.currentTarget.src = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${asset.ticker.toLowerCase()}.png`)} />
                         </div>
                         <div>
-                            <h2 className="text-xl font-black text-white font-orbitron uppercase tracking-widest">{asset.name}</h2>
+                            <h2 id="asset-detail-title" className="text-xl font-black text-white font-orbitron uppercase tracking-widest">{asset.name}</h2>
                             <p className={`text-sm font-bold font-mono ${asset.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>${asset.value.toFixed(2)} ({asset.change.toFixed(2)}%)</p>
                         </div>
                     </div>

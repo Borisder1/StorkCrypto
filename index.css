@@ -86,24 +86,49 @@ body {
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* ☀️ Daylight / Outdoor High-Contrast Theme */
+html[data-theme="daylight"],
+body[data-theme="daylight"],
 [data-theme="daylight"] {
   --app-bg: #f8fafc;
   --app-text: #0f172a;
   --app-hint: #475569;
-  --app-link: #0284c7;
+  --app-link: #0369a1;
+  --primary-color: #0284c7;
   color-scheme: light;
 }
 
-[data-theme="daylight"] body,
-[data-theme="daylight"] .bg-brand-bg {
-  background-color: #f1f5f9 !important;
+html[data-theme="daylight"] body,
+body[data-theme="daylight"] {
+  background-color: #f8fafc !important;
   color: #0f172a !important;
+}
+
+[data-theme="daylight"] .bg-brand-bg,
+html[data-theme="daylight"] .bg-brand-bg {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+}
+
+[data-theme="daylight"] .bg-surface-0,
+[data-theme="daylight"] .bg-surface-1 {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+[data-theme="daylight"] .bg-surface-2,
+[data-theme="daylight"] .bg-surface-3,
+[data-theme="daylight"] .bg-surface-4 {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  border-color: #cbd5e1 !important;
 }
 
 [data-theme="daylight"] .bg-\[\#020617\],
 [data-theme="daylight"] .bg-\[\#050b14\],
 [data-theme="daylight"] .bg-\[\#020617\]\/60,
 [data-theme="daylight"] .bg-\[\#050b14\]\/60,
+[data-theme="daylight"] .bg-\[\#050b14\]\/95,
 [data-theme="daylight"] .bg-brand-card\/40,
 [data-theme="daylight"] .bg-brand-card,
 [data-theme="daylight"] .bg-black\/60,
@@ -183,6 +208,10 @@ body {
 [data-theme="daylight"] .backdrop-blur-md,
 [data-theme="daylight"] .backdrop-blur-xl {
   backdrop-filter: blur(8px) brightness(1.05) !important;
+}
+
+[data-theme="daylight"] .noise-bg {
+  display: none !important;
 }
 
 /* 🌙 Night / Midnight Deep Dark Eye-Protection */

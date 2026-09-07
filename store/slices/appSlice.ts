@@ -250,7 +250,8 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     quests: [
         { id: 'q1', type: 'TRADE', title: 'First Trade', description: 'Run a simulation using paper trading.', rewardXp: 100, progress: 0, target: 1, isClaimed: false },
         { id: 'q2', type: 'SCAN', title: 'Market Scanner', description: 'Scan the market using the Neural terminal.', rewardXp: 50, progress: 0, target: 5, isClaimed: false },
-        { id: 'q3', type: 'SOCIAL', title: 'Invite Friends', description: 'Invite a friend to use the application.', rewardXp: 200, progress: 0, target: 1, isClaimed: false }
+        { id: 'q3', type: 'SOCIAL', title: 'Invite Friends', description: 'Invite a friend to use the application.', rewardXp: 200, progress: 0, target: 1, isClaimed: false },
+        { id: 'q4', type: 'ACADEMY', title: 'Tactical Academy', description: 'Pass an Academy drill or knowledge quiz.', rewardXp: 150, progress: 0, target: 1, isClaimed: false }
     ],
     claimQuestReward: (id) => {
         const state = get();

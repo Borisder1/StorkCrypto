@@ -54,8 +54,21 @@ export const LeaderboardModal: React.FC<{ onClose: () => void }> = ({ onClose })
         fetchLeaders();
     }, [userStats]);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     return (
         <motion.div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="leaderboard-modal-title"
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
@@ -66,7 +79,7 @@ export const LeaderboardModal: React.FC<{ onClose: () => void }> = ({ onClose })
             <div className="flex items-center justify-between p-6 border-b border-white/5 relative bg-brand-card/30">
                 <div className="absolute inset-x-0 bottom-0 h-px bg-gradient-to-r from-transparent via-brand-purple/50 to-transparent"></div>
                 <div>
-                    <h2 className="text-xl font-black text-white font-orbitron tracking-widest flex items-center gap-2">
+                    <h2 id="leaderboard-modal-title" className="text-xl font-black text-white font-orbitron tracking-widest flex items-center gap-2">
                         <ShieldIcon className="w-5 h-5 text-brand-purple" />
                         GLOBAL TOP
                     </h2>
@@ -74,6 +87,7 @@ export const LeaderboardModal: React.FC<{ onClose: () => void }> = ({ onClose })
                 </div>
                 <button 
                     onClick={() => { triggerHaptic('light'); onClose(); }}
+                    aria-label="Закрити таблицю лідерів"
                     className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
                 >
                     <ChevronRightIcon className="w-5 h-5 rotate-180" />

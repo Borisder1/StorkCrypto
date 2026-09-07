@@ -17,6 +17,28 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
         onTabChange(id as NavItem);
     };
 
+    const handleKeyDown = (e: React.KeyboardEvent, currentIndex: number) => {
+        let nextIndex = currentIndex;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+            e.preventDefault();
+            nextIndex = (currentIndex + 1) % items.length;
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+            e.preventDefault();
+            nextIndex = (currentIndex - 1 + items.length) % items.length;
+        } else if (e.key === 'Home') {
+            e.preventDefault();
+            nextIndex = 0;
+        } else if (e.key === 'End') {
+            e.preventDefault();
+            nextIndex = items.length - 1;
+        }
+        if (nextIndex !== currentIndex) {
+            handleTabChange(items[nextIndex].id);
+            const nextButton = document.getElementById(`bottom-nav-tab-${items[nextIndex].id}`);
+            nextButton?.focus();
+        }
+    };
+
     return (
         <motion.div 
             initial={{ y: 100, opacity: 0, x: "-50%" }}
@@ -30,13 +52,16 @@ const BottomNav: React.FC<BottomNavProps> = ({ items, activeTab, onTabChange }) 
                 {/* Glow behind capsule - enhanced */}
                 <div className="absolute inset-0 rounded-3xl bg-brand-cyan/10 blur-xl -z-10"></div>
 
-                {items.map(item => {
+                {items.map((item, index) => {
                     const isActive = activeTab === item.id;
                     return (
                         <button
                             key={item.id}
+                            id={`bottom-nav-tab-${item.id}`}
                             role="tab"
                             onClick={() => handleTabChange(item.id)}
+                            onKeyDown={(e) => handleKeyDown(e, index)}
+                            tabIndex={isActive ? 0 : -1}
                             aria-label={item.label}
                             aria-selected={isActive}
                             aria-current={isActive ? 'page' : undefined}

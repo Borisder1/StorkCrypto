@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShieldIcon, TelegramIcon, ActivityIcon, ZapIcon, GlobeIcon, LinkIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -32,6 +32,16 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
     const [connectionMode, setConnectionMode] = useState<'uid' | 'api'>('uid');
     const [apiKeyInput, setApiKeyInput] = useState('');
     const [apiSecretInput, setApiSecretInput] = useState('');
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
 
     // Handle TON Connect launch with session cleanup
     const handleTonConnect = async () => {
@@ -271,6 +281,9 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
             <div className="fixed inset-0 bg-black/95 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
             
             <motion.div 
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="wallet-connect-title"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
@@ -286,11 +299,17 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                 <ShieldIcon className="w-5 h-5 animate-pulse" />
                             </div>
                             <div className="text-left">
-                                <h2 className="font-orbitron font-black text-sm text-white uppercase tracking-wider">Web3 Gateway</h2>
+                                <h2 id="wallet-connect-title" className="font-orbitron font-black text-sm text-white uppercase tracking-wider">Web3 Gateway</h2>
                                 <p className="text-slate-500 text-[9px] font-mono uppercase tracking-widest">Connect Wallet & Exchanges</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-colors">✕</button>
+                        <button 
+                            onClick={onClose} 
+                            aria-label="Закрити вікно підключення гаманця"
+                            className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
+                        >
+                            ✕
+                        </button>
                     </div>
 
                     {/* Active Connected Banner */}

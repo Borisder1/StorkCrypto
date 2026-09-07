@@ -96,3 +96,35 @@ export const updateTelegramMainButton = (params: { text: string; visible: boolea
         }
     }
 };
+
+export const isTelegramVersionAtLeast = (version: string): boolean => {
+    const tg = getTelegramWebApp();
+    if (!tg) return false;
+    if (typeof tg.isVersionAtLeast === 'function') {
+        try {
+            return tg.isVersionAtLeast(version);
+        } catch {
+            return false;
+        }
+    }
+    if (tg.version) {
+        return parseFloat(tg.version) >= parseFloat(version);
+    }
+    return false;
+};
+
+export const safeOpenTelegramInvoice = (invoiceUrl: string, callback?: (status: string) => void): boolean => {
+    const tg = getTelegramWebApp();
+    // openInvoice requires Telegram WebApp v6.1+
+    if (tg && isTelegramVersionAtLeast('6.1') && typeof tg.openInvoice === 'function') {
+        try {
+            tg.openInvoice(invoiceUrl, callback);
+            return true;
+        } catch (e) {
+            console.warn("Telegram openInvoice failed, falling back:", e);
+            return false;
+        }
+    }
+    return false;
+};
+

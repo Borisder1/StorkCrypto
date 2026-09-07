@@ -4,6 +4,9 @@ interface TelegramWebApp {
     expand: () => void;
     close: () => void;
     platform: string;
+    version?: string;
+    isVersionAtLeast?: (version: string) => boolean;
+    openTelegramLink?: (url: string) => void;
     initData: string;
     setHeaderColor: (color: string) => void;
     setBackgroundColor: (color: string) => void;

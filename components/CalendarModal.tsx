@@ -19,8 +19,17 @@ const CalendarModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = 'unset'; };
-    }, []);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => { 
+            document.body.style.overflow = 'unset'; 
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
 
     const getImpactColor = (impact: string) => {
         if (impact === 'HIGH') return 'text-red-500 bg-red-500/10 border-red-500/30';
@@ -38,6 +47,9 @@ const CalendarModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
             
             <motion.div 
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="calendar-modal-title"
                 initial={{ scale: 0.9, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 0.9, opacity: 0 }}
@@ -45,8 +57,14 @@ const CalendarModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 className="relative z-10 w-full max-w-sm bg-brand-bg border border-brand-border rounded-[2rem] overflow-hidden shadow-[0_0_60px_rgba(0,240,255,0.15)] flex flex-col max-h-[90vh] sm:max-h-[85vh] my-auto"
             >
                 <div className="p-5 border-b border-brand-border bg-brand-card flex justify-between items-center shrink-0">
-                    <h2 className="font-orbitron font-bold text-lg text-white">{t('cal.title')}</h2>
-                    <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white">✕</button>
+                    <h2 id="calendar-modal-title" className="font-orbitron font-bold text-lg text-white">{t('cal.title')}</h2>
+                    <button 
+                        onClick={onClose} 
+                        aria-label="Закрити економічний календар"
+                        className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white"
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-3">

@@ -129,33 +129,96 @@ const MarketTicker: React.FC = React.memo(() => {
                 
                 {/* Scrolling Ticker (with Hover/Touch Pause & Hardware-Accelerated crisp text) */}
                 <div className="flex-1 overflow-hidden relative h-full flex items-center pointer-events-auto cursor-pointer">
-                    <div className="flex w-max items-center shrink-0 animate-marquee">
-                        {[...manipulatedData, ...manipulatedData, ...manipulatedData].map((coin, idx) => (
-                            <button
-                                key={`${coin.ticker}-${idx}`} 
-                                onClick={() => handleCoinClick(coin)}
-                                title={`Клікніть для відкриття аналітики ${coin.ticker}`}
-                                className={`flex items-center gap-2 mx-3 px-2 py-1 rounded-md transition-all shrink-0 border ${
-                                    isDaylight 
-                                        ? 'bg-white/80 border-slate-200 hover:bg-sky-50 hover:border-sky-300 shadow-sm' 
-                                        : 'bg-white/5 border-white/5 hover:bg-white/15 hover:border-cyan-500/40'
-                                }`}
-                            >
-                                <span className={`text-xs font-black font-mono tracking-tight ${isDaylight ? 'text-slate-900' : 'text-slate-100'}`}>
-                                    {coin.ticker}
-                                </span>
-                                <span className={`text-xs font-mono font-bold ${isDaylight ? 'text-sky-700' : 'text-cyan-300'}`}>
-                                    {formatCryptoPrice(coin.price)}
-                                </span>
-                                <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded ${
-                                    coin.change >= 0 
-                                        ? (isDaylight ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20')
-                                        : (isDaylight ? 'text-rose-800 bg-rose-100 border border-rose-300' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20')
-                                }`}>
-                                    {coin.change >= 0 ? '▲ +' : '▼ '}{coin.change.toFixed(2)}%
-                                </span>
-                            </button>
-                        ))}
+                    <div className="flex w-max items-center shrink-0 animate-marquee" role="region" aria-label="Стрічка котирувань криптовалют">
+                        {/* Доступні елементи стрічки */}
+                        <div className="flex items-center">
+                            {manipulatedData.map((coin) => (
+                                <button
+                                    key={`primary-${coin.ticker}`} 
+                                    onClick={() => handleCoinClick(coin)}
+                                    aria-label={`${coin.ticker}: ${formatCryptoPrice(coin.price)}, зміна ${coin.change >= 0 ? '+' : ''}${coin.change.toFixed(2)}%`}
+                                    title={`Клікніть для відкриття аналітики ${coin.ticker}`}
+                                    className={`flex items-center gap-2 mx-3 px-2 py-1 rounded-md transition-all shrink-0 border ${
+                                        isDaylight 
+                                            ? 'bg-white/80 border-slate-200 hover:bg-sky-50 hover:border-sky-300 shadow-sm' 
+                                            : 'bg-white/5 border-white/5 hover:bg-white/15 hover:border-cyan-500/40'
+                                    }`}
+                                >
+                                    <span className={`text-xs font-black font-mono tracking-tight ${isDaylight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                        {coin.ticker}
+                                    </span>
+                                    <span className={`text-xs font-mono font-bold ${isDaylight ? 'text-sky-700' : 'text-cyan-300'}`}>
+                                        {formatCryptoPrice(coin.price)}
+                                    </span>
+                                    <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded ${
+                                        coin.change >= 0 
+                                            ? (isDaylight ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20')
+                                            : (isDaylight ? 'text-rose-800 bg-rose-100 border border-rose-300' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20')
+                                    }`}>
+                                        {coin.change >= 0 ? '▲ +' : '▼ '}{coin.change.toFixed(2)}%
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Декоративні дублікати для безперервної анімації (приховані від скрінрідерів та табуляції) */}
+                        <div className="flex items-center" aria-hidden="true">
+                            {manipulatedData.map((coin, idx) => (
+                                <button
+                                    key={`dup1-${coin.ticker}-${idx}`} 
+                                    tabIndex={-1}
+                                    onClick={() => handleCoinClick(coin)}
+                                    className={`flex items-center gap-2 mx-3 px-2 py-1 rounded-md transition-all shrink-0 border ${
+                                        isDaylight 
+                                            ? 'bg-white/80 border-slate-200 hover:bg-sky-50 hover:border-sky-300 shadow-sm' 
+                                            : 'bg-white/5 border-white/5 hover:bg-white/15 hover:border-cyan-500/40'
+                                    }`}
+                                >
+                                    <span className={`text-xs font-black font-mono tracking-tight ${isDaylight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                        {coin.ticker}
+                                    </span>
+                                    <span className={`text-xs font-mono font-bold ${isDaylight ? 'text-sky-700' : 'text-cyan-300'}`}>
+                                        {formatCryptoPrice(coin.price)}
+                                    </span>
+                                    <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded ${
+                                        coin.change >= 0 
+                                            ? (isDaylight ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20')
+                                            : (isDaylight ? 'text-rose-800 bg-rose-100 border border-rose-300' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20')
+                                    }`}>
+                                        {coin.change >= 0 ? '▲ +' : '▼ '}{coin.change.toFixed(2)}%
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
+
+                        <div className="flex items-center" aria-hidden="true">
+                            {manipulatedData.map((coin, idx) => (
+                                <button
+                                    key={`dup2-${coin.ticker}-${idx}`} 
+                                    tabIndex={-1}
+                                    onClick={() => handleCoinClick(coin)}
+                                    className={`flex items-center gap-2 mx-3 px-2 py-1 rounded-md transition-all shrink-0 border ${
+                                        isDaylight 
+                                            ? 'bg-white/80 border-slate-200 hover:bg-sky-50 hover:border-sky-300 shadow-sm' 
+                                            : 'bg-white/5 border-white/5 hover:bg-white/15 hover:border-cyan-500/40'
+                                    }`}
+                                >
+                                    <span className={`text-xs font-black font-mono tracking-tight ${isDaylight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                        {coin.ticker}
+                                    </span>
+                                    <span className={`text-xs font-mono font-bold ${isDaylight ? 'text-sky-700' : 'text-cyan-300'}`}>
+                                        {formatCryptoPrice(coin.price)}
+                                    </span>
+                                    <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded ${
+                                        coin.change >= 0 
+                                            ? (isDaylight ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20')
+                                            : (isDaylight ? 'text-rose-800 bg-rose-100 border border-rose-300' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20')
+                                    }`}>
+                                        {coin.change >= 0 ? '▲ +' : '▼ '}{coin.change.toFixed(2)}%
+                                    </span>
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
                 
@@ -165,6 +228,7 @@ const MarketTicker: React.FC = React.memo(() => {
                 }`}>
                     <button 
                         onClick={toggleSunlightMode}
+                        aria-label={isDaylight ? "Переключити на Нічний режим" : "Переключити на Денний режим"}
                         title={isDaylight ? "Переключити на Нічний режим" : "Переключити на Денний режим"}
                         className={`px-2 py-1 rounded-lg border text-xs font-bold transition-all active:scale-95 flex items-center gap-1 shadow-sm ${
                             isDaylight 

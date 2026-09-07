@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { useStore } from '../store';
 import { FlameIcon, SparklesIcon, ActivityIcon, BellIcon, ChevronRightIcon, ZapIcon } from './icons';
@@ -63,6 +63,16 @@ export const LiquidationHeatmapModal: React.FC<LiquidationHeatmapModalProps> = (
         showToast(`Liquidation Sweep Alarm Set for ${selectedAsset} at ${zonePrice}`);
     };
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     return (
         <motion.div 
             initial={{ opacity: 0 }}
@@ -72,11 +82,17 @@ export const LiquidationHeatmapModal: React.FC<LiquidationHeatmapModalProps> = (
         >
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md" onClick={onClose}></div>
 
-            <div className="relative z-10 w-full max-w-xl bg-brand-bg border border-orange-500/40 rounded-[2.5rem] overflow-hidden shadow-[0_0_60px_rgba(249,115,22,0.25)] my-auto max-h-[92vh] flex flex-col">
+            <div 
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="liquidation-heatmap-title"
+                className="relative z-10 w-full max-w-xl bg-brand-bg border border-orange-500/40 rounded-[2.5rem] overflow-hidden shadow-[0_0_60px_rgba(249,115,22,0.25)] my-auto max-h-[92vh] flex flex-col"
+            >
                 {/* Header */}
                 <div className="p-6 bg-gradient-to-b from-orange-500/20 via-brand-card to-brand-bg border-b border-white/10 relative shrink-0">
                     <button 
                         onClick={onClose}
+                        aria-label="Закрити теплову карту ліквідацій"
                         className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white"
                     >
                         ✕
@@ -87,7 +103,7 @@ export const LiquidationHeatmapModal: React.FC<LiquidationHeatmapModalProps> = (
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-500/20 border border-orange-500/30 text-orange-400 text-[10px] font-orbitron font-black uppercase mb-2">
                         <SparklesIcon className="w-3 h-3" /> {t('heatmap.badge')}
                     </div>
-                    <h2 className="font-orbitron font-black text-xl text-white">{t('heatmap.title')}</h2>
+                    <h2 id="liquidation-heatmap-title" className="font-orbitron font-black text-xl text-white">{t('heatmap.title')}</h2>
                     <p className="text-slate-400 text-xs font-space-mono">{t('heatmap.subtitle')}</p>
                 </div>
 

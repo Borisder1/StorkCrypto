@@ -6,6 +6,8 @@ import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
 import { AcademyTerm, Language } from '../types';
 import { LineChart, Line, ResponsiveContainer, YAxis, Area, AreaChart } from 'recharts';
+import QuizModal from './QuizModal';
+import { triggerHaptic } from '../utils/haptics';
 
 interface AcademyModalProps {
     onClose: () => void;
@@ -303,11 +305,12 @@ const QUIZZES: Record<Language, Record<string, { question: string; options: stri
 };
 
 const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
-    const { settings, addXp, showToast } = useStore();
+    const { settings, addXp, updateQuestProgress, showToast } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [filter, setFilter] = useState<'ALL' | AcademyTerm['category']>('ALL');
     const [search, setSearch] = useState('');
+    const [drillTerm, setDrillTerm] = useState<AcademyTerm | null>(null);
     
     // Quiz state variables
     const [quizActiveId, setQuizActiveId] = useState<string | null>(null);
@@ -317,8 +320,21 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = 'unset'; };
-    }, []);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                if (drillTerm) {
+                    setDrillTerm(null);
+                } else {
+                    onClose();
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => { 
+            document.body.style.overflow = 'unset'; 
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose, drillTerm]);
 
     // Load terms based on selected language, fallback to EN if missing
     const currentTerms = ACADEMY_CONTENT[settings.language] || ACADEMY_CONTENT['en'];
@@ -334,6 +350,9 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
 
     return (
         <motion.div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="academy-modal-title"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -357,11 +376,17 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                                 <BookIcon className="w-5 h-5 text-brand-purple" />
                             </div>
                             <div>
-                                <h2 className="font-orbitron font-bold text-base sm:text-lg text-white">{t('academy.title')}</h2>
+                                <h2 id="academy-modal-title" className="font-orbitron font-bold text-base sm:text-lg text-white">{t('academy.title')}</h2>
                                 <p className="text-[10px] text-slate-400 font-space-mono">{t('academy.subtitle')}</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors">✕</button>
+                        <button 
+                            onClick={onClose} 
+                            aria-label="Закрити Академію"
+                            className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple"
+                        >
+                            ✕
+                        </button>
                     </div>
 
                     <div className="relative mb-3">
@@ -369,9 +394,10 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                         <input 
                             type="text" 
                             placeholder={t('add.search')} 
+                            aria-label={t('add.search')}
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
-                            className="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs text-white focus:border-brand-purple outline-none"
+                            className="w-full bg-black/40 border border-white/10 rounded-xl py-2 pl-10 pr-4 text-xs text-white focus:border-brand-purple outline-none focus-visible:ring-2 focus-visible:ring-brand-purple"
                         />
                     </div>
 
@@ -463,11 +489,14 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                                                                                    opt; // generic default always passes
                                                                                    
                                                                 if (opt === correctAns || opt.startsWith("Yes") || opt.startsWith("Так") || opt.startsWith("Tak")) {
+                                                                    triggerHaptic('success');
                                                                     addXp(50);
+                                                                    updateQuestProgress('ACADEMY', 1);
                                                                     setQuizCompletedIds(prev => ({ ...prev, [item.id]: true }));
                                                                     setQuizActiveId(null);
-                                                                    showToast(settings.language === 'ua' ? 'Вірно! +50 XP додано.' : settings.language === 'pl' ? 'Prawidłowo! +50 XP dodane.' : 'Correct! +50 XP added.');
+                                                                    showToast(settings.language === 'ua' ? 'Вірно! +50 XP додано до місії.' : settings.language === 'pl' ? 'Prawidłowo! +50 XP dodane do misji.' : 'Correct! +50 XP added to quest.');
                                                                 } else {
+                                                                    triggerHaptic('error');
                                                                     setQuizCorrect(false);
                                                                     showToast(settings.language === 'ua' ? 'Невірно! Спробуйте ще раз.' : settings.language === 'pl' ? 'Niewłaściwa odpowiedź. Spróbuj ponownie.' : 'Incorrect! Try again.');
                                                                     setTimeout(() => setQuizCorrect(null), 1500);
@@ -486,17 +515,30 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                                                 )}
                                             </div>
                                         ) : (
-                                            <button 
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setQuizActiveId(item.id);
-                                                    setQuizSelectedOption(null);
-                                                    setQuizCorrect(null);
-                                                }}
-                                                className="w-full py-3 bg-brand-purple hover:bg-brand-purple/80 text-white font-black uppercase text-xs rounded-xl shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2"
-                                            >
-                                                ⚡ {settings.language === 'ua' ? 'ЗАПУСТИТИ КВІЗ (+50 XP)' : settings.language === 'pl' ? 'URUCHOM QUIZ (+50 XP)' : 'START QUIZ (+50 XP)'}
-                                            </button>
+                                            <div className="flex flex-col sm:flex-row gap-2">
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerHaptic('selection');
+                                                        setQuizActiveId(item.id);
+                                                        setQuizSelectedOption(null);
+                                                        setQuizCorrect(null);
+                                                    }}
+                                                    className="flex-1 py-3 bg-brand-purple hover:bg-brand-purple/80 text-white font-black uppercase text-xs rounded-xl shadow-lg transition-all active:scale-98 flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple"
+                                                >
+                                                    ⚡ {settings.language === 'ua' ? 'ЕКСПРЕС-КВІЗ (+50 XP)' : settings.language === 'pl' ? 'SZYBKI QUIZ (+50 XP)' : 'EXPRESS QUIZ (+50 XP)'}
+                                                </button>
+                                                <button 
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        triggerHaptic('medium');
+                                                        setDrillTerm(item);
+                                                    }}
+                                                    className="py-3 px-4 bg-brand-cyan/15 hover:bg-brand-cyan/25 border border-brand-cyan/40 text-brand-cyan font-black uppercase text-xs rounded-xl shadow-lg transition-all active:scale-98 flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
+                                                >
+                                                    🎯 {settings.language === 'ua' ? 'ТАКТИЧНИЙ ДРІЛ (15с)' : settings.language === 'pl' ? 'DRILL TAKTYCZNY (15s)' : 'TACTICAL DRILL (15s)'}
+                                                </button>
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -509,6 +551,14 @@ const AcademyModal: React.FC<AcademyModalProps> = ({ onClose }) => {
                     </div>
                 </div>
             </motion.div>
+
+            {/* Tactical Drill Quiz Modal */}
+            {drillTerm && (
+                <QuizModal 
+                    term={drillTerm} 
+                    onClose={() => setDrillTerm(null)} 
+                />
+            )}
         </motion.div>
     );
 };

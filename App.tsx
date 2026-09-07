@@ -90,6 +90,44 @@ const App: React.FC = () => {
         }
     }, [activeTab, isAIChatOpen]);
 
+    // Synchronize theme attribute on html/body and system colors
+    useEffect(() => {
+        const currentTheme = settings?.themeMode || 'midnight';
+        const isDaylight = currentTheme === 'daylight';
+        const bgColor = THEME_BG_MODES[currentTheme as keyof typeof THEME_BG_MODES] || '#020617';
+
+        if (typeof document !== 'undefined') {
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            document.body.setAttribute('data-theme', currentTheme);
+
+            if (isDaylight) {
+                document.documentElement.classList.add('daylight');
+                document.documentElement.classList.remove('dark');
+                document.body.classList.add('daylight');
+                document.body.classList.remove('dark');
+            } else {
+                document.documentElement.classList.remove('daylight');
+                document.documentElement.classList.add('dark');
+                document.body.classList.remove('daylight');
+                document.body.classList.add('dark');
+            }
+
+            const metaTheme = document.querySelector('meta[name="theme-color"]');
+            if (metaTheme) {
+                metaTheme.setAttribute('content', bgColor);
+            }
+        }
+
+        // @ts-ignore
+        const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
+        if (tg) {
+            try {
+                tg.setHeaderColor(bgColor);
+                tg.setBackgroundColor(bgColor);
+            } catch (e) {}
+        }
+    }, [settings?.themeMode]);
+
     useEffect(() => {
         // @ts-ignore
         const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
@@ -111,22 +149,21 @@ const App: React.FC = () => {
 
             try {
                 initTelegramApp();
-                const bgColor = THEME_BG_MODES[settings.themeMode as keyof typeof THEME_BG_MODES] || '#020617';
-                tg.setHeaderColor(bgColor);
-                tg.setBackgroundColor(bgColor);
             } catch (e) {}
         } else {
             syncUserData();
         }
-    }, [syncUserData, settings.themeMode, updateSettings, redeemReferral]);
+    }, [syncUserData, updateSettings, redeemReferral]);
 
     // ⚡ RENDER LOADING SCREEN (High Priority - 6.5s)
     if (isLoading) return <LoadingScreen onSkip={handleSkip} />;
 
     if (maintenanceMode && settings?.isAuthenticated) return <MaintenanceScreen />; 
 
+    const isDaylight = settings?.themeMode === 'daylight';
+
     return (
-        <div data-theme={settings.themeMode} className="h-[100dvh] w-screen bg-brand-bg text-white overflow-hidden flex flex-col font-sans relative">
+        <div data-theme={settings.themeMode} className={`h-[100dvh] w-screen bg-brand-bg ${isDaylight ? 'text-slate-900' : 'text-white'} overflow-hidden flex flex-col font-sans relative`}>
             {/* Accessibility Skip Link */}
             <a href="#main-content" className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-toast focus:px-4 focus:py-2 focus:bg-brand-cyan focus:text-black focus:font-bold focus:rounded-xl focus:shadow-lg">
                 Перейти до основного контенту

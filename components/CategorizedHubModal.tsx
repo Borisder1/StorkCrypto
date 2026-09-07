@@ -33,6 +33,16 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
 
     const [searchQuery, setSearchQuery] = useState('');
 
+    React.useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     if (!isOpen) return null;
 
     const handleAction = (action: () => void) => {
@@ -92,6 +102,9 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
         <AnimatePresence>
             <div className="fixed inset-0 z-[40] flex items-end sm:items-center justify-center bg-black/80 backdrop-blur-md p-0 sm:p-4">
                 <motion.div 
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="hub-modal-title"
                     initial={{ y: "100%", opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
                     exit={{ y: "100%", opacity: 0 }}
@@ -105,7 +118,7 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
                                 <ZapIcon className="w-4 h-4 text-brand-cyan" />
                             </div>
                             <div>
-                                <h2 className="font-orbitron font-bold text-sm text-white uppercase tracking-wider">
+                                <h2 id="hub-modal-title" className="font-orbitron font-bold text-sm text-white uppercase tracking-wider">
                                     StorkCrypto Hub
                                 </h2>
                                 <p className="text-[9px] font-mono text-slate-400 uppercase">
@@ -115,6 +128,7 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
                         </div>
                         <button 
                             onClick={onClose}
+                            aria-label="Закрити StorkCrypto Hub"
                             className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white"
                         >
                             ✕
@@ -129,6 +143,7 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
                                 type="text"
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
+                                aria-label="Пошук інструментів"
                                 placeholder="Швидкий пошук інструментів (напр. Аірдроп, Сигнали)..."
                                 className="w-full pl-9 pr-3 py-2 bg-black/60 border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 focus:border-brand-cyan outline-none font-mono"
                             />

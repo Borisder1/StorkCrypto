@@ -4,6 +4,7 @@ import { useStore } from '../store';
 import { StorkIcon, TelegramIcon, LinkIcon, ActivityIcon, ShieldIcon, BotIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
+import { safeOpenTelegramInvoice } from '../utils/telegram';
 
 interface SubscriptionModalProps {
     onClose: () => void;
@@ -29,6 +30,16 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
     const adminWallet = settings?.adminTreasuryWallet || "NOT_SET";
     const plans = settings?.subscriptionPlans || [];
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     const handleSelectPlan = (planId: 'PRO' | 'WHALE') => {
         triggerHaptic('medium');
         setSelectedPlan(planId);
@@ -46,43 +57,35 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         setStep('REDIRECT');
 
         try {
-            const tg = (window as any).Telegram?.WebApp;
-            
             // Safe execution of Telegram openInvoice with robust fallback
             let invoiceHandled = false;
+            const invoiceUrl = `https://t.me/invoice/${selectedPlan}_STORK_SUB`;
 
-            if (tg?.openInvoice) {
-                try {
-                    // Telegram Stars bot invoice attempt
-                    const invoiceUrl = `https://t.me/invoice/${selectedPlan}_STORK_SUB`;
-                    tg.openInvoice(invoiceUrl, (status: string) => {
-                        invoiceHandled = true;
-                        if (status === 'paid') {
-                            setStep('VERIFY');
-                            const txId = 'STARS_TG_' + Math.random().toString(36).substring(2, 10).toUpperCase();
-                            setTxHash(txId);
-                            if (selectedPlan) upgradeUserTier(selectedPlan, 30);
-                            showToast('Оплату Stars підтверджено! Активовано 30 днів PRO-доступу.');
-                        } else {
-                            // Fallback to in-app Stars balance payment if user cancels invoice
-                            processInAppStarsPayment(starsCost, currentStars);
-                        }
-                    });
-                    
-                    // Give 2 seconds for invoice popup, if it fails or doesn't open -> fallback
-                    setTimeout(() => {
-                        if (!invoiceHandled && step === 'REDIRECT') {
-                            processInAppStarsPayment(starsCost, currentStars);
-                        }
-                    }, 2500);
-
-                    return;
-                } catch (invoiceErr) {
-                    console.warn("Telegram Invoice open failed, using direct Stars balance:", invoiceErr);
+            const opened = safeOpenTelegramInvoice(invoiceUrl, (status: string) => {
+                invoiceHandled = true;
+                if (status === 'paid') {
+                    setStep('VERIFY');
+                    const txId = 'STARS_TG_' + Math.random().toString(36).substring(2, 10).toUpperCase();
+                    setTxHash(txId);
+                    if (selectedPlan) upgradeUserTier(selectedPlan, 30);
+                    showToast('Оплату Stars підтверджено! Активовано 30 днів PRO-доступу.');
+                } else {
+                    // Fallback to in-app Stars balance payment if user cancels invoice
+                    processInAppStarsPayment(starsCost, currentStars);
                 }
+            });
+
+            if (opened) {
+                // Give 2.5 seconds for invoice popup, if it fails or doesn't open -> fallback
+                setTimeout(() => {
+                    if (!invoiceHandled && step === 'REDIRECT') {
+                        processInAppStarsPayment(starsCost, currentStars);
+                    }
+                }, 2500);
+                return;
             }
 
-            // In-App Stars Balance Direct Fallback
+            // In-App Stars Balance Direct Fallback when openInvoice is unsupported (e.g. Telegram WebApp v6.0)
             processInAppStarsPayment(starsCost, currentStars);
 
         } catch (e) {
@@ -132,6 +135,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
             <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose}></div>
 
             <motion.div 
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="subscription-modal-title"
                 initial={{ y: '100%' }}
                 animate={{ y: 0 }}
                 exit={{ y: '100%' }}
@@ -140,12 +146,18 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
             >
                 
                 <div className="shrink-0 px-6 py-5 text-center border-b border-white/5 relative bg-brand-card/50">
-                    <button onClick={onClose} className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/5 text-slate-400 flex items-center justify-center hover:bg-white/10 transition-colors">✕</button>
+                    <button 
+                        onClick={onClose} 
+                        aria-label="Закрити вікно підписки"
+                        className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/5 text-slate-400 flex items-center justify-center hover:bg-white/10 transition-colors"
+                    >
+                        ✕
+                    </button>
                     <div className="flex items-center justify-center gap-3 mb-1">
                         <div className="w-10 h-10 bg-brand-purple/20 rounded-xl flex items-center justify-center border border-brand-purple/30">
                             <StorkIcon className="w-6 h-6 text-brand-purple" />
                         </div>
-                        <h2 className="text-xl font-black text-white font-orbitron uppercase tracking-widest">{t('sub.title')}</h2>
+                        <h2 id="subscription-modal-title" className="text-xl font-black text-white font-orbitron uppercase tracking-widest">{t('sub.title')}</h2>
                     </div>
                 </div>
 

@@ -60,6 +60,17 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatHistory, isLoading]);
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                setIsAIChatOpen(false);
+                onClose?.();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose, setIsAIChatOpen]);
+
     const handleSend = async (messageText?: string) => {
         const text = messageText || input;
         if (!text.trim() || isLoading) return;
@@ -88,6 +99,9 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
     return (
         <motion.div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ai-chat-title"
             initial={{ opacity: 0, y: '100%' }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
@@ -101,7 +115,7 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <BotIcon className="w-5 h-5" />
                      </div>
                      <div>
-                        <h1 className="text-xs font-bold text-white tracking-widest uppercase">Stork_AI_Core</h1>
+                        <h1 id="ai-chat-title" className="text-xs font-bold text-white tracking-widest uppercase">Stork_AI_Core</h1>
                         <p className="text-[8px] text-slate-500">UPLINK_ESTABLISHED</p>
                      </div>
                  </div>
@@ -112,7 +126,13 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     >
                         {isAuditMode ? 'AUDIT_MODE' : 'CHAT_MODE'}
                     </button>
-                    <button onClick={() => { setIsAIChatOpen(false); onClose?.(); }} className="w-8 h-8 rounded bg-red-900/20 border border-red-500/50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">✕</button>
+                    <button 
+                        onClick={() => { setIsAIChatOpen(false); onClose?.(); }} 
+                        aria-label="Закрити чат AI"
+                        className="w-8 h-8 rounded bg-red-900/20 border border-red-500/50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                    >
+                        ✕
+                    </button>
                  </div>
             </div>
 
@@ -166,6 +186,7 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         value={input}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+                        aria-label="Введіть команду або запитання"
                         placeholder="EXECUTE_COMMAND..."
                         className="flex-grow bg-transparent text-white placeholder-slate-700 focus:outline-none text-xs font-mono"
                         disabled={isLoading}
@@ -173,6 +194,7 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <button
                         onClick={() => handleSend()}
                         disabled={isLoading || !input.trim()}
+                        aria-label="Надіслати команду"
                         className="text-slate-500 hover:text-brand-cyan disabled:opacity-30 transition-colors"
                     >
                         <SendIcon className="w-4 h-4" />

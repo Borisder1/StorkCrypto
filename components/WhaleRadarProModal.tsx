@@ -80,6 +80,16 @@ export const WhaleRadarProModal: React.FC<WhaleRadarProModalProps> = ({ onClose 
         showToast(`Tracking & Copying Whale: ${whale.whaleLabel}`);
     };
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     return (
         <motion.div 
             initial={{ opacity: 0 }}
@@ -89,11 +99,17 @@ export const WhaleRadarProModal: React.FC<WhaleRadarProModalProps> = ({ onClose 
         >
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md" onClick={onClose}></div>
 
-            <div className="relative z-10 w-full max-w-xl bg-brand-bg border border-brand-purple/40 rounded-[2.5rem] overflow-hidden shadow-[0_0_60px_rgba(168,85,247,0.25)] my-auto max-h-[92vh] flex flex-col">
+            <div 
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="whale-radar-title"
+                className="relative z-10 w-full max-w-xl bg-brand-bg border border-brand-purple/40 rounded-[2.5rem] overflow-hidden shadow-[0_0_60px_rgba(168,85,247,0.25)] my-auto max-h-[92vh] flex flex-col"
+            >
                 {/* Header */}
                 <div className="p-6 bg-gradient-to-b from-brand-purple/20 via-brand-card to-brand-bg border-b border-white/10 relative shrink-0">
                     <button 
                         onClick={onClose}
+                        aria-label="Закрити радар китів"
                         className="absolute top-4 right-4 w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:text-white"
                     >
                         ✕
@@ -104,7 +120,7 @@ export const WhaleRadarProModal: React.FC<WhaleRadarProModalProps> = ({ onClose 
                     <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-purple/20 border border-brand-purple/30 text-brand-purple text-[10px] font-orbitron font-black uppercase mb-2">
                         <SparklesIcon className="w-3 h-3" /> {t('whaleradar.badge')}
                     </div>
-                    <h2 className="font-orbitron font-black text-xl text-white">{t('whaleradar.title')}</h2>
+                    <h2 id="whale-radar-title" className="font-orbitron font-black text-xl text-white">{t('whaleradar.title')}</h2>
                     <p className="text-slate-400 text-xs font-space-mono">{t('whaleradar.subtitle')}</p>
                 </div>
 
