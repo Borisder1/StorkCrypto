@@ -100,11 +100,16 @@ const HybridSignalCard = React.memo(({
                         </div>
                         <div>
                             <h3 className="font-black text-xl text-white font-orbitron tracking-wider">{signal.asset}</h3>
-                            <div className="flex items-center gap-2 mt-1.5">
+                            <div className="flex flex-wrap items-center gap-2 mt-1.5">
                                 <span className={`text-[10px] font-black px-3 py-1 rounded-full border ${borderColor} ${primaryColor} bg-black/40 uppercase tracking-[0.1em]`}>
                                     {signal.signal_type}
                                 </span>
                                 <span className="text-[10px] text-slate-500 font-mono font-bold">| {signal.timeframe}</span>
+                                {(signal.isSimulated || signal.dataFeedStatus === 'DEMO') && (
+                                    <span className="text-[8px] font-mono font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                                        DEMO
+                                    </span>
+                                )}
                             </div>
                         </div>
                     </div>

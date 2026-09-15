@@ -275,7 +275,11 @@ export interface TradingSignal {
     entryPrice: number;
     takeProfit: number;
     stopLoss: number;
-    valid_until?: number; 
+    valid_until?: number;
+    dataFeedStatus?: 'LIVE' | 'DELAYED' | 'STALE' | 'DEMO' | 'ERROR';
+    isSimulated?: boolean;
+    disclaimer?: string;
+    lastUpdatedTimestamp?: number;
 }
 
 export interface AssetReport {
@@ -305,6 +309,8 @@ export interface AssetMetrics {
     signal: string;
     isRealData: boolean;
     category?: string;
+    dataFeedStatus?: 'LIVE' | 'DELAYED' | 'STALE' | 'DEMO' | 'ERROR';
+    lastUpdatedTimestamp?: number;
 }
 
 export interface MomentumData {

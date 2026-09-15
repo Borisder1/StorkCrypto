@@ -11,11 +11,15 @@ export default defineConfig(({ mode }) => {
         host: '0.0.0.0',
         strictPort: true,
         cors: true,
+        headers: {
+          'X-Content-Type-Options': 'nosniff',
+          'Referrer-Policy': 'strict-origin-when-cross-origin'
+        },
         proxy: {
           '/api/chat': {
-            target: 'https://integrate.api.nvidia.com/v1/chat/completions',
+            target: 'https://integrate.api.nvidia.com',
             changeOrigin: true,
-            rewrite: (path) => '',
+            rewrite: () => '/v1/chat/completions',
             configure: (proxy, options) => {
               proxy.on('proxyReq', (proxyReq, req, res) => {
                 const rawKey = env.VITE_NVIDIA_API_KEY || env.NVIDIA_API_KEY || '';

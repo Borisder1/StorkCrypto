@@ -80,14 +80,22 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             addChatMessage({ role: 'model', text: responseText, isAudit: isAuditMode });
             triggerHaptic('light');
         } catch (error) {
-            addChatMessage({ role: 'model', text: "ERR: NEURAL_UPLINK_FAILED" });
+            const errNotice = settings.language === 'ua'
+                ? "⚠️ [НЕЙРОМЕРЕЖА ТИМЧАСОВО НЕДОСТУПНА]: Запит не вдалося завершити через таймаут або обмеження шлюзу. Спробуйте ще раз."
+                : "⚠️ [AI UPLINK OFFLINE]: Request failed due to gateway timeout or rate limits. Please retry.";
+            addChatMessage({ role: 'model', text: errNotice });
         } finally {
             setIsLoading(false);
         }
     };
 
     return (
-        <div className="flex flex-col h-full bg-[#020617] relative animate-fade-in font-mono">
+        <div 
+            role="dialog"
+            aria-modal="true"
+            aria-label="AI Термінал StorkCrypto"
+            className="flex flex-col h-full bg-[#020617] relative animate-fade-in font-mono"
+        >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-brand-cyan/20 bg-[#050b14]">
                  <div className="flex items-center gap-3">
@@ -102,11 +110,18 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                  <div className="flex gap-2">
                     <button 
                         onClick={() => { setIsAuditMode(!isAuditMode); triggerHaptic('selection'); }}
-                        className={`px-3 py-1 rounded border text-[9px] font-bold uppercase transition-all ${isAuditMode ? 'bg-brand-purple text-white border-brand-purple' : 'bg-transparent border-white/20 text-slate-500'}`}
+                        aria-label={isAuditMode ? "Переключити на звичайний режим чату" : "Переключити на режим аудиту смарт-контрактів"}
+                        className={`px-3 py-1 min-h-[36px] rounded border text-[9px] font-bold uppercase transition-all ${isAuditMode ? 'bg-brand-purple text-white border-brand-purple' : 'bg-transparent border-white/20 text-slate-500'}`}
                     >
                         {isAuditMode ? 'AUDIT_MODE' : 'CHAT_MODE'}
                     </button>
-                    <button onClick={() => { setIsAIChatOpen(false); onClose?.(); }} className="w-8 h-8 rounded bg-red-900/20 border border-red-500/50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all">✕</button>
+                    <button 
+                        onClick={() => { setIsAIChatOpen(false); onClose?.(); }} 
+                        aria-label="Закрити AI термінал"
+                        className="w-9 h-9 min-w-[36px] min-h-[36px] rounded bg-red-900/20 border border-red-500/50 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all text-sm font-bold"
+                    >
+                        ✕
+                    </button>
                  </div>
             </div>
 
@@ -167,7 +182,8 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <button
                         onClick={() => handleSend()}
                         disabled={isLoading || !input.trim()}
-                        className="text-slate-500 hover:text-brand-cyan disabled:opacity-30 transition-colors"
+                        aria-label="Надіслати команду ШІ"
+                        className="text-slate-500 hover:text-brand-cyan disabled:opacity-30 transition-colors p-1"
                     >
                         <SendIcon className="w-4 h-4" />
                     </button>

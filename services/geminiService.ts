@@ -405,32 +405,42 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
         
         messages.push({ role: 'user', content: prompt });
 
-        const isAIStudio = import.meta.env.DEV || window.location.hostname.includes('run.app') || window.location.hostname === 'localhost';
+        const abortController = new AbortController();
+        const timeoutId = setTimeout(() => abortController.abort(), 15000);
 
-        const response = await fetch('/api/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                model: "minimaxai/minimax-m2.7",
-                messages: messages,
-                temperature: config?.temperature || 1,
-                top_p: 0.95,
-                max_tokens: config?.maxOutputTokens || 8192,
-                stream: false
-            })
-        });
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                signal: abortController.signal,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    model: "minimaxai/minimax-m2.7",
+                    messages: messages,
+                    temperature: config?.temperature || 0.7,
+                    top_p: 0.95,
+                    max_tokens: config?.maxOutputTokens || 2048,
+                    stream: false
+                })
+            });
+            clearTimeout(timeoutId);
 
-        if (response.ok) {
-            const data = await response.json();
-            let resultText = data.choices?.[0]?.message?.content || "NO_DATA_PACKET";
-            const reasoning = data.choices?.[0]?.message?.reasoning_content;
-            if (reasoning) {
-                resultText = `<thinking>\n${reasoning}\n</thinking>\n${resultText}`;
+            if (response.ok) {
+                const data = await response.json();
+                let resultText = data.choices?.[0]?.message?.content || "NO_DATA_PACKET";
+                const reasoning = data.choices?.[0]?.message?.reasoning_content;
+                if (reasoning) {
+                    resultText = `<thinking>\n${reasoning}\n</thinking>\n${resultText}`;
+                }
+                if (config.responseMimeType === 'application/json' && typeof resultText === 'string') return parseCleanJSON(resultText);
+                return resultText;
+            } else {
+                console.warn(`[AI] /api/chat responded with status HTTP ${response.status}`);
             }
-            if (config.responseMimeType === 'application/json' && typeof resultText === 'string') return parseCleanJSON(resultText);
-            return resultText;
+        } catch (fetchErr: any) {
+            clearTimeout(timeoutId);
+            console.warn("[AI] /api/chat fetch aborted or network error:", fetchErr?.message || fetchErr);
         }
     } catch (e) {
         console.warn("[AI] Cloudflare/Nvidia API call failed quietly. Engaging local deterministic AI engine.");
@@ -557,7 +567,6 @@ export const generateSpecificAssetAnalysis = async (ticker: string, price: numbe
 };
 
 const generateFallbackSignals = (metrics: AssetMetrics[]): AgentAnalysis => {
-    // Fixed: Added entry_zone and timeframe to meet TradingSignal interface requirements
     return {
         market_sentiment_score: 50,
         market_phase: 'RECOVERY_SCAN',
@@ -570,10 +579,14 @@ const generateFallbackSignals = (metrics: AssetMetrics[]): AgentAnalysis => {
             takeProfit: 68000, 
             stopLoss: 64000, 
             confidence: 70, 
-            technical_summary: 'Support bounce.', 
-            reasoning_chain: ['Quant scan detected demand'],
+            technical_summary: 'Algorithmic demand scan bounce setup.', 
+            reasoning_chain: ['Quant scan detected demand zone test'],
             entry_zone: '64000-66000',
-            timeframe: '1D'
+            timeframe: '1D',
+            dataFeedStatus: 'DEMO',
+            isSimulated: true,
+            disclaimer: 'NOT FINANCIAL ADVICE // SIMULATED ALGORITHMIC SIGNAL',
+            lastUpdatedTimestamp: Date.now()
         }]
     };
 };

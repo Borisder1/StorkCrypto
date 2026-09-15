@@ -156,7 +156,11 @@ const ModalManager: React.FC = () => {
 
                 {/* AI Chat (Top Layer Z-200) */}
                 <AnimatePresence>
-                    {isAIChatOpen && <ChatScreen key="chat" onClose={() => setIsAIChatOpen(false)} />}
+                    {isAIChatOpen && (
+                        <div className="fixed inset-0 z-[200] overflow-hidden" role="region" aria-label="AI Chat Layer">
+                            <ChatScreen key="chat" onClose={() => setIsAIChatOpen(false)} />
+                        </div>
+                    )}
                 </AnimatePresence>
             </React.Suspense>
         </ErrorBoundary>

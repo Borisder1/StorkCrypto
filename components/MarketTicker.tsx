@@ -162,13 +162,13 @@ const MarketTicker: React.FC = React.memo(() => {
                         </div>
 
                         {/* Декоративні дублікати для безперервної анімації (приховані від скрінрідерів та табуляції) */}
-                        <div className="flex items-center" aria-hidden="true">
+                        <div className="flex items-center" aria-hidden="true" role="presentation">
                             {manipulatedData.map((coin, idx) => (
-                                <button
+                                <div
                                     key={`dup1-${coin.ticker}-${idx}`} 
-                                    tabIndex={-1}
+                                    role="presentation"
                                     onClick={() => handleCoinClick(coin)}
-                                    className={`flex items-center gap-2 mx-3 px-2 py-1 rounded-md transition-all shrink-0 border ${
+                                    className={`flex items-center gap-2 mx-3 px-2 py-1 rounded-md transition-all shrink-0 border cursor-pointer ${
                                         isDaylight 
                                             ? 'bg-white/80 border-slate-200 hover:bg-sky-50 hover:border-sky-300 shadow-sm' 
                                             : 'bg-white/5 border-white/5 hover:bg-white/15 hover:border-cyan-500/40'
@@ -187,17 +187,17 @@ const MarketTicker: React.FC = React.memo(() => {
                                     }`}>
                                         {coin.change >= 0 ? '▲ +' : '▼ '}{coin.change.toFixed(2)}%
                                     </span>
-                                </button>
+                                </div>
                             ))}
                         </div>
 
-                        <div className="flex items-center" aria-hidden="true">
+                        <div className="flex items-center" aria-hidden="true" role="presentation">
                             {manipulatedData.map((coin, idx) => (
-                                <button
+                                <div
                                     key={`dup2-${coin.ticker}-${idx}`} 
-                                    tabIndex={-1}
+                                    role="presentation"
                                     onClick={() => handleCoinClick(coin)}
-                                    className={`flex items-center gap-2 mx-3 px-2 py-1 rounded-md transition-all shrink-0 border ${
+                                    className={`flex items-center gap-2 mx-3 px-2 py-1 rounded-md transition-all shrink-0 border cursor-pointer ${
                                         isDaylight 
                                             ? 'bg-white/80 border-slate-200 hover:bg-sky-50 hover:border-sky-300 shadow-sm' 
                                             : 'bg-white/5 border-white/5 hover:bg-white/15 hover:border-cyan-500/40'
@@ -216,7 +216,7 @@ const MarketTicker: React.FC = React.memo(() => {
                                     }`}>
                                         {coin.change >= 0 ? '▲ +' : '▼ '}{coin.change.toFixed(2)}%
                                     </span>
-                                </button>
+                                </div>
                             ))}
                         </div>
                     </div>
