@@ -31,6 +31,12 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     updateSettings: (newSettings) => set(state => ({ settings: { ...state.settings, ...newSettings } })),
     activeTab: 'home',
     navigateTo: (tab) => set({ activeTab: tab }),
+    selectedAcademyCategory: null,
+    openAcademy: (category) => set({
+        selectedAcademyCategory: category || null,
+        activeTab: 'media'
+    }),
+    setSelectedAcademyCategory: (category) => set({ selectedAcademyCategory: category }),
     isAIChatOpen: false,
     setIsAIChatOpen: (isOpen) => set({ isAIChatOpen: isOpen }),
     showCalendar: false,

@@ -13,12 +13,20 @@ import { ACADEMY_DATABASE } from '../MediaContent';
 import { HelpIndicator } from '../HelpIndicator';
 
 const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-    const { settings } = useStore();
+    const { settings, selectedAcademyCategory } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
-    const [filter, setFilter] = useState<'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY'>('PATTERNS');
+    const [filter, setFilter] = useState<'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY'>(
+        selectedAcademyCategory || 'PATTERNS'
+    );
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [activeQuizTerm, setActiveQuizTerm] = useState<AcademyTerm | null>(null);
+
+    React.useEffect(() => {
+        if (selectedAcademyCategory) {
+            setFilter(selectedAcademyCategory);
+        }
+    }, [selectedAcademyCategory]);
 
     const currentLanguage = (settings?.language === 'ua' || settings?.language === 'pl') ? settings.language : 'en';
     const currentContent = ACADEMY_DATABASE?.[currentLanguage] || ACADEMY_DATABASE?.['en'] || [];

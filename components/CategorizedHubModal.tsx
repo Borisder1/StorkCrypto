@@ -75,7 +75,7 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
             title: "🎓 Академія & Інфо",
             items: [
                 { name: "Crypto News", icon: <NewspaperIcon className="text-blue-400" />, desc: "Оперативні новини крипторинку", action: () => handleAction(() => navigateTo('news')) },
-                { name: "Media Pulse", icon: <BookIcon className="text-cyan-400" />, desc: "Навчальні гайди та терміни", action: () => handleAction(() => navigateTo('media')) },
+                { name: "Крипто Академія", icon: <BookIcon className="text-brand-purple" />, desc: "Уроки від початківця до PRO, квізи та графіки (+50 XP)", action: () => handleAction(() => navigateTo('media')) },
                 { name: "Economic Calendar", icon: <ZapIcon className="text-amber-400" />, desc: "Макроекономічні події", action: () => handleAction(() => setShowCalendar(true)) },
             ]
         },

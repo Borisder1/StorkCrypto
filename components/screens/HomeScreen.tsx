@@ -17,6 +17,7 @@ import InfoModal from '../InfoModal';
 import { AIMarketSummary } from '../AIMarketSummary';
 import DexAggregatorModal from '../DexAggregatorModal';
 import AIAgentModal from '../AIAgentModal';
+import { AcademyBannerWidget } from '../AcademyBannerWidget';
 
 const MarketPulseWidget: React.FC = () => {
     const { settings, marketRegime } = useStore();
@@ -461,6 +462,9 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                         {settings.dashboardConfig?.showMarketSummary !== false && (
                             <AIMarketSummary />
                         )}
+
+                        {/* ACADEMY SHOWCASE WIDGET (For Beginners & Pros) */}
+                        <AcademyBannerWidget />
 
                         {/* DEX AGGREGATOR BUTTON */}
                         <div>

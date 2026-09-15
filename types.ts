@@ -398,6 +398,9 @@ export interface AppSlice {
     updateSettings: (settings: Partial<AppSettings>) => void;
     activeTab: NavItem;
     navigateTo: (tab: NavItem) => void;
+    selectedAcademyCategory?: 'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY' | null;
+    openAcademy: (category?: 'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY') => void;
+    setSelectedAcademyCategory: (category: 'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY' | null) => void;
     isAIChatOpen: boolean;
     setIsAIChatOpen: (isOpen: boolean) => void;
     showCalendar: boolean;
