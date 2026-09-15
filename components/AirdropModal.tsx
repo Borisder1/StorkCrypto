@@ -38,6 +38,8 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [minedAmount, setMinedAmount] = useState(0);
     const [progressPercent, setProgressPercent] = useState(0);
+    const [isClaiming, setIsClaiming] = useState(false);
+    const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
 
     const mining = userStats.mining;
     const tasks = userStats.tasks;
@@ -64,23 +66,30 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
     }, [currentTime, mining]);
 
     const handleClaim = () => {
-        triggerHaptic('success');
-        if (minedAmount < 0.1) {
-            showToast(t('airdrop.accumulating'));
-            return;
+        if (isClaiming) return;
+        setIsClaiming(true);
+        try {
+            triggerHaptic('success');
+            if (minedAmount < 0.1) {
+                showToast(t('airdrop.accumulating'));
+                return;
+            }
+            claimMining();
+            showToast(`${t('airdrop.harvested')} ${minedAmount.toFixed(2)} $STORK`);
+            setMinedAmount(0);
+        } finally {
+            setTimeout(() => setIsClaiming(false), 800);
         }
-        claimMining();
-        showToast(`${t('airdrop.harvested')} ${minedAmount.toFixed(2)} $STORK`);
-        setMinedAmount(0);
     };
 
     const handleTaskClick = (task: any) => {
-        if (task.isCompleted) return;
-        
+        if (task.isCompleted || completingTaskId === task.id) return;
+        setCompletingTaskId(task.id);
         triggerHaptic('medium');
         
         if (task.icon === 'INVITE') {
             setShowReferral(true);
+            setCompletingTaskId(null);
             return;
         }
 
@@ -88,9 +97,11 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
             window.open(task.link, '_blank');
             setTimeout(() => {
                 completeAirdropTask(task.id);
+                setCompletingTaskId(null);
             }, 5000); // 5 sec delay for verification simulation
         } else {
             completeAirdropTask(task.id);
+            setCompletingTaskId(null);
         }
     };
 
@@ -142,6 +153,7 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                     <div>
                         <div className="flex items-center gap-2">
                             <h1 id="airdrop-modal-title" className="font-orbitron text-lg font-black text-white tracking-widest uppercase">{t('airdrop.mining_hub')}</h1>
+                            <span className="px-1.5 py-0.5 rounded text-[8px] font-mono font-bold bg-amber-500/10 border border-amber-500/30 text-amber-400">DEMO</span>
                             <HelpIndicator id="airdrop_terminal" />
                         </div>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('airdrop.neural_hash')}: {mining.miningRate.toFixed(2)} / SEC</p>
@@ -185,10 +197,11 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
 
                     <button 
                         onClick={handleClaim}
-                        disabled={minedAmount < 0.1}
-                        className={`mt-6 w-full py-4 rounded-2xl font-black font-orbitron uppercase tracking-widest text-xs transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2 ${minedAmount >= 0.1 ? 'bg-brand-cyan text-black hover:bg-white' : 'bg-slate-800 text-slate-500 cursor-not-allowed'}`}
+                        disabled={minedAmount < 0.1 || isClaiming}
+                        aria-label="Зібрати намайнені токени STORK"
+                        className={`mt-6 w-full py-4 rounded-2xl font-black font-orbitron uppercase tracking-widest text-xs transition-all shadow-xl active:scale-95 flex items-center justify-center gap-2 ${minedAmount >= 0.1 && !isClaiming ? 'bg-brand-cyan text-black hover:bg-white' : 'bg-slate-800 text-slate-500 cursor-not-allowed'}`}
                     >
-                        <PickaxeIcon className="w-4 h-4" /> {t('airdrop.harvest')}
+                        <PickaxeIcon className={`w-4 h-4 ${isClaiming ? 'animate-spin' : ''}`} /> {isClaiming ? 'HARVESTING...' : t('airdrop.harvest')}
                     </button>
                 </div>
 

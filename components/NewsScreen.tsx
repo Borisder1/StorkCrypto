@@ -533,7 +533,13 @@ const NewsScreen: React.FC = () => {
                 </div>
             </div>
             {showInfo && <InfoModal title="INTEL_GRID" description="Neural network aggregating global crypto sentiment." features={["Real-time NLP Analysis", "Sentiment Scoring", "Source Verification"]} onClose={() => setShowInfo(false)} />}
-            <button onClick={() => setShowInfo(true)} className="fixed bottom-24 right-4 z-40 w-10 h-10 bg-brand-card/80 backdrop-blur border border-white/10 rounded-full flex items-center justify-center text-slate-400 hover:text-white shadow-lg"><InfoIcon className="w-5 h-5" /></button>
+            <button 
+                onClick={() => setShowInfo(true)} 
+                aria-label="Інформація про новинну сітку Intel Grid"
+                className="fixed bottom-24 right-4 z-40 w-10 h-10 bg-brand-card/80 backdrop-blur border border-white/10 rounded-full flex items-center justify-center text-slate-400 hover:text-white shadow-lg"
+            >
+                <InfoIcon className="w-5 h-5" />
+            </button>
         </motion.div>
     );
 };

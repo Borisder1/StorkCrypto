@@ -109,6 +109,7 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose?.(); }}
+                        aria-label={t('common.back') || 'Назад'}
                         className="w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
                     >
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
@@ -123,11 +124,19 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 </div>
                 <div className="flex gap-2">
                     {balanceType === 'MAINNET' && (
-                        <button onClick={handleRefresh} className={`w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-brand-cyan shadow-lg ${isRefreshing ? 'animate-spin' : ''}`}>
+                        <button 
+                            onClick={handleRefresh} 
+                            aria-label="Оновити баланс ончейн"
+                            className={`w-8 h-8 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-brand-cyan shadow-lg ${isRefreshing ? 'animate-spin' : ''}`}
+                        >
                             <RadarIcon className="w-4 h-4" />
                         </button>
                     )}
-                    <button onClick={() => { triggerHaptic('medium'); setIsAddModalOpen(true); }} className="w-8 h-8 rounded-xl bg-brand-cyan/20 border border-brand-cyan/40 flex items-center justify-center text-brand-cyan shadow-lg">
+                    <button 
+                        onClick={() => { triggerHaptic('medium'); setIsAddModalOpen(true); }} 
+                        aria-label={t('portfolio.add_asset') || 'Додати актив'}
+                        className="w-8 h-8 rounded-xl bg-brand-cyan/20 border border-brand-cyan/40 flex items-center justify-center text-brand-cyan shadow-lg"
+                    >
                         <PlusIcon className="w-4 h-4" />
                     </button>
                 </div>

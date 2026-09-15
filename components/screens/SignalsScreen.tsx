@@ -261,7 +261,9 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
                 <div>
                     <h1 className={`font-orbitron text-xl sm:text-2xl font-black tracking-tighter uppercase italic flex items-center gap-2 ${isSniperMode ? 'text-red-500' : 'text-white'}`}>
                         {isSniperMode ? t('signals.sniper_mode') : t('signals.terminal')}
-                        <button onClick={() => setShowInfo(true)}><InfoIcon className={`w-5 h-5 ${isSniperMode ? 'text-red-500' : 'text-slate-500'}`} /></button>
+                        <button onClick={() => setShowInfo(true)} aria-label="Інформація про торгові сигнали">
+                            <InfoIcon className={`w-5 h-5 ${isSniperMode ? 'text-red-500' : 'text-slate-500'}`} />
+                        </button>
                         <HelpIndicator id="arbitrage_radar" />
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
@@ -275,12 +277,14 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
                 <div className="flex gap-3">
                     <button 
                         onClick={toggleSniperMode}
+                        aria-label="Перемкнути режим снайпера"
                         className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-xl ${isSniperMode ? 'bg-red-600 text-white shadow-red-500/40 rotate-90' : 'bg-brand-card border border-white/10 text-slate-400'}`}
                     >
                         <RadarIcon className="w-5 h-5 sm:w-6 sm:h-6" />
                     </button>
                     <button 
                         onClick={() => { triggerHaptic('medium'); onClose?.(); }} 
+                        aria-label="Закрити термінал сигналів"
                         className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-brand-card border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-xl"
                     >
                         <span className="text-lg font-bold">✕</span>

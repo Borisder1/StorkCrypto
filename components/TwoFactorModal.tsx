@@ -10,11 +10,21 @@ interface TwoFactorModalProps {
 }
 
 const TwoFactorModal: React.FC<TwoFactorModalProps> = ({ onClose }) => {
-    const { settings, updateSettings } = useStore();
+    const { settings, updateSettings, showToast } = useStore();
     const [secret, setSecret] = useState<string>('');
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
     const [step, setStep] = useState<'INTRO' | 'SCAN' | 'VERIFY' | 'SUCCESS'>('INTRO');
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
 
     useEffect(() => {
         if (settings.twoFactorEnabled) {
@@ -53,7 +63,7 @@ const TwoFactorModal: React.FC<TwoFactorModalProps> = ({ onClose }) => {
     const copySecret = () => {
         navigator.clipboard.writeText(secret);
         triggerHaptic('light');
-        alert('Secret copied to clipboard');
+        showToast('Secret copied to clipboard');
     };
 
     const totpUri = secret ? new OTPAuth.TOTP({
@@ -66,7 +76,12 @@ const TwoFactorModal: React.FC<TwoFactorModalProps> = ({ onClose }) => {
     }).toString() : '';
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto overscroll-contain">
+        <div 
+            role="dialog" 
+            aria-modal="true" 
+            aria-labelledby="two-factor-title"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
+        >
             <div className="fixed inset-0 bg-black/90 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
             
             <div className="relative z-10 w-full max-w-sm bg-brand-bg border border-brand-border rounded-2xl overflow-hidden shadow-2xl animate-zoom-in my-auto max-h-[90vh] sm:max-h-[85vh] flex flex-col">
@@ -76,9 +91,15 @@ const TwoFactorModal: React.FC<TwoFactorModalProps> = ({ onClose }) => {
                             <div className="w-10 h-10 rounded-xl bg-brand-purple/10 border border-brand-purple/30 flex items-center justify-center">
                                 <ShieldIcon className="w-5 h-5 text-brand-purple" />
                             </div>
-                            <h2 className="font-orbitron font-bold text-lg text-white">2FA Security</h2>
+                            <h2 id="two-factor-title" className="font-orbitron font-bold text-lg text-white">2FA Security</h2>
                         </div>
-                        <button onClick={onClose} className="text-slate-500 hover:text-white"><XIcon className="w-5 h-5" /></button>
+                        <button 
+                            onClick={onClose} 
+                            aria-label="Закрити налаштування 2FA"
+                            className="text-slate-500 hover:text-white p-1 rounded-lg transition-colors"
+                        >
+                            <XIcon className="w-5 h-5" />
+                        </button>
                     </div>
 
                     {step === 'INTRO' && (
@@ -104,7 +125,13 @@ const TwoFactorModal: React.FC<TwoFactorModalProps> = ({ onClose }) => {
                             
                             <div className="flex items-center gap-2 bg-black/40 px-3 py-2 rounded-lg border border-white/10 mb-6 w-full justify-between">
                                 <code className="text-brand-cyan text-xs font-mono">{secret}</code>
-                                <button onClick={copySecret}><CopyIcon className="w-4 h-4 text-slate-400 hover:text-white" /></button>
+                                <button 
+                                    onClick={copySecret}
+                                    aria-label="Скопіювати 2FA ключ"
+                                    className="p-1 text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <CopyIcon className="w-4 h-4" />
+                                </button>
                             </div>
 
                             <button 

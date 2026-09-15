@@ -136,8 +136,19 @@ const ScannerModal: React.FC<ScannerModalProps> = ({ onClose }) => {
                     </div>
                 </div>
                 <div className="flex gap-2">
-                    <button onClick={() => setShowInfo(true)} className="w-8 h-8 rounded-xl border border-white/10 bg-brand-card flex items-center justify-center text-slate-400 hover:text-brand-cyan"><InfoIcon className="w-4 h-4" /></button>
-                    <button onClick={performScan} disabled={scanning || activeTab === 'GLOBE'} className="w-8 h-8 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan">
+                    <button 
+                        onClick={() => setShowInfo(true)} 
+                        aria-label="Інформація про сканер ринку"
+                        className="w-8 h-8 rounded-xl border border-white/10 bg-brand-card flex items-center justify-center text-slate-400 hover:text-brand-cyan"
+                    >
+                        <InfoIcon className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={performScan} 
+                        disabled={scanning || activeTab === 'GLOBE'} 
+                        aria-label="Запустити сканування ринку"
+                        className="w-8 h-8 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan"
+                    >
                         <SearchIcon className={`w-4 h-4 ${scanning ? 'animate-spin' : ''}`} />
                     </button>
                 </div>

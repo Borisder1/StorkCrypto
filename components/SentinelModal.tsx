@@ -46,6 +46,16 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
         setTimeout(onClose, 500);
     };
 
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
+
     const toggle = (key: keyof typeof config) => {
         triggerHaptic('light');
         // @ts-ignore
@@ -129,6 +139,7 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose(); }}
+                        aria-label={t('common.close') || 'Закрити Sentinel Core'}
                         className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
                     >
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
@@ -227,9 +238,11 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
                                                 <span className="text-xs font-bold text-white">{t('sentinel.whale_movements')}</span>
                                             </div>
                                             <input 
+                                                id="sentinel_track_whales"
                                                 type="checkbox" 
                                                 checked={config.trackWhales} 
                                                 onChange={() => toggle('trackWhales')}
+                                                aria-label={t('sentinel.whale_movements') || 'Відстежувати рухи китів'}
                                                 className="accent-brand-cyan w-4 h-4"
                                             />
                                         </div>
@@ -240,12 +253,14 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
                                                     <span className="text-white">${(whaleThreshold / 1000).toFixed(0)}k</span>
                                                 </div>
                                                 <input 
+                                                    id="sentinel_whale_threshold"
                                                     type="range" 
                                                     min="100000" 
                                                     max="10000000" 
                                                     step="100000" 
                                                     value={whaleThreshold} 
                                                     onChange={(e) => setWhaleThreshold(Number(e.target.value))}
+                                                    aria-label={`${t('sentinel.threshold') || 'Поріг обсягу китів'}: $${(whaleThreshold / 1000).toFixed(0)}k`}
                                                     className="w-full h-1 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-brand-purple"
                                                 />
                                             </div>
@@ -258,9 +273,23 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
                                     <div className="flex items-center gap-3 bg-white/5 p-4 rounded-2xl border border-white/5">
                                         <BellIcon className="w-5 h-5 text-slate-400" />
                                         <div className="flex-1 flex items-center gap-2">
-                                            <input type="time" value={startHour} onChange={e => setStartHour(e.target.value)} className="bg-black/30 text-white text-xs p-2 rounded border border-white/10 outline-none font-mono" />
+                                            <input 
+                                                id="sentinel_quiet_start"
+                                                type="time" 
+                                                value={startHour} 
+                                                onChange={e => setStartHour(e.target.value)} 
+                                                aria-label="Час початку тихого режиму сповіщень"
+                                                className="bg-black/30 text-white text-xs p-2 rounded border border-white/10 outline-none font-mono" 
+                                            />
                                             <span className="text-slate-500">-</span>
-                                            <input type="time" value={endHour} onChange={e => setEndHour(e.target.value)} className="bg-black/30 text-white text-xs p-2 rounded border border-white/10 outline-none font-mono" />
+                                            <input 
+                                                id="sentinel_quiet_end"
+                                                type="time" 
+                                                value={endHour} 
+                                                onChange={e => setEndHour(e.target.value)} 
+                                                aria-label="Час завершення тихого режиму сповіщень"
+                                                className="bg-black/30 text-white text-xs p-2 rounded border border-white/10 outline-none font-mono" 
+                                            />
                                         </div>
                                     </div>
                                 </div>

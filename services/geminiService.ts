@@ -227,6 +227,15 @@ Google Search verification confirms stable developmental backing for the ${ticke
     return `Neural node connected. StorkCrypto AI is fully operational. Market feed channels are locked and ready. What specific parameters or smart structures would you like to analyze next?`;
 };
 
+export const DEFAULT_AI_MODEL = "gemini-3.6-flash";
+
+export const resolveModelName = (name?: string): string => {
+    if (!name || name === "gemini-3-flash-preview" || name === "gemini-3-flash" || name === "gemini-3.5-flash" || name.includes("minimax")) {
+        return DEFAULT_AI_MODEL;
+    }
+    return name;
+};
+
 let aiClient: any = null;
 
 const getGenAI = () => {
@@ -306,8 +315,8 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
                 parts: [{ text: prompt }]
             });
 
-            // Map model names to valid gemini-api SKILL models (prefer gemini-3.5-flash for maximum reliability & speed)
-            const resolvedModelName = (modelName === "gemini-3-flash-preview" || modelName === "gemini-3-flash") ? "gemini-3.5-flash" : modelName;
+            // Map model names to valid Gemini models (prefer gemini-3.6-flash for maximum reliability & intelligence)
+            const resolvedModelName = resolveModelName(modelName);
 
             const response = await ai.models.generateContent({
                 model: resolvedModelName,
@@ -331,7 +340,7 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
     try {
         const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
         if (apiKey) {
-            const resolvedModelName = (modelName === "gemini-3-flash-preview" || modelName === "gemini-3-flash") ? "gemini-3.5-flash" : modelName;
+            const resolvedModelName = resolveModelName(modelName);
             const url = `https://generativelanguage.googleapis.com/v1beta/models/${resolvedModelName}:generateContent?key=${apiKey}`;
             
             const restContents: any[] = [];
@@ -416,7 +425,7 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
-                    model: "minimaxai/minimax-m2.7",
+                    model: resolveModelName(modelName),
                     messages: messages,
                     temperature: config?.temperature || 0.7,
                     top_p: 0.95,
@@ -769,7 +778,7 @@ export const createChatSession = (systemContext: string, language: string, marke
     const fullContext = `${systemContext}\n\nCurrent Market Regime: ${marketRegime}`;
     return {
         sendMessage: async (msg: { message: string }) => {
-            const text = await safeGenerate(msg.message, { tools: [{ googleSearch: {} }], systemInstruction: fullContext }, 2, 'gemini-3-flash-preview', history);
+            const text = await safeGenerate(msg.message, { tools: [{ googleSearch: {} }], systemInstruction: fullContext }, 2, DEFAULT_AI_MODEL, history);
             if (text) {
                 history.push({ role: 'user', text: msg.message }, { role: 'model', text: text });
                 return { text };

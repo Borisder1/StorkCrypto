@@ -14,6 +14,22 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const [isAuditMode, setIsAuditMode] = useState(false);
     const chatSession = useRef<Chat | null>(null);
     const messagesEndRef = useRef<HTMLDivElement>(null);
+    const abortRef = useRef<AbortController | null>(null);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                abortRef.current?.abort();
+                setIsAIChatOpen(false);
+                onClose?.();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => {
+            window.removeEventListener('keydown', handleKeyDown);
+            abortRef.current?.abort();
+        };
+    }, [onClose, setIsAIChatOpen]);
 
     // --- ENHANCED AI CONTEXT INITIALIZATION ---
     useEffect(() => {

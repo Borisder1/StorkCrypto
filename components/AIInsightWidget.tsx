@@ -88,8 +88,8 @@ const AIInsightWidget: React.FC = () => {
                         </div>
                     </div>
                     <div className="flex gap-2">
-                        <button onClick={handleSpeak} className="opacity-50 hover:opacity-100 transition-opacity"><PlayIcon className="w-3 h-3 text-white" /></button>
-                        <button onClick={() => setVisible(false)} className="opacity-50 hover:opacity-100 text-[10px] font-bold text-white">✕</button>
+                        <button onClick={handleSpeak} aria-label="Озвучити інсайт AI" className="opacity-50 hover:opacity-100 transition-opacity"><PlayIcon className="w-3 h-3 text-white" /></button>
+                        <button onClick={() => setVisible(false)} aria-label="Приховати інсайт AI" className="opacity-50 hover:opacity-100 text-[10px] font-bold text-white">✕</button>
                     </div>
                 </div>
 

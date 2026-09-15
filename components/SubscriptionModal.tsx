@@ -26,6 +26,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
     const [selectedPlan, setSelectedPlan] = useState<'PRO' | 'WHALE' | null>(null);
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('STARS');
     const [txHash, setTxHash] = useState('');
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     
     const adminWallet = settings?.adminTreasuryWallet || "NOT_SET";
     const plans = settings?.subscriptionPlans || [];
@@ -48,6 +49,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
 
     // Stage 3: Native Telegram Stars Payment
     const handleStarsPayment = async () => {
+        if (isProcessingPayment) return;
+        setIsProcessingPayment(true);
         triggerHaptic('heavy');
         
         const planPrice = plans.find(p => p.id === selectedPlan)?.price || 0;
@@ -63,6 +66,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
 
             const opened = safeOpenTelegramInvoice(invoiceUrl, (status: string) => {
                 invoiceHandled = true;
+                setIsProcessingPayment(false);
                 if (status === 'paid') {
                     setStep('VERIFY');
                     const txId = 'STARS_TG_' + Math.random().toString(36).substring(2, 10).toUpperCase();
@@ -80,6 +84,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                 setTimeout(() => {
                     if (!invoiceHandled && step === 'REDIRECT') {
                         processInAppStarsPayment(starsCost, currentStars);
+                        setIsProcessingPayment(false);
                     }
                 }, 2500);
                 return;
@@ -87,8 +92,10 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
 
             // In-App Stars Balance Direct Fallback when openInvoice is unsupported (e.g. Telegram WebApp v6.0)
             processInAppStarsPayment(starsCost, currentStars);
+            setIsProcessingPayment(false);
 
         } catch (e) {
+            setIsProcessingPayment(false);
             setStep('PAY');
             showToast(t('sub.payment_failed'));
         }
@@ -216,8 +223,13 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                     <p className="text-4xl font-black text-white font-orbitron mb-6">
                                         {getPriceInStars(plans.find(p => p.id === selectedPlan)?.price || 0)}
                                     </p>
-                                    <button onClick={handleStarsPayment} className="w-full py-4 bg-[#0088cc] text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg">
-                                        {t('sub.pay_stars')}
+                                    <button 
+                                        onClick={handleStarsPayment} 
+                                        disabled={isProcessingPayment}
+                                        aria-label={t('sub.pay_stars')}
+                                        className={`w-full py-4 bg-[#0088cc] text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg ${isProcessingPayment ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#0077b3]'}`}
+                                    >
+                                        {isProcessingPayment ? 'PROCESSING...' : t('sub.pay_stars')}
                                     </button>
                                 </div>
                             ) : (
@@ -226,8 +238,22 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                     <div className="bg-white/5 p-4 rounded-2xl border border-white/10 mb-4 break-all cursor-copy" onClick={() => { navigator.clipboard.writeText(adminWallet); showToast(t('sub.copied')); }}>
                                         <p className="text-xs font-mono text-brand-cyan">{adminWallet}</p>
                                     </div>
-                                    <input type="text" value={txHash} onChange={(e) => setTxHash(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-mono mb-4" placeholder={t('sub.tx_hash_placeholder')} />
-                                    <button onClick={handleManualPaymentNotify} className="w-full py-4 bg-brand-green text-black font-black rounded-2xl uppercase text-xs">{t('sub.verify_hash')}</button>
+                                    <input 
+                                        id="sub_tx_hash_input"
+                                        type="text" 
+                                        value={txHash} 
+                                        onChange={(e) => setTxHash(e.target.value)} 
+                                        aria-label={t('sub.tx_hash_placeholder') || 'Хеш транзакції'}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-mono mb-4" 
+                                        placeholder={t('sub.tx_hash_placeholder')} 
+                                    />
+                                    <button 
+                                        onClick={handleManualPaymentNotify} 
+                                        aria-label="Підтвердити хеш транзакції"
+                                        className="w-full py-4 bg-brand-green text-black font-black rounded-2xl uppercase text-xs"
+                                    >
+                                        {t('sub.verify_hash')}
+                                    </button>
                                 </div>
                             )}
                         </div>
