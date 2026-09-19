@@ -23,8 +23,17 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = 'unset'; };
-    }, []);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => { 
+            document.body.style.overflow = 'unset'; 
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
 
     const fetchAnalysis = async (agent: 'SNIPER' | 'WHALE' | 'GUARDIAN') => {
         setLoading(true);
@@ -51,6 +60,9 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
 
     return (
         <motion.div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="ai-agent-title"
             initial={{ opacity: 0, x: '100%' }}
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: '100%' }}
@@ -64,13 +76,14 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
                 <div className="flex items-center gap-4">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose(); }}
+                        aria-label="Повернутися назад"
                         className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all shadow-lg"
                     >
                         <ChevronRightIcon className="w-6 h-6 rotate-180" />
                     </button>
                     <div>
                         <div className="flex items-center gap-1.5">
-                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">AI_Agents</h1>
+                            <h1 id="ai-agent-title" className="font-orbitron text-lg font-black text-white tracking-widest uppercase">AI_Agents</h1>
                             <HelpIndicator id="ai_agent" />
                         </div>
                         <p className="text-[8px] text-brand-purple font-mono uppercase">Neural_Advisors: ONLINE</p>
@@ -89,6 +102,8 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
                             <button
                                 key={agent.id}
                                 onClick={() => { triggerHaptic('selection'); setSelectedAgent(agent.id); }}
+                                aria-label={`Обрати агента ${agent.name}: ${agent.desc}`}
+                                aria-pressed={isSelected}
                                 className={`p-4 rounded-2xl border transition-all duration-300 flex items-center gap-4 text-left ${
                                     isSelected 
                                     ? `bg-brand-card border-white/20 shadow-[0_0_20px_rgba(255,255,255,0.05)]` 
@@ -149,6 +164,7 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
                                         triggerHaptic('success');
                                         useStore.getState().showToast('AI Signal Added to Trade Queue');
                                     }}
+                                    aria-label="Виконати торговий сигнал ШІ"
                                     className="px-3.5 py-2 rounded-xl bg-brand-cyan/20 border border-brand-cyan/40 text-brand-cyan font-orbitron font-bold text-[10px] uppercase hover:bg-brand-cyan/30 transition-all flex items-center gap-1.5"
                                 >
                                     ⚡ Execute AI Trade Signal
@@ -158,6 +174,7 @@ const AIAgentModal: React.FC<AIAgentModalProps> = ({ onClose }) => {
                                         triggerHaptic('selection');
                                         useStore.getState().showToast('Sentinel Watchlist Updated');
                                     }}
+                                    aria-label="Встановити сповіщення Sentinel"
                                     className="px-3.5 py-2 rounded-xl bg-white/10 border border-white/20 text-slate-300 font-orbitron font-bold text-[10px] uppercase hover:bg-white/20 transition-all flex items-center gap-1.5"
                                 >
                                     🛡️ Set Sentinel Alert

@@ -122,6 +122,7 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                  <div className="flex gap-2">
                     <button 
                         onClick={() => { setIsAuditMode(!isAuditMode); triggerHaptic('selection'); }}
+                        aria-label={isAuditMode ? "Переключити на режим чату" : "Переключити на режим аудиту смарт-контрактів"}
                         className={`px-3 py-1 rounded border text-[9px] font-bold uppercase transition-all ${isAuditMode ? 'bg-brand-purple text-white border-brand-purple' : 'bg-transparent border-white/20 text-slate-500'}`}
                     >
                         {isAuditMode ? 'AUDIT_MODE' : 'CHAT_MODE'}
@@ -144,7 +145,7 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <p className="text-[10px] font-mono text-slate-500 uppercase tracking-widest">Awaiting Command Input...</p>
                         <div className="flex flex-wrap justify-center gap-2 mt-4 max-w-[250px]">
                             {['Portfolio Analysis', 'Market Scan', 'Risk Audit'].map(cmd => (
-                                <button key={cmd} onClick={() => handleSend(cmd)} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded text-[9px] text-slate-400 hover:border-brand-cyan hover:text-brand-cyan transition-all">{cmd}</button>
+                                <button key={cmd} onClick={() => handleSend(cmd)} aria-label={`Виконати команду ${cmd}`} className="px-3 py-1.5 bg-white/5 border border-white/10 rounded text-[9px] text-slate-400 hover:border-brand-cyan hover:text-brand-cyan transition-all">{cmd}</button>
                             ))}
                         </div>
                         {assets.length > 0 && (

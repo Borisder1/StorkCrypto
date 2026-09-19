@@ -389,12 +389,14 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                                             type="number" 
                                             value={alertPrice}
                                             onChange={(e) => setAlertPrice(e.target.value)}
+                                            aria-label="Введіть цільову ціну для сповіщення"
                                             placeholder="Enter target price..." 
                                             className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-8 pr-4 text-white font-mono text-sm focus:border-brand-cyan outline-none"
                                         />
                                     </div>
                                     <button 
                                         onClick={handleAddAlert}
+                                        aria-label="Встановити цільову ціну сповіщення"
                                         className="bg-brand-cyan text-black px-6 rounded-xl font-black text-xs uppercase active:scale-95 transition-transform"
                                     >
                                         Deploy
@@ -419,7 +421,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                                                     <p className="text-[8px] text-slate-500 font-black uppercase">Trigger: {alert.condition}</p>
                                                 </div>
                                             </div>
-                                            <button onClick={() => removeAlert(alert.id)} className="w-8 h-8 rounded-lg bg-red-900/20 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                                            <button onClick={() => removeAlert(alert.id)} aria-label="Видалити сповіщення" className="w-8 h-8 rounded-lg bg-red-900/20 text-red-500 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
                                         </div>
                                     ))
                                 )}
@@ -497,7 +499,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                 </div>
                 
                 <div className="p-4 sm:p-6 border-t border-white/5 bg-brand-bg shrink-0 flex gap-2">
-                    <button onClick={() => triggerHaptic('heavy')} className="flex-1 py-3 bg-brand-green text-black font-black font-orbitron rounded-xl shadow-2xl text-[10px] sm:text-xs tracking-widest uppercase active:scale-95">
+                    <button onClick={() => triggerHaptic('heavy')} aria-label={t('btn.execute_order') || "Виконати ордер"} className="flex-1 py-3 bg-brand-green text-black font-black font-orbitron rounded-xl shadow-2xl text-[10px] sm:text-xs tracking-widest uppercase active:scale-95">
                         {t('btn.execute_order')}
                     </button>
                     <button 
@@ -508,6 +510,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                             const url = `https://t.me/${channelUsername}?text=${encodeURIComponent(text)}`;
                             window.open(url, '_blank');
                         }}
+                        aria-label="Поділитися активом у Telegram"
                         className="w-10 h-10 sm:w-12 sm:h-12 bg-[#0088cc] text-white rounded-xl flex items-center justify-center shadow-2xl active:scale-95 shrink-0"
                     >
                         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.195-.054-.304-.346-.11l-6.4 4.024-2.76-.86c-.6-.185-.61-.6.125-.89l10.736-4.136c.5-.186.94.11.725.918z"/></svg>

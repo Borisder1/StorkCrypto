@@ -162,6 +162,7 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
                                         <button
                                             key={itemIdx}
                                             onClick={item.action}
+                                            aria-label={`Відкрити ${item.name}: ${item.desc}`}
                                             className="w-full p-3 rounded-2xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-brand-cyan/40 flex items-center gap-3 transition-all text-left active:scale-[0.98] group"
                                         >
                                             <div className="w-10 h-10 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">

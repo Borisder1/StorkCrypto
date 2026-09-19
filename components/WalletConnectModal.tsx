@@ -443,6 +443,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                                     type="text"
                                                     value={apiKeyInput}
                                                     onChange={(e) => setApiKeyInput(e.target.value)}
+                                                    aria-label="Введіть API Key біржі"
                                                     placeholder="Введіть API Key биржи..."
                                                     className="w-full bg-black/60 border border-amber-500/30 rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-amber-400 transition-colors placeholder:text-slate-600"
                                                     autoFocus
@@ -456,6 +457,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                                     type="password"
                                                     value={apiSecretInput}
                                                     onChange={(e) => setApiSecretInput(e.target.value)}
+                                                    aria-label="Введіть API Secret біржі"
                                                     placeholder="••••••••••••••••••••"
                                                     className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-amber-400 transition-colors placeholder:text-slate-600"
                                                 />
@@ -475,6 +477,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                                     <button 
                                                         type="button" 
                                                         onClick={handlePasteClipboard}
+                                                        aria-label="Вставити адресу з буфера обміну"
                                                         className="text-[9px] text-brand-cyan hover:underline font-mono"
                                                     >
                                                         📋 Вставити
@@ -482,6 +485,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                                     <button 
                                                         type="button" 
                                                         onClick={generateDemoAddress}
+                                                        aria-label="Згенерувати тестову адресу"
                                                         className="text-[9px] text-amber-400 hover:underline font-mono"
                                                     >
                                                         ⚡ Тест
@@ -492,6 +496,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                                 type="text"
                                                 value={providerAddressInput}
                                                 onChange={(e) => setProviderAddressInput(e.target.value)}
+                                                aria-label={`UID біржі або публічна адреса ${selectedProvider.chain}`}
                                                 placeholder={selectedProvider.chain === 'ETH' ? '0x71C... або UID биржи' : selectedProvider.chain === 'SOL' ? 'Solana public address...' : 'EQA1... або Telegram UID'}
                                                 className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-mono focus:outline-none focus:border-brand-cyan transition-colors placeholder:text-slate-600"
                                                 autoFocus
@@ -748,6 +753,7 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
                                             type="text"
                                             value={customAddress}
                                             onChange={(e) => setCustomAddress(e.target.value)}
+                                            aria-label="Публічна адреса гаманця або Exchange UID"
                                             placeholder={customChain === 'ETH' ? '0x1234...abcd' : customChain === 'TON' ? 'EQA123...xyz' : 'Solana Address...'}
                                             className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-mono focus:outline-none focus:border-brand-cyan transition-colors placeholder:text-slate-600"
                                         />
