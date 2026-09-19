@@ -7,6 +7,7 @@ import { triggerHaptic } from '../utils/haptics';
 interface QuizModalProps {
     term: AcademyTerm;
     onClose: () => void;
+    onSuccess?: (termId: string) => void;
 }
 
 const QUIZ_LANGS: Record<string, Record<string, string>> = {
@@ -75,7 +76,7 @@ const QUIZ_LANGS: Record<string, Record<string, string>> = {
     }
 };
 
-const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
+const QuizModal: React.FC<QuizModalProps> = ({ term, onClose, onSuccess }) => {
     const { grantXp, updateQuestProgress, settings } = useStore();
     const lang = settings?.language || 'en';
     const dict = QUIZ_LANGS[lang] || QUIZ_LANGS['en'];
@@ -149,6 +150,7 @@ const QuizModal: React.FC<QuizModalProps> = ({ term, onClose }) => {
             setStatus('SUCCESS');
             grantXp(50, `Drill: ${term.term}`);
             updateQuestProgress('ACADEMY', 1);
+            onSuccess?.(term.id);
             setTimeout(onClose, 2000);
         } else {
             triggerHaptic('error');

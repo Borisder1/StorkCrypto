@@ -133,6 +133,9 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sentinel-modal-title"
             className="fixed inset-0 z-[150] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full"
         >
             <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-5 flex items-center justify-between shrink-0 relative z-20">
@@ -146,7 +149,7 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
                     </button>
                     <div>
                         <div className="flex items-center gap-2">
-                            <h1 className="font-orbitron text-lg font-black text-white tracking-widest uppercase">{t('sentinel.title') || 'SENTINEL_BOT'}</h1>
+                            <h1 id="sentinel-modal-title" className="font-orbitron text-lg font-black text-white tracking-widest uppercase">{t('sentinel.title') || 'SENTINEL_BOT'}</h1>
                         </div>
                         <p className="text-[8px] text-brand-cyan font-mono animate-pulse uppercase">{t('sentinel.subtitle') || 'AUTONOMOUS WATCHDOG'}</p>
                     </div>
@@ -382,7 +385,9 @@ const SentinelModal: React.FC<SentinelModalProps> = ({ onClose }) => {
                                     </div>
                                     <div className="flex gap-2">
                                         <input 
+                                            id="sentinel-contract-input"
                                             type="text" 
+                                            aria-label="Введіть адресу смарт-контракту або тикер для перевірки на honeypot"
                                             placeholder="Введіть 0x... або тикер (напр. TON, SOL)" 
                                             className="flex-1 bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-xs font-mono text-white outline-none focus:border-brand-cyan placeholder-slate-600"
                                         />

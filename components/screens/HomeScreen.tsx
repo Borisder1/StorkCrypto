@@ -375,6 +375,7 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                             <div className="relative group rounded-3xl bg-[#0a0f1e]/70 border border-brand-cyan/20 hover:border-brand-cyan/60 transition-all shadow-xl h-28">
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); openInfo('MINING'); }} 
+                                    aria-label="Інформація про Mining Hub"
                                     className="absolute top-3 right-3 w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-brand-cyan z-20"
                                 >
                                     <InfoIcon className="w-3 h-3" />
@@ -394,6 +395,7 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                             <div className="relative group rounded-3xl bg-[#0a0f1e]/70 border border-brand-purple/20 hover:border-brand-purple/60 transition-all shadow-xl h-28">
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); openInfo('SENTINEL'); }} 
+                                    aria-label="Інформація про Sentinel Security"
                                     className="absolute top-3 right-3 w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-slate-400 hover:text-brand-purple z-20"
                                 >
                                     <InfoIcon className="w-3 h-3" />
@@ -583,7 +585,11 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                                 <h3 className="text-xs font-black text-white uppercase tracking-[0.25em] font-orbitron shrink-0">{t('home.intel_feed')}</h3>
                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-brand-cyan/40 to-transparent"></div>
                             </div>
-                            <button onClick={() => openInfo('WHALE')} className="text-slate-400 hover:text-white p-1">
+                            <button 
+                                onClick={() => openInfo('WHALE')} 
+                                aria-label="Інформація про Intelligence Feed"
+                                className="text-slate-400 hover:text-white p-1"
+                            >
                                 <InfoIcon className="w-4 h-4" />
                             </button>
                         </div>

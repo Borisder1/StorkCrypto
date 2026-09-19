@@ -287,7 +287,9 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
 
   return (
     <div
+      id="stork-loading-screen"
       className="fixed inset-0 z-50 bg-[#020617] flex flex-col items-center justify-center overflow-hidden select-none"
+      style={{ backgroundColor: '#020617', color: '#ffffff' }}
       role="status"
       aria-live="polite"
     >

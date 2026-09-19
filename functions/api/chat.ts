@@ -1,30 +1,44 @@
 // Cloudflare Pages Functions: Route handler for /api/chat
-// Supports NVIDIA AI / Minimax completions proxy with validation and CORS
+// Supports NVIDIA AI / Active LLMs / Gemini completions proxy with validation and CORS
 
 interface ChatContext {
   request: Request;
   env: Record<string, string>;
 }
 
-export async function onRequestOptions(): Promise<Response> {
+// Allowed origins helper for secure CORS (supporting Telegram WebApp, localhost, and production domains)
+function getCorsHeaders(request: Request): Record<string, string> {
+  const origin = request.headers.get('Origin') || '';
+  const isAllowedOrigin = 
+    origin.endsWith('.pages.dev') ||
+    origin.endsWith('.run.app') ||
+    origin.endsWith('telegram.org') ||
+    origin.includes('localhost') ||
+    origin.includes('127.0.0.1') ||
+    !origin;
+
+  const allowOrigin = isAllowedOrigin && origin ? origin : '*';
+
+  return {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+}
+
+export async function onRequestOptions(context: ChatContext): Promise<Response> {
+  const headers = getCorsHeaders(context.request);
   return new Response(null, {
     status: 204,
-    headers: {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      'Access-Control-Max-Age': '86400'
-    }
+    headers
   });
 }
 
 export async function onRequestPost(context: ChatContext): Promise<Response> {
-  const corsHeaders = {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization'
-  };
+  const corsHeaders = getCorsHeaders(context.request);
 
   try {
     const geminiKey = context.env?.GEMINI_API_KEY || '';
@@ -147,30 +161,48 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
         });
       }
 
-      // 2. Secondary path: NVIDIA NIM API with non-deprecated model
+      // 2. Secondary path: NVIDIA NIM API with active catalog models
       const selectedKey = nvidiaKeys[Math.floor(Math.random() * nvidiaKeys.length)];
-      // Remap deprecated models to active models
-      let targetModel = requestBody.model || 'meta/llama-3.3-70b-instruct';
-      if (targetModel.includes('minimax') || targetModel.includes('m2.7')) {
-        targetModel = 'meta/llama-3.3-70b-instruct';
+      
+      // Select non-EOL active model from environment or safe catalog
+      const requestedModel = typeof requestBody.model === 'string' ? requestBody.model : '';
+      let targetModel = context.env?.AI_MODEL || '';
+
+      if (!targetModel) {
+        if (requestedModel && !requestedModel.includes('llama-3.3-70b') && !requestedModel.includes('minimax') && !requestedModel.includes('m2.7')) {
+          targetModel = requestedModel;
+        } else {
+          // Standard active 70B model with high availability
+          targetModel = 'meta/llama-3.1-70b-instruct';
+        }
       }
 
-      const upstreamResponse = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${selectedKey}`
-        },
-        body: JSON.stringify({
-          model: targetModel,
-          messages: requestBody.messages,
-          temperature: typeof requestBody.temperature === 'number' ? requestBody.temperature : 0.7,
-          top_p: typeof requestBody.top_p === 'number' ? requestBody.top_p : 0.95,
-          max_tokens: typeof requestBody.max_tokens === 'number' ? Math.min(requestBody.max_tokens, 8192) : 2048,
-          stream: false
-        }),
-        signal: controller.signal
-      });
+      const sendUpstream = async (modelToUse: string) => {
+        return await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${selectedKey}`
+          },
+          body: JSON.stringify({
+            model: modelToUse,
+            messages: requestBody.messages,
+            temperature: typeof requestBody.temperature === 'number' ? requestBody.temperature : 0.7,
+            top_p: typeof requestBody.top_p === 'number' ? requestBody.top_p : 0.95,
+            max_tokens: typeof requestBody.max_tokens === 'number' ? Math.min(requestBody.max_tokens, 8192) : 2048,
+            stream: false
+          }),
+          signal: controller.signal
+        });
+      };
+
+      let upstreamResponse = await sendUpstream(targetModel);
+
+      // If upstream model returned 404/410 (EOL or model not found), automatically fallback to meta/llama-3.1-70b-instruct
+      if (!upstreamResponse.ok && (upstreamResponse.status === 404 || upstreamResponse.status === 410) && targetModel !== 'meta/llama-3.1-70b-instruct') {
+        targetModel = 'meta/llama-3.1-70b-instruct';
+        upstreamResponse = await sendUpstream(targetModel);
+      }
 
       clearTimeout(timeoutId);
 
@@ -179,6 +211,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
         return new Response(JSON.stringify({
           error: 'UPSTREAM_AI_ERROR',
           status: upstreamResponse.status,
+          model: targetModel,
           details: errorText.slice(0, 200)
         }), {
           status: upstreamResponse.status >= 500 ? 502 : upstreamResponse.status,

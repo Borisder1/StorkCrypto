@@ -25,7 +25,7 @@
   - `ScannerScreen` / `ScannerModal`: бейдж `N/A` замість `$0.0000` при відсутності котирування.
   - **Крок 2 (Modal Accessibility — WCAG & a11y)**: повна реалізація `role="dialog"`, `aria-modal="true"`, `aria-labelledby` для заголовків та обробників клавіші `Escape` в усіх модальних вікнах (`AssetDetailModal`, `DexAggregatorModal`, `ScannerModal`, `CategorizedHubModal`, `ChatScreen`, `SubscriptionModal`, `AirdropModal`, `WhaleRadarProModal`, `LiquidationHeatmapModal`, `ReferralModal`, `CalendarModal`, `WalletConnectModal`, `LeaderboardModal`). Семантичні `aria-label` для кнопок закриття та 44px touch targets.
 - **Крок 3 (Варіант А — Академія та Гейміфікація & Варіант Б — Доступність форм і навігації)**:
-  - **Варіант А (Академія)**: Інтегровано `QuizModal` та `AcademyModal` із підтримкою місій `ACADEMY` в квестах (`Tactical Academy`). Додано вибір між «Експрес-квізом (+50 XP)» та «Тактичним дрілом (15с)». Успішне проходження автоматично зараховує прогрес у квест, нараховує XP та викликає тактильний відгук (`triggerHaptic('success')`).
+  - **Варіант А (Академія)**: Інтегровано `QuizModal` та `AcademyModal` із підтримкою місій `ACADEMY` в квестах (`Tactical Academy`). Повноцінно реалізовано подвійний режим в `MediaScreen`: «Експрес-квіз (+50 XP)» з інтерактивним інлайн-тестуванням та «Тактичний дріл (15с)» з таймером. Додано відстеження прогресу (`stork_academy_completed_ids`), градієнтну шкалу виконання (0-100%), бейджі «✓ ВИВЧЕНО», підрахунок заробленого XP та синхронізацію з квестами.
   - **Головна сторінка (`/components/AcademyBannerWidget.tsx`)**: Додано помітний блок «Крипто Академія» з простими назвами та прямим поділом на 2 картки: «Для початківців» (Основи, 2FA, сід-фрази, FOMO) та «Для досвідчених» (PRO SMC, Order Blocks, FVG, 15с дріли). Оновлено меню «Більше» (`CategorizedHubModal.tsx`) з перейменуванням «Media Pulse» на «Крипто Академія».
   - **Варіант Б (Доступність)**:
     - `BottomNav`: Повноцінна імплементація W3C APG Tablist (`role="tablist"`, `role="tab"`, `aria-selected`, клавіатурна навігація стрілками `ArrowLeft`/`ArrowRight`/`Home`/`End`, roving `tabIndex`).
@@ -33,6 +33,10 @@
 - **Telegram WebApp v6.0 compatibility**:
   - `openInvoice` безпечно огорожено перевіркою версії `isTelegramVersionAtLeast('6.1')` у `utils/telegram.ts` та `SubscriptionModal.tsx`.
   - Забезпечено автоматичний плавний fallback на прямий баланс Stars при виклику у версіях Telegram WebApp < 6.1 без викидання помилки.
+- **Follow-up Global Audit Fixes (P0 & P1)**:
+  - **P0.1 AI Chat Recovery (`/functions/api/chat.ts`)**: Замінено EOL-модель `meta/llama-3.3-70b-instruct` на актуальну `meta/llama-3.1-70b-instruct` із підтримкою конфігурації `context.env.AI_MODEL` та автоматичним retry-fallback при 404/410. Звужено CORS для дозволених origin (Telegram WebApp, localhost, pages.dev, run.app).
+  - **P0.2 Loading Screen Isolation (`/components/LoadingScreen.tsx`, `/index.css`)**: Додано `#stork-loading-screen` та захищено від вимивання контрасту у Daylight темі (`:not(#stork-loading-screen)`). Забезпечено збереження брендової кіберпанкової палітри `#020617` з тривалістю 6.5с.
+  - **P1 A11y & Security Headers (`/public/_headers`, `HomeScreen.tsx`, `SentinelModal.tsx`)**: Додано заголовок `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`; додано семантичні `aria-label` для трьох кнопок інфо (Mining, Sentinel, Intelligence Feed); у `SentinelModal` впроваджено `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, а також доступний підпис для інпуту аудиту смарт-контрактів.
 
 ## 3. Architecture Constraints
 - z-index hierarchy: base:0, elevated:10, dropdown:20, sticky:30, modal:40, toast:50.
