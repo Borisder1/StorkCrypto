@@ -12,6 +12,7 @@ import { getTranslation } from '../utils/translations';
 import { calculateZScore, calculateVolumeProfile, generateOrderHeatmap, calculateCumulativeDelta, calculateExhaustionIndex, calculateInstitutionalConviction, calculateSMA, calculateBollingerBands, runMonteCarloSimulation, calculateFractalDimension, calculateMarketEntropy, type VolumeBin, type OrderWall, type SimulationPath } from '../services/quantService';
 import { generateSpecificAssetAnalysis } from '../services/geminiService';
 import { HelpIndicator } from './HelpIndicator';
+import { useScrollLock } from '../utils/useScrollLock';
 
 const TIMEFRAMES = [
     { label: '1H', days: '0.04' },
@@ -53,6 +54,7 @@ const MonteCarloChart: React.FC<{ startPrice: number, volatility: number, paths:
 };
 
 const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, onClose: () => void }> = ({ asset, signal, onClose }) => {
+    useScrollLock(true);
     const { settings, addAlert, alerts, removeAlert, showToast } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
     const [activeTab, setActiveTab] = useState<'CHART' | 'ORDERBOOK' | 'WATCHDOG' | 'AI_SETUP' | 'BACKTEST'>('CHART');

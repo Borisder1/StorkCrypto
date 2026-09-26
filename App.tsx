@@ -44,10 +44,45 @@ const App: React.FC = () => {
         maintenanceMode = false, 
         syncUserData,
         updateSettings,
-        redeemReferral
+        redeemReferral,
+        showReferral,
+        setShowReferral,
+        showCalendar,
+        setShowCalendar,
+        isSubscriptionOpen,
+        setSubscriptionOpen,
+        showAdInquiry,
+        setShowAdInquiry,
+        showAirdrop,
+        setShowAirdrop,
+        showSentinel,
+        setShowSentinel,
+        showLeaderboard,
+        setShowLeaderboard,
+        showWhaleRadar,
+        setShowWhaleRadar,
+        showStrategyBuilder,
+        setShowStrategyBuilder,
+        showSentimentPulse,
+        setShowSentimentPulse,
+        showLiquidationHeatmap,
+        setShowLiquidationHeatmap,
+        showTaxCalculator,
+        setShowTaxCalculator,
+        showCompetitorMatrix,
+        setShowCompetitorMatrix
     } = useStore();
     
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
+
+    const hasSecondaryModal = Boolean(
+        showReferral || showCalendar || isSubscriptionOpen || showAdInquiry ||
+        showAirdrop || showSentinel || showLeaderboard || showWhaleRadar ||
+        showStrategyBuilder || showSentimentPulse || showLiquidationHeatmap ||
+        showTaxCalculator || showCompetitorMatrix
+    );
+
+    const isBackAvailable = Boolean(isAIChatOpen || hasSecondaryModal || (activeTab && activeTab !== 'home'));
 
     const navItems = [
         { id: 'home', label: t('nav.home'), icon: <HomeIcon /> },
@@ -61,34 +96,87 @@ const App: React.FC = () => {
         soundscapes.setEnabled(settings?.soundEnabled ?? true);
     }, [settings?.soundEnabled]);
 
-    // Android Back Button Handler
+    // Unified Telegram WebApp BackButton Handler with Clean Event Cleanup & Hierarchical Dismiss
     useEffect(() => {
         // Safe check for Telegram WebApp
         // @ts-ignore
         const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
-        if (tg) {
-            tg.BackButton.onClick(() => {
-                if (activeTab !== 'home') {
-                    navigateTo('home');
-                } else {
-                    tg.close();
-                }
-            });
-        }
-    }, [activeTab, navigateTo]);
+        if (!tg || !tg.BackButton) return;
 
-    // Show/Hide Back Button based on navigation state
-    useEffect(() => {
-        // @ts-ignore
-        const tg = typeof window !== 'undefined' && window.Telegram?.WebApp;
-        if (tg) {
-            if (activeTab !== 'home' || isAIChatOpen) {
-                tg.BackButton.show();
-            } else {
-                tg.BackButton.hide();
-            }
+        if (isBackAvailable) {
+            tg.BackButton.show();
+        } else {
+            tg.BackButton.hide();
         }
-    }, [activeTab, isAIChatOpen]);
+
+        const handleBackClick = () => {
+            triggerHaptic('light');
+            // Layer 1 (Topmost): AI Chat
+            if (isAIChatOpen) {
+                setIsAIChatOpen(false);
+                return;
+            }
+            // Layer 2: Secondary Overlays
+            if (showReferral) { setShowReferral(false); return; }
+            if (showCalendar) { setShowCalendar(false); return; }
+            if (isSubscriptionOpen) { setSubscriptionOpen(false); return; }
+            if (showAdInquiry) { setShowAdInquiry(false); return; }
+            if (showAirdrop) { setShowAirdrop(false); return; }
+            if (showSentinel) { setShowSentinel(false); return; }
+            if (showLeaderboard) { setShowLeaderboard(false); return; }
+            if (showWhaleRadar) { setShowWhaleRadar(false); return; }
+            if (showStrategyBuilder) { setShowStrategyBuilder(false); return; }
+            if (showSentimentPulse) { setShowSentimentPulse(false); return; }
+            if (showLiquidationHeatmap) { setShowLiquidationHeatmap(false); return; }
+            if (showTaxCalculator) { setShowTaxCalculator(false); return; }
+            if (showCompetitorMatrix) { setShowCompetitorMatrix(false); return; }
+            // Layer 3: Main Navigation Screens
+            if (activeTab !== 'home') {
+                navigateTo('home');
+                return;
+            }
+            // Layer 4: Close app if already at root
+            tg.close();
+        };
+
+        tg.BackButton.onClick(handleBackClick);
+        return () => {
+            tg.BackButton.offClick(handleBackClick);
+        };
+    }, [
+        isBackAvailable,
+        isAIChatOpen,
+        hasSecondaryModal,
+        activeTab,
+        navigateTo,
+        setIsAIChatOpen,
+        showReferral,
+        setShowReferral,
+        showCalendar,
+        setShowCalendar,
+        isSubscriptionOpen,
+        setSubscriptionOpen,
+        showAdInquiry,
+        setShowAdInquiry,
+        showAirdrop,
+        setShowAirdrop,
+        showSentinel,
+        setShowSentinel,
+        showLeaderboard,
+        setShowLeaderboard,
+        showWhaleRadar,
+        setShowWhaleRadar,
+        showStrategyBuilder,
+        setShowStrategyBuilder,
+        showSentimentPulse,
+        setShowSentimentPulse,
+        showLiquidationHeatmap,
+        setShowLiquidationHeatmap,
+        showTaxCalculator,
+        setShowTaxCalculator,
+        showCompetitorMatrix,
+        setShowCompetitorMatrix
+    ]);
 
     // Synchronize theme attribute on html/body and system colors
     useEffect(() => {

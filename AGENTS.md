@@ -37,6 +37,12 @@
   - **P0.1 AI Chat Recovery (`/functions/api/chat.ts`)**: Замінено EOL-модель `meta/llama-3.3-70b-instruct` на актуальну `meta/llama-3.1-70b-instruct` із підтримкою конфігурації `context.env.AI_MODEL` та автоматичним retry-fallback при 404/410. Звужено CORS для дозволених origin (Telegram WebApp, localhost, pages.dev, run.app).
   - **P0.2 Loading Screen Isolation (`/components/LoadingScreen.tsx`, `/index.css`)**: Додано `#stork-loading-screen` та захищено від вимивання контрасту у Daylight темі (`:not(#stork-loading-screen)`). Забезпечено збереження брендової кіберпанкової палітри `#020617` з тривалістю 6.5с.
   - **P1 A11y & Security Headers (`/public/_headers`, `HomeScreen.tsx`, `SentinelModal.tsx`)**: Додано заголовок `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`; додано семантичні `aria-label` для трьох кнопок інфо (Mining, Sentinel, Intelligence Feed); у `SentinelModal` впроваджено `role="dialog"`, `aria-modal="true"`, `aria-labelledby`, а також доступний підпис для інпуту аудиту смарт-контрактів.
+- **Мобільний Viewport, Telegram BackButton & Скрол-лок (Варіант 2)**:
+  - `utils/useScrollLock.ts`: реалізовано референс-каунт `lockCount` для стека модалок, блокування body через `position: fixed` із фіксацією `top: -${scrollY}px` для iOS WebKit Safari, усунення rubber-banding та випадання з Telegram WebApp, точне повернення скролу без layout shift.
+  - `App.tsx`: імплементовано ієрархічне закриття через Telegram WebApp `BackButton` (AI Chat -> вторинні оверлеї/модалки -> повернення на Home -> закриття апплету) з належним відписуванням `BackButton.offClick(handleBackClick)` для запобігання витоку пам'яті та закриття всього застосунку замість чату/модалки.
+  - `index.css`: додано `overscroll-behavior: none; overscroll-behavior-y: none; -webkit-overflow-scrolling: touch;` для `html, body` та клас `.overscroll-contain` для модальних контейнерів.
+  - `AssetDetailModal.tsx`: підключено `useScrollLock(true)` для блокування фонового скролу при детальному аналізі активу.
+
 
 ## 3. Architecture Constraints
 - z-index hierarchy: base:0, elevated:10, dropdown:20, sticky:30, modal:40, toast:50.

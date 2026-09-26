@@ -13,6 +13,12 @@
   color-scheme: dark;
 }
 
+html, body {
+  overscroll-behavior: none;
+  overscroll-behavior-y: none;
+  -webkit-overflow-scrolling: touch;
+}
+
 body {
   background-color: var(--app-bg);
   color: white;
@@ -25,6 +31,11 @@ body {
   font-family: 'JetBrains Mono', monospace;
   font-display: swap;
 }
+
+.overscroll-contain {
+  overscroll-behavior: contain;
+}
+
 
 .no-select {
   user-select: none;
