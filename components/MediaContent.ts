@@ -21,6 +21,11 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Блокчейн усуває посередників (банки, платіжні системи), зводячи комісії до мінімуму.',
                     'Усі транзакції публічні та незворотні — їх неможливо стерти чи змінити заднім числом.',
                     'Безпека гарантується криптографією та тисячами незалежних вузлів (нод).'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work', badge: '🟡 Офіційна стаття' },
+                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/glossary/blockchain', badge: '⚪ Гайд українською' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/blockchain/what-is-blockchain-technology/', badge: '🟠 Інтерактивний урок' }
                 ]
             }
         },
@@ -40,6 +45,11 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Bitcoin не підпорядковується жодному центробанку — це математично захищений інструмент збереження вартості.',
                     'Неможливо надрукувати більше ніж 21,000,000 BTC, що робить його твердішим за золото.',
                     'Зберігайте Bitcoin на особистому холодному гаманці для максимальної безпеки.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-bitcoin', badge: '🟡 Офіційна стаття' },
+                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/glossary/bitcoin', badge: '⚪ Гайд українською' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/crypto/what-is-bitcoin-btc/', badge: '🟠 Інтерактивний урок' }
                 ]
             }
         },
@@ -59,6 +69,11 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Смарт-контракти виконуються автоматично в коді без участі юристів чи нотаріусів.',
                     'ETH використовується як паливо (Gas) для оплати обчислень у децентралізованій мережі.',
                     'На базі Ethereum збудовані провідні проекти фінансового світу (Lending, DEX, RWA).'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-ethereum', badge: '🟡 Офіційна стаття' },
+                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/glossary/ethereum', badge: '⚪ Гайд українською' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/blockchain/what-is-ethereum-eth/', badge: '🟠 Інтерактивний урок' }
                 ]
             }
         },
@@ -78,6 +93,10 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'USDT та USDC забезпечені фіатними доларами та короткостроковими облігаціями США.',
                     'Стейблкоїни дозволяють переказувати капітал у мережах TRC20, Arbitrum чи SOL за секунди.',
                     'Диверсифікуйте стейблкоїни (50% USDT / 50% USDC), щоб мінімізувати ризики емітента.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-are-stablecoins', badge: '🟡 Офіційна стаття' },
+                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/glossary/stablecoin', badge: '⚪ Гайд українською' }
                 ]
             }
         },
@@ -97,6 +116,10 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Ніколи не використовуйте прив\'язку через SMS 2FA — шахраї можуть перехопити SIM-карту (SIM-swap).',
                     'Використовуйте тільки апаратні ключі або Google Authenticator / 1Password.',
                     'Збережіть секретний резервний ключ відновлення 2FA на окремому аркуші паперу.'
+                ],
+                officialSources: [
+                    { name: 'Binance Security', url: 'https://academy.binance.com/uk/articles/two-factor-authentication-2fa-security', badge: '🟡 Офіційний гайд 2FA' },
+                    { name: 'WhiteBIT Security', url: 'https://whitebit.com/ua/academy/articles/crypto-security-rules', badge: '⚪ Безпека акаунту' }
                 ]
             }
         },
@@ -116,6 +139,10 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Ніколи не відпускайте крипту («Підтвердити отримання»), поки не перевірите баланс у банківському додатку.',
                     'Торгуйте тільки з верифікованими мерчантами з високим рейтингом успішних угод (>98%).',
                     'Не вказуйте у призначенні платежу слова «крипта», «USDT», «BTC» щоб уникнути фінансового фінмоніторингу.'
+                ],
+                officialSources: [
+                    { name: 'Binance P2P Guide', url: 'https://academy.binance.com/uk/articles/what-is-p2p-trading-and-how-does-it-work', badge: '🟡 Гайд з P2P торгівлі' },
+                    { name: 'Bybit P2P', url: 'https://learn.bybit.com/crypto/how-to-buy-crypto-with-p2p-trading/', badge: '🟠 Інструкція P2P' }
                 ]
             }
         },
@@ -147,6 +174,11 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Початківцям рекомендується починати виключно зі спотового ринку (Spot).',
                     'Ф\'ючерси вимагають суворого виставлення Stop-Loss ордера в момент відкриття кожної угоди.',
                     'Уникайте великих плечей (20x, 50x, 100x) — біржова волатильність гарантовано ліквідує депозит.'
+                ],
+                officialSources: [
+                    { name: 'Binance Futures', url: 'https://academy.binance.com/uk/articles/what-are-forward-and-futures-contracts', badge: '🟡 Ф\'ючерси та Маржа' },
+                    { name: 'Bybit Derivatives', url: 'https://learn.bybit.com/derivatives/what-is-crypto-futures-trading/', badge: '🟠 Кредитне плече' },
+                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/articles/spot-vs-futures', badge: '⚪ Спот vs Ф\'ючерси' }
                 ]
             }
         },
@@ -166,6 +198,10 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Використовуйте Limit-ордери, щоб контролювати точну ціну входу і не переплачувати комісію taker.',
                     'Завжди розраховуйте свій Stop-Loss до входу в угоду, а не після того, як позиція пішла в мінус.',
                     'Take-Profit ордери дозволяють фіксувати прибуток частинами (50% на першій цілі, 50% на другій).'
+                ],
+                officialSources: [
+                    { name: 'Binance Orders', url: 'https://academy.binance.com/uk/articles/understanding-the-different-order-types', badge: '🟡 Гайд по ордерах' },
+                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/articles/order-types', badge: '⚪ Stop-Loss та Limit' }
                 ]
             }
         },
@@ -205,6 +241,10 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Чим довший ґніт (тінь) свічки відносно тіла, тим сильніший сигнал відхилення ціни.',
                     'Пін-бар має вагу тільки на ключових горизонтальних рівнях або ордерблоках, а не посередині діапазону.',
                     'Вхід здійснюється на закритті свічки або на 50% корекції ґнота зі стопом за мінімум.'
+                ],
+                officialSources: [
+                    { name: 'Binance Patterns', url: 'https://academy.binance.com/uk/articles/a-beginners-guide-to-classical-chart-patterns', badge: '🟡 Свічкові патерни' },
+                    { name: 'Bybit Technicals', url: 'https://learn.bybit.com/candlestick-patterns/pin-bar-candlestick-pattern/', badge: '🟠 Pin Bar гайд' }
                 ]
             }
         },
@@ -284,6 +324,11 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Ніколи не зберігайте сід-фразу на комп\'ютері, у хмарі, нотатках чи у вигляді скріншота в телефоні.',
                     'Запишіть 12-24 слова виключно на папері або металевій пластині і сховайте в надійному місці.',
                     'Співробітники підтримки StorkCrypto або біржі ніколи і за жодних обставин не попросять вашу сід-фразу.'
+                ],
+                officialSources: [
+                    { name: 'Binance Wallets', url: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained', badge: '🟡 Типи криптогаманців' },
+                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/articles/crypto-wallets-guide', badge: '⚪ Холодні vs Гарячі' },
+                    { name: 'OKX Web3', url: 'https://www.okx.com/learn/what-is-a-crypto-wallet', badge: '⚫ Web3 гаманці' }
                 ]
             }
         },
@@ -323,6 +368,10 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                     'Якщо актив уже дав великий імпульс — угоду пропущено, чекайте корекції або шукайте іншу монету.',
                     'Усі успішні трейдери мають заздалегідь прописаний торговий план і діють як холодні оператори.',
                     'Ніколи не торгуйте в стані ейфорії після великого профіту або в розпачі після стоп-лоссу.'
+                ],
+                officialSources: [
+                    { name: 'Binance Psychology', url: 'https://academy.binance.com/uk/articles/the-psychology-of-market-cycles', badge: '🟡 Психологія ринку' },
+                    { name: 'Bybit Risk Management', url: 'https://learn.bybit.com/trading/crypto-risk-management/', badge: '🟠 Ризик-менеджмент' }
                 ]
             }
         },

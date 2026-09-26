@@ -323,12 +323,20 @@ export type PatternType = 'BULLISH' | 'BEARISH' | 'NEUTRAL';
 
 export type AcademyCategory = 'BASICS' | 'TRADING' | 'PATTERNS' | 'TECHNICAL' | 'PSYCHOLOGY' | 'SECURITY';
 
+export interface AcademyOfficialSource {
+    name: string;
+    url: string;
+    badge: string;
+    language?: string;
+}
+
 export interface AcademyVideoData {
     youtubeId: string;
     title: string;
     duration: string;
     sourceName: string;
     takeaways: string[];
+    officialSources?: AcademyOfficialSource[];
 }
 
 export interface AcademyTerm {

@@ -3,8 +3,8 @@
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-XSS-Protection: 1; mode=block
-  Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=()
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org https://*.telegram.org; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob:; connect-src 'self' https: wss: data:; frame-ancestors 'self' https://web.telegram.org https://*.telegram.org https://*.run.app https://*.google.com; worker-src 'self' blob:;
+  Permissions-Policy: accelerometer=*, autoplay=*, camera=(), encrypted-media=*, geolocation=(), gyroscope=*, magnetometer=(), microphone=(), picture-in-picture=*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://telegram.org https://*.telegram.org https://www.youtube.com https://s.ytimg.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: https: blob: https://i.ytimg.com https://*.ytimg.com; media-src 'self' https: blob: data:; frame-src 'self' https://www.youtube.com https://*.youtube.com https://www.youtube-nocookie.com https://web.telegram.org https://*.telegram.org; child-src 'self' https://www.youtube.com https://*.youtube.com https://www.youtube-nocookie.com blob:; connect-src 'self' https: wss: data:; frame-ancestors 'self' https://web.telegram.org https://*.telegram.org https://*.run.app https://*.google.com; worker-src 'self' blob:;
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
