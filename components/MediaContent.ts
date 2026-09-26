@@ -1,204 +1,728 @@
 import { AcademyTerm, Language } from '../types';
 
 export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
-    en: [
-        // ==========================================
-        // 1. PATTERNS & SMC (CHART STRUCTURE & CANDLES)
-        // ==========================================
-        { id: 'hns', term: 'Head & Shoulders', category: 'PATTERNS', definition: 'A classic reversal pattern with three peaks (left, head, right). Break of the neckline confirms shift from Bullish to Bearish.', visualType: 'CHART_HEAD_SHOULDERS', example: 'Price failed at $72k, broke neckline at $65k.' },
-        { id: 'bullflag', term: 'Bull Flag', category: 'PATTERNS', definition: 'A bullish continuation pattern. A steep impulsive rise (pole) followed by a tight downward-sloping channel (flag).', visualType: 'CHART_BULL_FLAG', example: 'Consolidation after +15% impulse, breakout upward.' },
-        { id: 'fallingwedge', term: 'Falling Wedge', category: 'PATTERNS', definition: 'Bullish reversal or continuation pattern where price consolidates lower with converging support and resistance lines.', visualType: 'CHART_WEDGE_BULL', example: 'Divergence at lower trendline precedes upside surge.' },
-        { id: 'risingwedge', term: 'Rising Wedge', category: 'PATTERNS', definition: 'Bearish pattern with higher highs and higher lows converging into an apex. Signals buying exhaustion.', visualType: 'CHART_WEDGE_BEAR', example: 'Volume fades as price grinds up into breakdown.' },
-        { id: 'doji', term: 'Doji Candle', category: 'PATTERNS', definition: 'Candlestick where open and close prices are virtually identical. Indicates complete equilibrium and indecision between bulls and bears.', visualType: 'CANDLE_DOJI', example: 'Doji at local resistance warns of reversal.' },
-        { id: 'hammer', term: 'Bullish Hammer', category: 'PATTERNS', definition: 'Bullish reversal candle with a tiny upper body and a long lower wick (at least 2x body), rejecting lower prices.', visualType: 'CANDLE_HAMMER', example: 'Pin-bar bounce off major support.' },
-        { id: 'engulfing', term: 'Bullish Engulfing', category: 'PATTERNS', definition: 'Two-candle reversal where a large green candle body completely overtakes and closes above the prior red candle body.', visualType: 'CANDLE_ENGULFING', example: 'Buyers overpower sellers at daily range low.' },
-        { id: 'morningstar', term: 'Morning Star', category: 'PATTERNS', definition: 'A 3-candle bottom reversal: large red candle, small indecision star candle, followed by strong green candle closing above midpoint.', visualType: 'CANDLE_MORNING_STAR', example: 'Bottom confirmed on the 4H timeframe.' },
-        { id: 'shootingstar', term: 'Shooting Star', category: 'PATTERNS', definition: 'Bearish reversal candle with a small lower body and a long upper wick, showing aggressive seller rejection at highs.', visualType: 'CANDLE_SHOOTING_STAR', example: 'Failed breakout leaves long wick, leads to drop.' },
-        { id: 'cupandhandle', term: 'Cup & Handle', category: 'PATTERNS', definition: 'Bullish continuation structure. A rounded accumulation bottom (cup) followed by a slight downward drift (handle) before expansion.', visualType: 'CHART_CUP_HANDLE', example: 'Long-term accumulation breaking all-time high.' },
-        { id: 'doubletop', term: 'Double Top ("M")', category: 'PATTERNS', definition: 'Bearish reversal pattern. Price hits the same resistance level twice, fails to break, and drops below the interim swing low.', visualType: 'CHART_DOUBLE_TOP', example: 'Exhaustion at $70,000 double rejection.' },
-        { id: 'doublebottom', term: 'Double Bottom ("W")', category: 'PATTERNS', definition: 'Bullish reversal pattern. Price tests key support twice, creates a higher low or equal low, and breaks the neckline upward.', visualType: 'CHART_DOUBLE_BOTTOM', example: 'Support defense at $60,000 bounce.' },
-        { id: 'ascendingtriangle', term: 'Ascending Triangle', category: 'PATTERNS', definition: 'Bullish formation with horizontal upper resistance and ascending higher lows, demonstrating progressive buying pressure.', visualType: 'CHART_ASC_TRIANGLE', example: 'Buyers pressing against $100 ceiling until breakout.' },
-        { id: 'descendingtriangle', term: 'Descending Triangle', category: 'PATTERNS', definition: 'Bearish formation with flat support and descending lower highs, signaling heavy institutional selling pressure.', visualType: 'CHART_DESC_TRIANGLE', example: 'Support repeatedly retested until it snaps.' },
-        { id: 'smc', term: 'Smart Money Concepts (SMC)', category: 'PATTERNS', definition: 'Trading framework focused on institutional order flow, tracking where market makers generate liquidity before real moves.', visualType: 'CHART_SMC', example: 'Liquidity sweep of retail stop losses before true pump.' },
-        { id: 'orderblock', term: 'Order Block (OB)', category: 'PATTERNS', definition: 'The last opposite-colored candle before an explosive market move that breaks structure, where institutional limit orders remain unfilled.', visualType: 'CHART_OB', example: 'Price retested 4H Bullish OB at $62,400 for entry.' },
-        { id: 'fvg', term: 'Fair Value Gap (FVG)', category: 'PATTERNS', definition: 'A 3-candle price imbalance where candle 1 wick and candle 3 wick do not overlap, creating a vacuum that price often revisits.', visualType: 'CHART_FVG', example: 'Limit order placed at 50% FVG (Consequent Encroachment).' },
-        { id: 'bos', term: 'BOS (Break of Structure)', category: 'PATTERNS', definition: 'When price makes a clean candle close beyond the prior swing high (in uptrend) or swing low (in downtrend), confirming trend continuation.', visualType: 'CHART_SMC', example: 'Bullish BOS created with a 4H candle body close.' },
-        { id: 'choch', term: 'CHoCH (Change of Character)', category: 'PATTERNS', definition: 'The very first structural break of the opposing swing point, indicating potential reversal from bearish to bullish (or vice versa).', visualType: 'CHART_SMC', example: 'CHoCH signaled early bottom before macro trend reversed.' },
-        { id: 'liquiditysweep', term: 'Liquidity Sweep (BSL / SSL)', category: 'PATTERNS', definition: 'A quick wick above Equal Highs (BSL) or below Equal Lows (SSL) to hunt stop losses and activate breakout orders before reversing.', visualType: 'CHART_SMC', example: 'Sweep of Asian session high, followed by aggressive drop.' },
-        { id: 'breakerblock', term: 'Breaker Block', category: 'PATTERNS', definition: 'A failed Order Block that was violated during a liquidity sweep. When price returns, the broken block flips into powerful opposing support/resistance.', visualType: 'CHART_OB', example: 'Bearish order block broken; now tested as bullish breaker.' },
-
-        // ==========================================
-        // 2. TECHNICAL INDICATORS & MARKET MECHANICS
-        // ==========================================
-        { id: 'rsi', term: 'RSI (Relative Strength Index)', category: 'TECHNICAL', definition: 'Oscillator (0-100) measuring momentum speed. Readings >70 denote overbought conditions; <30 indicate oversold territory.', example: 'Bullish RSI divergence: lower price low with higher RSI low.', visualType: 'NONE' },
-        { id: 'macd', term: 'MACD (Moving Average Convergence Divergence)', category: 'TECHNICAL', definition: 'Trend-following momentum indicator displaying the relationship between two EMAs (typically 12 and 26). Crosses signal momentum shifts.', example: 'MACD Golden Cross above zero line confirms bull run.', visualType: 'NONE' },
-        { id: 'bollinger', term: 'Bollinger Bands', category: 'TECHNICAL', definition: 'Volatility envelopes set 2 standard deviations above and below a 20-period SMA. Tight band squeezes anticipate volatile explosive breakouts.', example: 'Band squeeze on 1D chart led to a +25% breakout.', visualType: 'NONE' },
-        { id: 'fibonacci', term: 'Fibonacci Retracement (Golden Pocket)', category: 'TECHNICAL', definition: 'Horizontal ratio levels based on the golden spiral. The 0.618 - 0.65 zone ("Golden Pocket") is the highest probability reversal zone in a trend.', example: 'Long entry precisely at the 0.618 retracement level.', visualType: 'NONE' },
-        { id: 'ema', term: 'EMA 200 & EMA 50 (Death / Golden Cross)', category: 'TECHNICAL', definition: 'Exponential Moving Averages weighting recent prices. EMA 50 crossing above EMA 200 is a "Golden Cross"; crossing below is a "Death Cross".', example: 'Price holding above 200 EMA keeps long-term bull trend intact.', visualType: 'NONE' },
-        { id: 'volume', term: 'Volume Profile & POC (Point of Control)', category: 'TECHNICAL', definition: 'Displays volume traded at specific price levels rather than over time. The POC is the single price level with the highest traded volume.', example: 'POC retest acted as impenetrable support during correction.', visualType: 'NONE' },
-        { id: 'fundingrate', term: 'Funding Rate (Perpetual Futures)', category: 'TECHNICAL', definition: 'Periodic payments between long and short traders to anchor perp prices to spot. High positive rates (>0.05%) mean longs pay shorts, signaling overheating.', example: 'Extreme negative funding preceded massive short squeeze.', visualType: 'NONE' },
-        { id: 'openinterest', term: 'Open Interest (OI)', category: 'TECHNICAL', definition: 'Total number of active, outstanding derivative contracts that have not been settled. Rising price + rising OI = genuine aggressive trend.', example: 'Price dropped with falling OI = simple long liquidation, not new shorting.', visualType: 'NONE' },
-        { id: 'cvd', term: 'CVD (Cumulative Volume Delta)', category: 'TECHNICAL', definition: 'Measures net difference between market buy volume and market sell volume. Divergence with price reveals aggressive absorption by limit orders.', example: 'Bullish CVD divergence: Price made equal low while CVD formed higher high.', visualType: 'NONE' },
-        { id: 'liqheatmap', term: 'Liquidation Heatmap', category: 'TECHNICAL', definition: 'Visual heat map highlighting price clusters where retail traders leverage stop-outs and forced liquidations sit. Prices act like magnets toward these zones.', example: 'Price wicked up into the $68k liquidation cluster before dropping.', visualType: 'NONE' },
-        { id: 'orderbookdepth', term: 'Order Book Depth & Spoofing', category: 'TECHNICAL', definition: 'Bid/Ask depth showing resting limit orders. Spoofing is a manipulative practice of placing large fake orders and canceling before execution.', example: 'Fake 500 BTC bid wall pulled just as price reached it.', visualType: 'NONE' },
-
-        // ==========================================
-        // 3. PSYCHOLOGY, RISK MANAGEMENT & SIZING
-        // ==========================================
-        { id: 'riskreward', term: 'Risk-to-Reward Ratio (R:R)', category: 'PSYCHOLOGY', definition: 'Mathematical relationship between prospective loss and prospective gain. With 1:3 R:R, you can be wrong 60% of the time and still remain profitable.', example: 'Risk $100 to make $300 (1:3 R:R setup).', visualType: 'NONE' },
-        { id: 'onepercentrule', term: 'The 1% Rule (Position Sizing)', category: 'PSYCHOLOGY', definition: 'Never risk more than 1% to 2% of your total capital on a single trade idea. Position size = (Account * 1%) / Stop Loss distance.', example: '$10,000 account risks max $100 per invalidation.', visualType: 'NONE' },
-        { id: 'fomo', term: 'FOMO (Fear Of Missing Out)', category: 'PSYCHOLOGY', definition: 'The emotional impulse to buy an asset after it has already pumped violently, driven by greed and social envy. Most retail money is lost here.', example: 'Buying a meme token after a 300% green candle.', visualType: 'NONE' },
-        { id: 'fud', term: 'FUD (Fear, Uncertainty, Doubt)', category: 'PSYCHOLOGY', definition: 'Negative or misleading information coordinated to depress market sentiment and induce panic selling so institutions can buy cheaply.', example: 'Selling on recycled ban rumors only to watch price rebound.', visualType: 'NONE' },
-        { id: 'revengetrading', term: 'Revenge Trading', category: 'PSYCHOLOGY', definition: 'Trading immediately after a painful loss with oversized leverage to recover losses quickly. The #1 cause of complete account blowouts.', example: 'Doubled position size on tilt after getting stopped out.', visualType: 'NONE' },
-        { id: 'dca', term: 'DCA (Dollar-Cost Averaging)', category: 'PSYCHOLOGY', definition: 'Investing a fixed dollar amount at regular time intervals regardless of price, removing emotional market timing and volatility stress.', example: 'Allocating $50 into BTC every Monday automatically.', visualType: 'NONE' },
-        { id: 'diamondhands', term: 'Diamond Hands vs Paper Hands', category: 'PSYCHOLOGY', definition: '"Diamond Hands" maintain high-conviction positions through drawdowns; "Paper Hands" panic sell at the first minor red candle.', example: 'HODLing spot bags through -30% market shakeouts.', visualType: 'NONE' },
-        { id: 'biasconfirmation', term: 'Confirmation Bias & Sunken Cost', category: 'PSYCHOLOGY', definition: 'Seeking only opinions that confirm your losing trade while ignoring technical breakdown. Professional traders cut losers dispassionately.', example: 'Refusing to close invalid trade hoping for a miracle bounce.', visualType: 'NONE' },
-
-        // ==========================================
-        // 4. SECURITY, SCAM PROTECTION & ON-CHAIN
-        // ==========================================
-        { id: 'seed', term: 'Seed Phrase (Secret Recovery Phrase)', category: 'SECURITY', definition: 'A 12 or 24-word master key that derives all private keys. Anyone with this phrase possesses absolute, irreversible control of your funds.', example: 'Store offline on stainless steel; NEVER enter online.', visualType: 'NONE' },
-        { id: '2fa', term: '2FA (Two-Factor Authentication)', category: 'SECURITY', definition: 'Time-based one-time password (TOTP) security layer. Always use hardware keys (YubiKey) or Google/Apple Authenticator—never SMS 2FA.', example: 'SMS swap vector prevented by using hardware authenticator.', visualType: 'NONE' },
-        { id: 'coldstorage', term: 'Cold Storage (Hardware Wallets)', category: 'SECURITY', definition: 'Specialized hardware keeping private keys in a secure enclave, completely isolated from internet-connected devices (e.g., Ledger, Trezor, Keystone).', example: 'Keeping 90% of long-term crypto assets in cold storage.', visualType: 'NONE' },
-        { id: 'drainers', term: 'Drainers & Permit Signatures', category: 'SECURITY', definition: 'Malicious scripts that exploit gasless ERC-20 permit/setApprovalForAll signatures. One blind click grants the attacker permission to empty your wallet.', example: 'Revoke permissions immediately via revoke.cash.', visualType: 'NONE' },
-        { id: 'addresspoisoning', term: 'Address Poisoning', category: 'SECURITY', definition: 'Scammers generate vanity addresses with identical first and last 4 characters and send tiny zero-value transactions, hoping you copy from history.', example: 'Always verify full address characters, never copy from history.', visualType: 'NONE' },
-        { id: 'honeypot', term: 'Honeypot & 100% Tax Tokens', category: 'SECURITY', definition: 'A fraudulent smart contract that allows you to buy but contains code blocking the `sell()` function, effectively trapping 100% of your funds.', example: 'Checked DexScreener & Honeypot.is before buying new token.', visualType: 'NONE' },
-        { id: 'slippage', term: 'Slippage Tolerance & MEV Sandwiches', category: 'SECURITY', definition: 'The difference between expected trade price and execution price. Setting slippage too high (>2%) invites MEV bots to frontrun and sandwich your DEX swap.', example: 'Used private RPC (Flashbots) and 0.5% tight slippage.', visualType: 'NONE' },
-        { id: 'fdv', term: 'Market Cap vs FDV (Fully Diluted Valuation)', category: 'SECURITY', definition: 'Circulating Market Cap = Current tokens * Price. FDV = Total max supply * Price. High FDV with low circulation creates brutal token unlock dumps.', example: 'Token had $100M cap but $5B FDV; dumped 80% on unlocks.', visualType: 'NONE' },
-        { id: 'smartcontract', term: 'Smart Contract Audit & Admin Keys', category: 'SECURITY', definition: 'Code vulnerabilities or centralized owner keys (upgradeability, mint functions) that allow creators to rug pull or freeze tokens.', example: 'Contract had an unrenounced mint() backdoor.', visualType: 'NONE' },
-    ],
-
     ua: [
         // ==========================================
-        // 1. ПАТЕРНИ ТА СТРУКТУРА SMC
+        // 1. ОСНОВИ КРИПТОВАЛЮТ ТА РЕЄСТРАЦІЯ (BASICS)
         // ==========================================
-        { id: 'hns', term: 'Голова і Плечі', category: 'PATTERNS', definition: 'Класичний патерн розвороту з трьома вершинами (ліве плече, голова, праве плече). Пробиття лінії шиї вниз підтверджує перехід до ведмежого тренду.', visualType: 'CHART_HEAD_SHOULDERS', example: 'Ціна не змогла оновити максимум і пробила шию на $65k.' },
-        { id: 'bullflag', term: 'Бичачий Прапор', category: 'PATTERNS', definition: 'Патерн продовження бичачого тренду. Складається з різкого імпульсу вгору (флагшток) та короткої низхідної корекції (полотно прапора).', visualType: 'CHART_BULL_FLAG', example: 'Консолідація після +15% росту завершилася імпульсом вгору.' },
-        { id: 'fallingwedge', term: 'Падаючий Клин', category: 'PATTERNS', definition: 'Бичачий розворотний патерн. Ціна знижується у звуженому діапазоні між двома лініями, що сходяться. Сигналізує про виснаження продавців.', visualType: 'CHART_WEDGE_BULL', example: 'Бичача дивергенція на клині призвела до пробою вгору.' },
-        { id: 'risingwedge', term: 'Зростаючий Клин', category: 'PATTERNS', definition: 'Ведмежий розворотний патерн. Ціна росте, але верхи й низи звужуються, а обсяги падають. Передвіщає різкий спад.', visualType: 'CHART_WEDGE_BEAR', example: 'Згасання обсягів на зростанні спричинило пробій підтримки.' },
-        { id: 'doji', term: 'Свічка Доджі', category: 'PATTERNS', definition: 'Свічка, де ціни відкриття та закриття майже ідентичні. Означає абсолютну нерішучість та рівновагу сил між биками та ведмедями.', visualType: 'CANDLE_DOJI', example: 'Доджі на піку денного графіку попередив про розворот.' },
-        { id: 'hammer', term: 'Бичачий Молот (Hammer)', category: 'PATTERNS', definition: 'Розворотна свічка з маленьким тілом угорі та довгим нижнім ґнотом (удвічі довшим за тіло). Демонструє агресивне відхилення низьких цін.', visualType: 'CANDLE_HAMMER', example: 'Молот на рівні підтримки дав впевнену точку входу в лонг.' },
-        { id: 'engulfing', term: 'Бичаче Поглинання', category: 'PATTERNS', definition: 'Потужна розворотна комбінація, де тіло зеленої свічки повністю перекриває тіло попередньої червоної свічки.', visualType: 'CANDLE_ENGULFING', example: 'Покупці перехопили ініціативу на ключовому рівні.' },
-        { id: 'morningstar', term: 'Ранкова Зірка (Morning Star)', category: 'PATTERNS', definition: 'Трисвічкова модель розвороту на дні: довга червона свічка, свічка невизначеності з розривом і сильна зелена свічка.', visualType: 'CANDLE_MORNING_STAR', example: 'Формування на 4H таймфреймі підтвердило дно корекції.' },
-        { id: 'shootingstar', term: 'Падаюча Зірка (Shooting Star)', category: 'PATTERNS', definition: 'Ведмежа свічка розвороту з маленьким нижнім тілом та довгим верхнім ґнотом, що свідчить про жорстку відсіч покупцям на максимумі.', visualType: 'CANDLE_SHOOTING_STAR', example: 'Спроба вийти на новий хай закінчилася довгим ґнотом і зливом.' },
-        { id: 'cupandhandle', term: 'Чашка з Ручкою', category: 'PATTERNS', definition: 'Бичачий патерн довгострокового накопичення: плавне заокруглене дно (чашка) та невелика корекція (ручка) перед вибуховим пробоєм.', visualType: 'CHART_CUP_HANDLE', example: 'Накопичення обсягів тривало 3 місяці перед виходом на ATH.' },
-        { id: 'doubletop', term: 'Подвійна Вершина ("M")', category: 'PATTERNS', definition: 'Ведмежий патерн. Ціна двічі тестує один і той самий рівень опору, не може його подолати та пробиває локальний мінімум униз.', visualType: 'CHART_DOUBLE_TOP', example: 'Невдалий штурм $70,000 сформував подвійну вершину.' },
-        { id: 'doublebottom', term: 'Подвійне Дно ("W")', category: 'PATTERNS', definition: 'Бичачий розворотний патерн. Ціна двічі відштовхується від сильної зони підтримки, формуючи основу для росту.', visualType: 'CHART_DOUBLE_BOTTOM', example: 'Відскок від $60,000 сформував стійку платформу покупців.' },
-        { id: 'ascendingtriangle', term: 'Висхідний Трикутник', category: 'PATTERNS', definition: 'Бичача фігура з горизонтальним рівнем опору та підвищенням локальних мінімумів, що демонструє зростаючий тиск покупців.', visualType: 'CHART_ASC_TRIANGLE', example: 'Покупці постійно підтискають ціну до опору $100.' },
-        { id: 'descendingtriangle', term: 'Низхідний Трикутник', category: 'PATTERNS', definition: 'Ведмежа фігура з пласким рівнем підтримки та постійним зниженням вершин. Сигналізує про поступове продавлювання ціни вниз.', visualType: 'CHART_DESC_TRIANGLE', example: 'Підтримка слабшала з кожним ударом і врешті була пробита.' },
-        { id: 'smc', term: 'Smart Money Concepts (SMC)', category: 'PATTERNS', definition: 'Торгова методологія, що відстежує дії маркетмейкерів та банків: збір ліквідності натовпу перед формуванням справжнього напрямку ціни.', visualType: 'CHART_SMC', example: 'Збір стопів роздрібних трейдерів перед потужним лонгом.' },
-        { id: 'orderblock', term: 'Ордер Блок (OB)', category: 'PATTERNS', definition: 'Остання свічка перед сильним імпульсом, де великий гравець залишив незаповнені лімітні ордери. Виступає міцною магнітною зоною підтримки/опору.', visualType: 'CHART_OB', example: 'Ціна повернулася на тест бичачого OB на рівні $62,400.' },
-        { id: 'fvg', term: 'Імбаланс / Розрив Ціни (FVG)', category: 'PATTERNS', definition: 'Трисвічкова цінова неефективність, де ґніт 1-ї та 3-ї свічок не торкаються один одного, утворюючи пустоту. Ціна майже завжди повертається заповнити її.', visualType: 'CHART_FVG', example: 'Вхід лімітним ордером від 50% зони FVG.' },
-        { id: 'bos', term: 'BOS (Break of Structure)', category: 'PATTERNS', definition: 'Пробиття ключового екстремуму тілом свічки за напрямком тренду, що підтверджує його здорове продовження.', visualType: 'CHART_SMC', example: 'Закриття 4H свічки вище попереднього максимуму підтвердило BOS.' },
-        { id: 'choch', term: 'CHoCH (Зміна Характеру Ринку)', category: 'PATTERNS', definition: 'Перше пробиття протилежного структурного рівня на молодшому таймфреймі. Ранній сигнал розвороту тренду з низхідного на висхідний.', visualType: 'CHART_SMC', example: 'CHoCH на 15m вказав на закінчення корекції старшого таймфрейму.' },
-        { id: 'liquiditysweep', term: 'Збір Ліквідності (Sweep BSL/SSL)', category: 'PATTERNS', definition: 'Хибний імпульс за рівні максимуми (Equal Highs) або мінімуми для активації стоп-лоссів натовпу перед швидким розворотом у протилежний бік.', visualType: 'CHART_SMC', example: 'Зняли ліквідність азійської сесії та пішли в глибоке падіння.' },
-        { id: 'breakerblock', term: 'Брейкер Блок (Breaker Block)', category: 'PATTERNS', definition: 'Пробитий ордер-блок, за яким зняли ліквідність. При поверненні ціни він дзеркально перетворюється на підтримку (або опір).', visualType: 'CHART_OB', example: 'Пробитий ведмежий блок став міцною бичачою підтримкою.' },
+        {
+            id: 'blockchain_basics',
+            term: 'Що таке Блокчейн і як він працює',
+            category: 'BASICS',
+            definition: 'Децентралізований розподілений цифровий реєстр, де записи об\'єднуються у криптографічно захищені ланцюжки блоків. Жоден банк або держава не можуть підробити чи скасувати транзакцію.',
+            example: 'Кожен вузол мережі перевіряє справжність переказу за математичним консенсусом.',
+            visualType: 'CHART_SMC',
+            videoData: {
+                youtubeId: 'SSo_EIwHSd4',
+                title: 'What is Blockchain Technology and How Does It Work?',
+                duration: '5:42',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Блокчейн усуває посередників (банки, платіжні системи), зводячи комісії до мінімуму.',
+                    'Усі транзакції публічні та незворотні — їх неможливо стерти чи змінити заднім числом.',
+                    'Безпека гарантується криптографією та тисячами незалежних вузлів (нод).'
+                ]
+            }
+        },
+        {
+            id: 'bitcoin_intro',
+            term: 'Bitcoin (BTC) — Цифрове Золото та Халвінг',
+            category: 'BASICS',
+            definition: 'Перша та головна криптовалюта у світі, створена Сатоші Накамото. Має суворо обмежену емісію в 21 мільйон монет та автоматичний халвінг кожні 4 роки, що захищає від інфляції.',
+            example: 'Халвінг зменшує нагороду майнерам удвічі, створюючи дефіцит пропозиції.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'bBC-nXj3Ng4',
+                title: 'What is Bitcoin and How Does It Work?',
+                duration: '6:15',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Bitcoin не підпорядковується жодному центробанку — це математично захищений інструмент збереження вартості.',
+                    'Неможливо надрукувати більше ніж 21,000,000 BTC, що робить його твердішим за золото.',
+                    'Зберігайте Bitcoin на особистому холодному гаманці для максимальної безпеки.'
+                ]
+            }
+        },
+        {
+            id: 'ethereum_contracts',
+            term: 'Ethereum (ETH) та Смарт-контракти',
+            category: 'BASICS',
+            definition: 'Глобальний децентралізований суперкомп\'ютер (EVM), на якому працюють самовиконувані програми — смарт-контракти. Є фундаментальною базою для DeFi, NFT та стейблкоїнів.',
+            example: 'Смарт-контракт автоматично переказує кошти покупцю одразу після виконання умови.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'j93DXauPDr8',
+                title: 'What is Ethereum and What are Smart Contracts?',
+                duration: '7:20',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Смарт-контракти виконуються автоматично в коді без участі юристів чи нотаріусів.',
+                    'ETH використовується як паливо (Gas) для оплати обчислень у децентралізованій мережі.',
+                    'На базі Ethereum збудовані провідні проекти фінансового світу (Lending, DEX, RWA).'
+                ]
+            }
+        },
+        {
+            id: 'stablecoins_intro',
+            term: 'Стейблкоїни (USDT, USDC): Механіка прив\'язки',
+            category: 'BASICS',
+            definition: 'Криптовалюти зі стабільною ціною 1:1 до долара США. Дозволяють фіксувати торговий прибуток та миттєво переказувати капітал між біржами без банківських затримок.',
+            example: 'Зафіксував 70% профіту в USDT під час піку волатильності ринку.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'f_2cE5W1Y7o',
+                title: 'What Are Stablecoins and How Do They Work?',
+                duration: '6:05',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'USDT та USDC забезпечені фіатними доларами та короткостроковими облігаціями США.',
+                    'Стейблкоїни дозволяють переказувати капітал у мережах TRC20, Arbitrum чи SOL за секунди.',
+                    'Диверсифікуйте стейблкоїни (50% USDT / 50% USDC), щоб мінімізувати ризики емітента.'
+                ]
+            }
+        },
+        {
+            id: 'account_security_2fa',
+            term: 'Реєстрація акаунту, Верифікація (KYC) та 2FA',
+            category: 'BASICS',
+            definition: 'Базовий протокол підготовки трейдера: реєстрація на платформі, проходження перевірки особи (KYC) та обов\'язкове підключення двофакторної автентифікації через додаток (Google Authenticator).',
+            example: 'Захист 2FA унеможливлює злам акаунту навіть у разі крадіжки основного пароля.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'QJNCi9U8h-c',
+                title: 'Account Security & How to Enable 2FA Authenticator',
+                duration: '4:50',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Ніколи не використовуйте прив\'язку через SMS 2FA — шахраї можуть перехопити SIM-карту (SIM-swap).',
+                    'Використовуйте тільки апаратні ключі або Google Authenticator / 1Password.',
+                    'Збережіть секретний резервний ключ відновлення 2FA на окремому аркуші паперу.'
+                ]
+            }
+        },
+        {
+            id: 'p2p_trading_guide',
+            term: 'P2P Торгівля: Купівля з картки без посередників',
+            category: 'BASICS',
+            definition: 'Peer-to-Peer торгівля дозволяє купувати та продавати USDT, BTC чи ETH напряму іншим людям за банківську гривню (UAH) або долари. Біржа виступає безпечним гарантом (Escrow).',
+            example: 'Поки продавець не отримав гривню на свою картку, крипта заморожена в арбітражі біржі.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'gL3lKz_Gj9A',
+                title: 'A Beginner\'s Guide to P2P Crypto Trading and Security',
+                duration: '8:45',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Ніколи не відпускайте крипту («Підтвердити отримання»), поки не перевірите баланс у банківському додатку.',
+                    'Торгуйте тільки з верифікованими мерчантами з високим рейтингом успішних угод (>98%).',
+                    'Не вказуйте у призначенні платежу слова «крипта», «USDT», «BTC» щоб уникнути фінансового фінмоніторингу.'
+                ]
+            }
+        },
+        {
+            id: 'p2p_scam_prevention',
+            term: 'P2P Безпека: Шахрайські схеми та захист',
+            category: 'BASICS',
+            definition: 'Правила протидії класичним P2P-аферам: фейкові банківські SMS, підроблені чеки про оплату, шахрайські трикутники та відкликання платежів через чарджбек.',
+            example: 'Покупець скинув підроблений скріншот, але баланс банку не змінився — ордер оскаржено.',
+            visualType: 'NONE'
+        },
 
         // ==========================================
-        // 2. ТЕХНІЧНІ ІНДИКАТОРИ ТА МЕХАНІКА РИНКУ
+        // 2. МЕХАНІКА ТОРГІВЛІ ТА ОРДЕРИ (TRADING)
         // ==========================================
-        { id: 'rsi', term: 'RSI (Індекс Відносної Сили)', category: 'TECHNICAL', definition: 'Осцилятор (0-100), що вимірює швидкість руху ціни. Значення >70 свідчать про перекупленість, а <30 — про локальну перепроданість активу.', example: 'Бичача дивергенція: ціна впала нижче, а RSI виріс.', visualType: 'NONE' },
-        { id: 'macd', term: 'MACD (Сходження/Розходження)', category: 'TECHNICAL', definition: 'Трендовий індикатор на базі двох ковзних середніх (12 та 26). Перетин сигнальної лінії («Золотий хрест») вказує на зародження висхідного імпульсу.', example: 'Перетин ліній вище нуля дав сильний сигнал на покупку.', visualType: 'NONE' },
-        { id: 'bollinger', term: 'Смуги Боллінджера', category: 'TECHNICAL', definition: 'Канали волатильності навколо 20-періодної середньої. Сильне звуження смуг (стиснення волатильності) завжди передує потужному вибуху ціни.', example: 'Стиснення смуг на 1D завершилося виходом на +20%.', visualType: 'NONE' },
-        { id: 'fibonacci', term: 'Рівні Фібоначчі (Golden Pocket)', category: 'TECHNICAL', definition: 'Горизонтальні коефіцієнти золотого перетину. Зона між 0.618 та 0.65 вважається «золотим кишенею» з найвищою ймовірністю відскоку в тренді.', example: 'Ідеальний вхід у лонг від рівня корекції 0.618.', visualType: 'NONE' },
-        { id: 'ema', term: 'EMA 200 & EMA 50 (Золотий / Смертельний Хрест)', category: 'TECHNICAL', definition: 'Експоненційні ковзні середні. Перетин 50 EMA вище 200 EMA — це Золотий Хрест (глобальний бичачий тренд); перетин униз — Смертельний Хрест.', example: 'Утримання ціни над 200 EMA підтверджує силу ринку.', visualType: 'NONE' },
-        { id: 'volume', term: 'Профіль Об\'єму та POC (Point of Control)', category: 'TECHNICAL', definition: 'Гістограма проторгованого об\'єму за ціновими рівнями, а не часом. Рівень POC має найбільший накопичений обсяг і виступає магнітом для ціни.', example: 'Тест рівня POC на $64k спрацював як непробивна підтримка.', visualType: 'NONE' },
-        { id: 'fundingrate', term: 'Funding Rate (Ставка Фінансування)', category: 'TECHNICAL', definition: 'Регулярні виплати між лонгами та шортами на безстрокових ф\'ючерсах. Високий позитивний фандінг свідчить про перегрів лонгів та ризик сквізу вниз.', example: 'Екстремально негативний фандінг викликав шорт-сквіз на $3000.', visualType: 'NONE' },
-        { id: 'openinterest', term: 'Open Interest (Відкритий Інтерес)', category: 'TECHNICAL', definition: 'Загальна кількість відкритих активних контрактів на деривативах. Зростання ціни разом зі зростанням OI означає приплив свіжих грошей у тренд.', example: 'Спад ціни при падінні OI вказав на просте закриття лонгів.', visualType: 'NONE' },
-        { id: 'cvd', term: 'CVD (Кумулятивна Дельта Об\'єму)', category: 'TECHNICAL', definition: 'Різниця між ринковими покупками та продажами. Дивергенція з графіком розкриває приховане лімітне поглинання великими гравцями.', example: 'Ціна стояла на місці, а CVD росла — маркетмейкер накопичував лонг.', visualType: 'NONE' },
-        { id: 'liqheatmap', term: 'Карта Ліквідацій (Heatmap)', category: 'TECHNICAL', definition: 'Візуальна карта цінових рівнів, де скупчені примусові ліквідації позицій натовпу з великим плечем. Ціна рухається до них як до джерела палива.', example: 'Ціна шпилькою зняла ліквідації на $68k і різко розвернулася.', visualType: 'NONE' },
-        { id: 'orderbookdepth', term: 'Стакан Ордерів та Спуфінг (Spoofing)', category: 'TECHNICAL', definition: 'Глибина лімітних заявок (Bid/Ask). Спуфінг — це маніпуляція, коли боти ставлять величезну стіну, щоб налякати ринок, і знімають її перед виконанням.', example: 'Фальшиву стінку на 500 BTC прибрали перед самим підходом ціни.', visualType: 'NONE' },
+        {
+            id: 'spot_vs_futures',
+            term: 'Спот проти Ф\'ючерсів: Різниця та Кредитне Плече',
+            category: 'TRADING',
+            definition: 'На Спотовому ринку ви купуєте реальну монету і володієте нею без ризику примусової ліквідації. На Ф\'ючерсах ви торгуєте ціновими контрактами з кредитним плечем (Leverage), де є ризик повної втрати маржі.',
+            example: 'Плече 10х множить прибуток у 10 разів, але рух ціни на 10% проти вас повністю ліквідує позицію.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'w_3B_wX-f2M',
+                title: 'Spot vs Futures Trading: Understanding the Risks and Leverage',
+                duration: '9:30',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Початківцям рекомендується починати виключно зі спотового ринку (Spot).',
+                    'Ф\'ючерси вимагають суворого виставлення Stop-Loss ордера в момент відкриття кожної угоди.',
+                    'Уникайте великих плечей (20x, 50x, 100x) — біржова волатильність гарантовано ліквідує депозит.'
+                ]
+            }
+        },
+        {
+            id: 'orders_guide',
+            term: 'Типи ордерів: Market, Limit, Stop-Loss та Take-Profit',
+            category: 'TRADING',
+            definition: 'Market-ордер виконується миттєво за поточною ціною зі стакана. Limit-ордер чекає на обрану вами ціну зі зниженою комісією. Stop-Loss автоматично обмежує збитки, якщо ринок пішов проти вас.',
+            example: 'Виставив Limit-ордер на купівлю біткоїна за $62,000 зі стопом на $60,800.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'B3nIq2m2j7c',
+                title: 'How to Use Market, Limit, and Stop-Loss Orders',
+                duration: '7:15',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Використовуйте Limit-ордери, щоб контролювати точну ціну входу і не переплачувати комісію taker.',
+                    'Завжди розраховуйте свій Stop-Loss до входу в угоду, а не після того, як позиція пішла в мінус.',
+                    'Take-Profit ордери дозволяють фіксувати прибуток частинами (50% на першій цілі, 50% на другій).'
+                ]
+            }
+        },
+        {
+            id: 'risk_reward_calc',
+            term: 'Розрахунок Risk-to-Reward (R:R 1:3) та Розмір Позиції',
+            category: 'TRADING',
+            definition: 'Математичний фундамент прибуткового трейдера: відкривати угоди лише тоді, коли потенційний прибуток перевищує ризик у 2-3 рази. Навіть при 40% успішних угод ви залишатиметесь у плюсі.',
+            example: 'Ризик $30 заради прибутку $90 дає ідеальне співвідношення R:R 1:3.',
+            visualType: 'NONE'
+        },
+        {
+            id: 'orderbook_depth',
+            term: 'Стакан ордерів (Order Book) та Спуфінг',
+            category: 'TRADING',
+            definition: 'Реальний список лімітних заявок на купівлю (Bid) та продаж (Ask). Великі гравці інколи виставляють фіктивні стіни ордерів (спуфінг), щоб залякати натовп, і прибирають їх перед самим виконанням.',
+            example: 'Фальшиву стінку на 500 BTC прибрали перед самим підходом ціни.',
+            visualType: 'NONE'
+        },
 
         // ==========================================
-        // 3. ПСИХОЛОГІЯ, МЕНЕДЖМЕНТ РИЗИКУ ТА КАПІТАЛ
+        // 3. СВІЧКИ, ПІН-БАРИ ТА ПАТЕРНИ (PATTERNS)
         // ==========================================
-        { id: 'riskreward', term: 'Співвідношення Ризик/Прибуток (R:R)', category: 'PSYCHOLOGY', definition: 'Математичне співвідношення потенційного збитку до профіту. За умови RR 1:3 ви можете помилятися у 60% угод і все одно стабільно збільшувати депозит.', example: 'Ризикуємо $100 заради цілі в $300 (R:R 1:3).', visualType: 'NONE' },
-        { id: 'onepercentrule', term: 'Правило 1% Ризику на Угоду', category: 'PSYCHOLOGY', definition: 'Золоте правило професіоналів: максимальний ризик у разі спрацювання стоп-лоссу не повинен перевищувати 1-2% від загального розміру вашого депозиту.', example: 'Депозит $10,000 — максимальний стоп $100 на угоду.', visualType: 'NONE' },
-        { id: 'fomo', term: 'FOMO (Страх Втраченої Вигоди)', category: 'PSYCHOLOGY', definition: 'Непереборне бажання купити монету, яка вже дала шалений ріст, через заздрість та страх упустити легкі гроші. Головна причина зливів новачків.', example: 'Купівля мемкоїна на піку після трьох зелених свічок.', visualType: 'NONE' },
-        { id: 'fud', term: 'FUD (Страх, Невизначеність, Сумнів)', category: 'PSYCHOLOGY', definition: 'Поширення дезінформації або тривожних новин у ЗМІ з метою викликати панічні продажі у натовпу, щоб великі фонди могли відкупити дно.', example: 'Панічний продаж на новинах про заборону, після чого ринок полетів вгору.', visualType: 'NONE' },
-        { id: 'revengetrading', term: 'Торгівля з Помсти (Тильт)', category: 'PSYCHOLOGY', definition: 'Спроба миттєво відіграти втрачений збиток, відкриваючи несистемні угоди з гігантським плечем. Найшвидший шлях до повної ліквідації рахунку.', example: 'Отримав стоп на $50 і залетів у 50х плече всією котлетою.', visualType: 'NONE' },
-        { id: 'dca', term: 'DCA (Усереднення Доларової Вартості)', category: 'PSYCHOLOGY', definition: 'Стратегія інвестування фіксованої суми грошей через регулярні проміжки часу незалежно від ціни. Знімає стрес від спроб зловити дно.', example: 'Купівля BTC на $50 кожного понеділка незалежно від новин.', visualType: 'NONE' },
-        { id: 'diamondhands', term: 'Діамантові та Паперові Руки', category: 'PSYCHOLOGY', definition: '«Діамантові руки» — здатність тримати перспективні активи під час жорстких просадок; «Паперові руки» продають на першій же червоній свічці.', example: 'Холдив спотові позиції під час 30% ринкового падіння.', visualType: 'NONE' },
-        { id: 'biasconfirmation', term: 'Упередження Підтвердження та Тильт', category: 'PSYCHOLOGY', definition: 'Психологічна пастка, коли трейдер шукає в інтернеті лише думки на користь своєї збиткової позиції та відмовляється закрити помилкову угоду.', example: 'Шукав пости аналітиків про туземун, коли ціна вже пробила стоп.', visualType: 'NONE' },
+        {
+            id: 'pinbar_hammer',
+            term: 'Бичачий Молот та Пін-бар (Pin Bar Rejection)',
+            category: 'PATTERNS',
+            definition: 'Класична свічка розвороту з крихітним тілом угорі та довгим нижнім ґнотом (удвічі довшим за тіло). Демонструє миттєве агресивне відхилення продавців сильним покупцем.',
+            example: 'Пін-бар на денному рівні підтримки дав бездоганний сигнал для відкриття лонгу.',
+            visualType: 'CANDLE_HAMMER',
+            videoData: {
+                youtubeId: 'W3pB58_v6fA',
+                title: 'How to Trade Pin Bars and Candlestick Reversal Patterns',
+                duration: '8:50',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Чим довший ґніт (тінь) свічки відносно тіла, тим сильніший сигнал відхилення ціни.',
+                    'Пін-бар має вагу тільки на ключових горизонтальних рівнях або ордерблоках, а не посередині діапазону.',
+                    'Вхід здійснюється на закритті свічки або на 50% корекції ґнота зі стопом за мінімум.'
+                ]
+            }
+        },
+        {
+            id: 'doji',
+            term: 'Свічка Доджі (Doji)',
+            category: 'PATTERNS',
+            definition: 'Свічка, де ціна відкриття та закриття майже ідентичні. Означає стан абсолютної рівноваги між биками та ведмедями і часто передує розвороту виснаженого тренду.',
+            example: 'Доджі на піку тривалого росту попередив про початок глибокої корекції.',
+            visualType: 'CANDLE_DOJI'
+        },
+        {
+            id: 'engulfing',
+            term: 'Бичаче Поглинання (Engulfing)',
+            category: 'PATTERNS',
+            definition: 'Потужна двосвічкова комбінація: велика зелена імпульсна свічка своїм тілом повністю перекриває тіло попередньої червоної свічки, підтверджуючи зміну контролю ринку.',
+            example: 'Поглинання на 4-годинному таймфреймі зламало локальну низхідну структуру.',
+            visualType: 'CANDLE_ENGULFING'
+        },
+        {
+            id: 'bullflag',
+            term: 'Бичачий Прапор (Bull Flag)',
+            category: 'PATTERNS',
+            definition: 'Патерн продовження тренду: потужний імпульс угору (флагшток) та плавне низхідне звуження (прапор) перед новим вибуховим виходом ціни вгору на висоту флагштока.',
+            example: 'Консолідація після +15% росту завершилася імпульсом угору.',
+            visualType: 'CHART_BULL_FLAG'
+        },
+        {
+            id: 'hns',
+            term: 'Голова і Плечі (Head & Shoulders)',
+            category: 'PATTERNS',
+            definition: 'Розворотний патерн із трьома вершинами, де середня (голова) вища за бічні (плечі). Пробиття лінії шиї вниз підтверджує перехід до ведмежого тренду.',
+            example: 'Ціна не змогла оновити максимум і пробила шию на рівні $65,000.',
+            visualType: 'CHART_HEAD_SHOULDERS'
+        },
+        {
+            id: 'smc',
+            term: 'Smart Money Concepts (SMC) & Збір Ліквідності',
+            category: 'PATTERNS',
+            definition: 'Торгова концепція розуміння дій банків та маркетмейкерів: вони спеціально пробивають рівні роздрібних стоп-лоссів (Liquidity Sweep) для набору своєї гігантської позиції.',
+            example: 'Маркетмейкер зняв стопи натовпу за рівнем $60k і погнав ціну на новий хай.',
+            visualType: 'CHART_SMC'
+        },
+        {
+            id: 'orderblock',
+            term: 'Ордер Блок (Order Block / OB)',
+            category: 'PATTERNS',
+            definition: 'Остання свічка перед сильним імпульсом зі зламом структури (BOS), де у маркетмейкера залишилися незаповнені лімітні ордери. Виступає міцною магнітною зоною підтримки.',
+            example: 'Ціна повернулася на тест бичачого OB на $62,400 і дала реакцію +8%.',
+            visualType: 'CHART_OB'
+        },
+        {
+            id: 'fvg',
+            term: 'Імбаланс Ціни (Fair Value Gap / FVG)',
+            category: 'PATTERNS',
+            definition: 'Трисвічкова неефективність, де ґніт 1-ї та 3-ї свічок не перетинаються, утворюючи порожнечу в стакані. Ціна прагне заповнити її як мінімум на 50% (Consequent Encroachment).',
+            example: 'Виставили лімітний ордер на вхід від середини 4H зони FVG.',
+            visualType: 'CHART_FVG'
+        },
 
         // ==========================================
-        // 4. БЕЗПЕКА, ЗАХИСТ ВІД ШАХРАЇВ ТА СМАРТ-КОНТРАКТИ
+        // 4. БЕЗПЕКА ТА ЗБЕРЕЖЕННЯ (SECURITY)
         // ==========================================
-        { id: 'seed', term: 'Сід-фраза (Secret Recovery Phrase)', category: 'SECURITY', definition: 'Секретна комбінація з 12 або 24 слів, яка є єдиним майстер-ключем до всього вашого гаманця. Будь-хто, хто дізнається її, отримує повний контроль над коштами.', example: 'Зберігайте офлайн на металевій пластині; ніколи не вводьте на сайтах.', visualType: 'NONE' },
-        { id: '2fa', term: '2FA (Двофакторна Аутентифікація)', category: 'SECURITY', definition: 'Другий рівень захисту облікового запису. Використовуйте апаратні ключі або застосунки Google/Apple Authenticator, але ніколи не SMS-код (ризик SIM-swap).', example: 'Захистив біржовий акаунт через ключ YubiKey.', visualType: 'NONE' },
-        { id: 'coldstorage', term: 'Холодне Зберігання (Апаратні Гаманці)', category: 'SECURITY', definition: 'Фізичні пристрої (Ledger, Trezor, Keystone), які зберігають ваші приватні ключі в ізольованому чіпі без підключення до інтернету.', example: 'Тримаю 90% довгострокового криптокапіталу на холодному гаманці.', visualType: 'NONE' },
-        { id: 'drainers', term: 'Дрейнери та Дозволи (Permit Scams)', category: 'SECURITY', definition: 'Шахрайські скрипти, що виманюють підпис дозволу транзакції без сплати газу (Permit). Один неперевірений підпис дозволяє злодіям спустошити ваш баланс.', example: 'Регулярно відкликайте старі дозволи через сервіс revoke.cash.', visualType: 'NONE' },
-        { id: 'addresspoisoning', term: 'Отруєння Адреси (Address Poisoning)', category: 'SECURITY', definition: 'Шахраї створюють адресу з першими та останніми символами, ідентичними вашій, і надсилають 0 монет. Якщо ви скопіюєте адресу з історії — надішлете гроші скамеру.', example: 'Завжди перевіряйте всі символи адреси, а не копіюйте з історії.', visualType: 'NONE' },
-        { id: 'honeypot', term: 'Honeypot та 100% Tax Токени', category: 'SECURITY', definition: 'Підступні смарт-контракти нових щиткоїнів, які дозволяють купити токен, але блокують функцію sell() або ставлять 100% комісію на продаж.', example: 'Перед покупкою перевірив контракт на сервісі Honeypot.is.', visualType: 'NONE' },
-        { id: 'slippage', term: 'Slippage (Проковзування) та MEV-боти', category: 'SECURITY', definition: 'Допустима різниця між очікуваною ціною та ціною виконання на DEX. Високий slippage (>2%) дозволяє MEV-ботам здійснити «сендвіч-атаку» на ваш обмін.', example: 'Виставив точний slippage 0.5% і захистився від MEV-ботів.', visualType: 'NONE' },
-        { id: 'fdv', term: 'Капіталізація vs FDV (Розбавлена Вартість)', category: 'SECURITY', definition: 'Market Cap — вартість монет в обігу. FDV — вартість усіх монет, які коли-небудь будуть випущені. Величезний FDV означає постійний тиск розблокувань фондів.', example: 'Капіталізація $100M, а FDV $5B — токен знецінився через анлоки інвесторів.', visualType: 'NONE' },
-        { id: 'smartcontract', term: 'Аудит Смарт-контрактів та Адмін-ключі', category: 'SECURITY', definition: 'Приховані функції в коді (можливість друкувати необмежену кількість монет, зупиняти торги або змінювати логіку без голосування DAO).', example: 'У контракті залишилася відкрита функція mint() для розробника.', visualType: 'NONE' },
+        {
+            id: 'wallets_storage',
+            term: 'Гаманці: Холодні, Гарячі та Сід-фрази',
+            category: 'SECURITY',
+            definition: '«Not your keys, not your coins». Зберігання на біржі означає, що ключами володіє біржа. Холодні апаратні гаманці (Ledger, Trezor) зберігають ключі офлайн, повністю ізольованими від вірусів.',
+            example: 'Тримаю 85% капіталу на апаратному гаманці, а робочий депозит — на біржі.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'g2w8y7n5L78',
+                title: 'Crypto Wallet Guide: Cold vs Hot Storage & Seed Phrase Safety',
+                duration: '11:10',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Ніколи не зберігайте сід-фразу на комп\'ютері, у хмарі, нотатках чи у вигляді скріншота в телефоні.',
+                    'Запишіть 12-24 слова виключно на папері або металевій пластині і сховайте в надійному місці.',
+                    'Співробітники підтримки StorkCrypto або біржі ніколи і за жодних обставин не попросять вашу сід-фразу.'
+                ]
+            }
+        },
+        {
+            id: 'api_keys_security',
+            term: 'API-Ключі: Безпечне підключення до терміналів',
+            category: 'SECURITY',
+            definition: 'Правила створення API-ключів біржі: завжди суворо забороняйте право «Withdrawal» (виведення коштів), вмикайте IP Whitelist та регулярно перевіряйте історію звернень.',
+            example: 'Підключив термінал через API в режимі Read/Trade Only без доступу до виведення балансу.',
+            visualType: 'NONE'
+        },
+        {
+            id: 'scam_drainers',
+            term: 'Фішинг, Дрейнери та Шкідливі Підписи (Permit)',
+            category: 'SECURITY',
+            definition: 'Атаки, коли користувач підключає Web3 гаманець до підробленого сайту і підписує дозвіл (setApprovalForAll або Permit). Один невірний клік передає контрактному сканеру право спустошити ваш баланс.',
+            example: 'Перед підписом завжди перевіряйте домен сайту та перевіряйте дозволи на revoke.cash.',
+            visualType: 'NONE'
+        },
+
+        // ==========================================
+        // 5. ПСИХОЛОГІЯ ТА РИЗИК-МЕНЕДЖМЕНТ (PSYCHOLOGY)
+        // ==========================================
+        {
+            id: 'fomo_psychology',
+            term: 'Як подолати FOMO та Панічний Злив (FUD)',
+            category: 'PSYCHOLOGY',
+            definition: 'FOMO — синдром страху втраченої вигоди, коли новачок купує монету після +300% росту. FUD — панічний продаж на штучно створених новинах перед тим, як великі гравці викуплять дно.',
+            example: 'Професійний трейдер ніколи не біжить за поїздом, який уже вирушив.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: '6A_fB1z3M8c',
+                title: 'Trading Psychology: Conquering FOMO, FUD, and Greed',
+                duration: '8:25',
+                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                takeaways: [
+                    'Якщо актив уже дав великий імпульс — угоду пропущено, чекайте корекції або шукайте іншу монету.',
+                    'Усі успішні трейдери мають заздалегідь прописаний торговий план і діють як холодні оператори.',
+                    'Ніколи не торгуйте в стані ейфорії після великого профіту або в розпачі після стоп-лоссу.'
+                ]
+            }
+        },
+        {
+            id: 'onepercentrule',
+            term: 'Правило 1% Ризику на Угоду',
+            category: 'PSYCHOLOGY',
+            definition: 'Математичне правило довгожителів ринку: максимальний можливий збиток у разі спрацювання стоп-лоссу не повинен перевищувати 1-2% від вашого загального капіталу на рахунку.',
+            example: 'При капіталі $5,000 ризик на одну ідею становить максимум $50.',
+            visualType: 'NONE'
+        },
+        {
+            id: 'revengetrading',
+            term: 'Торгівля з Помсти (Тильт)',
+            category: 'PSYCHOLOGY',
+            definition: 'Спроба негайно відіграти втрачений збиток, відкриваючи несистемні угоди з гігантським плечем. Найшвидший шлях до повної ліквідації рахунку.',
+            example: 'Отримав стоп на $50 і залетів у 50х плече всією котлетою.',
+            visualType: 'NONE'
+        }
+    ],
+
+    en: [
+        {
+            id: 'blockchain_basics',
+            term: 'What is Blockchain and How it Works',
+            category: 'BASICS',
+            definition: 'A decentralized, immutable distributed ledger where records are batched into cryptographically secured blocks. Removes the need for centralized banks.',
+            example: 'Consensus nodes verify transactions with mathematics, not human trust.',
+            visualType: 'CHART_SMC',
+            videoData: {
+                youtubeId: 'SSo_EIwHSd4',
+                title: 'What is Blockchain Technology and How Does It Work?',
+                duration: '5:42',
+                sourceName: 'Binance Academy (Official Course)',
+                takeaways: [
+                    'Blockchain eliminates intermediaries, lowering settlement fees and counterparty risks.',
+                    'Transactions are immutable: once confirmed on-chain, records cannot be altered.',
+                    'Security is maintained by global decentralized validator consensus.'
+                ]
+            }
+        },
+        {
+            id: 'bitcoin_intro',
+            term: 'Bitcoin (BTC) — Digital Gold & Halving',
+            category: 'BASICS',
+            definition: 'The genesis decentralized cryptocurrency invented by Satoshi Nakamoto with a strict 21 million hard cap and quadrennial supply halving.',
+            example: 'Halving cuts mining inflation in half, reinforcing programmatic scarcity.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'bBC-nXj3Ng4',
+                title: 'What is Bitcoin and How Does It Work?',
+                duration: '6:15',
+                sourceName: 'Binance Academy (Official Course)',
+                takeaways: [
+                    'No central authority can dilute Bitcoin\'s 21,000,000 supply limit.',
+                    'Self-custody empowers holders with sovereign wealth protection.',
+                    'Global 24/7 liquidity makes it an institutional hedge against fiat inflation.'
+                ]
+            }
+        },
+        {
+            id: 'account_security_2fa',
+            term: 'Account Setup, KYC & 2FA Protection',
+            category: 'BASICS',
+            definition: 'The standard onboarding protocol: creating your account, completing identity verification (KYC), and binding hardware or authenticator app 2FA.',
+            example: 'TOTP 2FA prevents account hijacking even if your master password is breached.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'QJNCi9U8h-c',
+                title: 'Account Security & How to Enable 2FA Authenticator',
+                duration: '4:50',
+                sourceName: 'Binance Academy (Official Course)',
+                takeaways: [
+                    'Avoid SMS 2FA due to SIM swapping vulnerabilities.',
+                    'Use Google Authenticator or physical YubiKeys for impenetrable defense.',
+                    'Store the 2FA secret backup seed key offline on paper.'
+                ]
+            }
+        },
+        {
+            id: 'p2p_trading_guide',
+            term: 'P2P Trading: Safe Fiat-to-Crypto Swaps',
+            category: 'BASICS',
+            definition: 'Peer-to-Peer trading enables direct buying and selling of USDT or BTC with local bank transfers using an automated exchange escrow guarantee.',
+            example: 'Crypto remains locked in escrow until the seller confirms bank transfer receipt.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'gL3lKz_Gj9A',
+                title: 'A Beginner\'s Guide to P2P Crypto Trading and Security',
+                duration: '8:45',
+                sourceName: 'Binance Academy (Official Course)',
+                takeaways: [
+                    'Never release crypto before verifying funds directly inside your banking app.',
+                    'Trade only with verified merchants with >98% completion rates.',
+                    'Keep all communications strictly inside the official platform chat.'
+                ]
+            }
+        },
+        {
+            id: 'spot_vs_futures',
+            term: 'Spot vs Futures: Margin & Leverage Risks',
+            category: 'TRADING',
+            definition: 'Spot trading involves direct asset ownership without forced liquidation risk. Futures trade price contracts with multiplier leverage, introducing liquidation thresholds.',
+            example: '10x leverage multiplies gains but 10% adverse price move causes 100% loss.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'w_3B_wX-f2M',
+                title: 'Spot vs Futures Trading: Understanding the Risks and Leverage',
+                duration: '9:30',
+                sourceName: 'Binance Academy (Official Course)',
+                takeaways: [
+                    'Beginners should build disciplined track records on Spot before attempting derivatives.',
+                    'Always define and place a hard Stop-Loss order at position inception.',
+                    'High leverage (20x-100x) turns statistical trading into reckless gambling.'
+                ]
+            }
+        },
+        {
+            id: 'orders_guide',
+            term: 'Order Types: Market, Limit, Stop-Loss & Take-Profit',
+            category: 'TRADING',
+            definition: 'Market orders execute instantly at book price. Limit orders wait for your designated price. Stop-Loss preserves capital by terminating losing trades automatically.',
+            example: 'Placed a limit buy order at support with a 1.5% stop loss.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'B3nIq2m2j7c',
+                title: 'How to Use Market, Limit, and Stop-Loss Orders',
+                duration: '7:15',
+                sourceName: 'Binance Academy (Official Course)',
+                takeaways: [
+                    'Use Limit orders to avoid slippage and pay lower maker fees.',
+                    'Calculate your risk parameter before opening any position.',
+                    'Scale out profits systematically using staged Take-Profit targets.'
+                ]
+            }
+        },
+        {
+            id: 'pinbar_hammer',
+            term: 'Bullish Hammer & Pin Bar Price Rejection',
+            category: 'PATTERNS',
+            definition: 'A powerful single-candle reversal with a small upper body and a long lower tail (2x+ body length), showing aggressive seller rejection at key support.',
+            example: 'Pin-bar bounce off major support created a high-probability long entry.',
+            visualType: 'CANDLE_HAMMER',
+            videoData: {
+                youtubeId: 'W3pB58_v6fA',
+                title: 'How to Trade Pin Bars and Candlestick Reversal Patterns',
+                duration: '8:50',
+                sourceName: 'Binance Academy (Official Course)',
+                takeaways: [
+                    'The longer the wick relative to body, the stronger the institutional rejection.',
+                    'Pin bars carry high edge when formed at horizontal key levels or order blocks.',
+                    'Enter on candle close with stop loss placed below the wick extreme.'
+                ]
+            }
+        },
+        {
+            id: 'hns',
+            term: 'Head & Shoulders',
+            category: 'PATTERNS',
+            definition: 'A classic reversal pattern with three peaks (left, head, right). Break of the neckline confirms shift from Bullish to Bearish.',
+            visualType: 'CHART_HEAD_SHOULDERS',
+            example: 'Price failed at $72k, broke neckline at $65k.'
+        },
+        {
+            id: 'bullflag',
+            term: 'Bull Flag',
+            category: 'PATTERNS',
+            definition: 'A bullish continuation pattern. A steep impulsive rise (pole) followed by a tight downward-sloping channel (flag).',
+            visualType: 'CHART_BULL_FLAG',
+            example: 'Consolidation after +15% impulse, breakout upward.'
+        },
+        {
+            id: 'smc',
+            term: 'Smart Money Concepts (SMC)',
+            category: 'PATTERNS',
+            definition: 'Trading framework focused on institutional order flow, tracking where market makers generate liquidity before real moves.',
+            visualType: 'CHART_SMC',
+            example: 'Liquidity sweep of retail stop losses before true pump.'
+        },
+        {
+            id: 'orderblock',
+            term: 'Order Block (OB)',
+            category: 'PATTERNS',
+            definition: 'The last opposite-colored candle before an explosive market move that breaks structure, where institutional limit orders remain unfilled.',
+            visualType: 'CHART_OB',
+            example: 'Price retested 4H Bullish OB at $62,400 for entry.'
+        },
+        {
+            id: 'fvg',
+            term: 'Fair Value Gap (FVG)',
+            category: 'PATTERNS',
+            definition: 'A 3-candle price imbalance where candle 1 wick and candle 3 wick do not overlap, creating a vacuum that price often revisits.',
+            visualType: 'CHART_FVG',
+            example: 'Limit order placed at 50% FVG (Consequent Encroachment).'
+        },
+        {
+            id: 'wallets_storage',
+            term: 'Wallet Security: Cold vs Hot Storage & Seed Phrases',
+            category: 'SECURITY',
+            definition: 'Hardware cold storage isolates your private keys in a secure enclave offline, preventing remote draining attacks and malware access.',
+            example: 'Retain 90% of long-term crypto assets in cold storage.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'g2w8y7n5L78',
+                title: 'Crypto Wallet Guide: Cold vs Hot Storage & Seed Phrase Safety',
+                duration: '11:10',
+                sourceName: 'Binance Academy (Official Course)',
+                takeaways: [
+                    'Never photograph or digitally store your 12-24 word seed phrase.',
+                    'Keep your recovery phrase on stainless steel in a fireproof location.',
+                    'Support staff will never ask for your recovery phrase or private keys.'
+                ]
+            }
+        },
+        {
+            id: 'fomo_psychology',
+            term: 'Trading Psychology: Overcoming FOMO and Greed',
+            category: 'PSYCHOLOGY',
+            definition: 'FOMO causes retail traders to buy at local tops out of emotional fear of missing out. Professional traders remain dispassionate and patient.',
+            example: 'Never chase extended green candles after multiple parabolic days.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: '6A_fB1z3M8c',
+                title: 'Trading Psychology: Conquering FOMO, FUD, and Greed',
+                duration: '8:25',
+                sourceName: 'Binance Academy (Official Course)',
+                takeaways: [
+                    'Missed trades are part of the game; capital preservation comes first.',
+                    'Follow a pre-written trading plan and execute without emotional hesitation.',
+                    'Step away from trading screens after experiencing consecutive losses.'
+                ]
+            }
+        },
+        {
+            id: 'onepercentrule',
+            term: 'The 1% Rule (Position Sizing)',
+            category: 'PSYCHOLOGY',
+            definition: 'Never risk more than 1% to 2% of your total capital on a single trade idea. Position size = (Account * 1%) / Stop Loss distance.',
+            example: '$10,000 account risks max $100 per invalidation.',
+            visualType: 'NONE'
+        }
     ],
 
     pl: [
-        // ==========================================
-        // 1. FORMACJE ŚWIECOWE, WYKRESY I SMC
-        // ==========================================
-        { id: 'hns', term: 'Głowa i Ramiona (RGR)', category: 'PATTERNS', definition: 'Klasyczna formacja odwrócenia z trzema szczytami. Przebicie linii szyi w dół potwierdza zmianę trendu ze wzrostowego na spadkowy.', visualType: 'CHART_HEAD_SHOULDERS', example: 'Cena nie zdołała wybić szczytu i przebiła linię szyi na $65k.' },
-        { id: 'bullflag', term: 'Flaga Byka (Bull Flag)', category: 'PATTERNS', definition: 'Formacja kontynuacji trendu wzrostowego. Gwałtowny impuls w górę (maszt) i wąska konsolidacja w dół (flaga).', visualType: 'CHART_BULL_FLAG', example: 'Konsolidacja po wzroście +15% zakończona wybiciem w górę.' },
-        { id: 'fallingwedge', term: 'Klin Zniżkujący', category: 'PATTERNS', definition: 'Formacja byka. Cena zacieśnia się w dół między zbiegającymi się liniami, zwiastując wyczerpanie podaży i nagły wystrzał w górę.', visualType: 'CHART_WEDGE_BULL', example: 'Bycza dywergencja na klinie doprowadziła do wybicia.' },
-        { id: 'risingwedge', term: 'Klin Zwyżkujący', category: 'PATTERNS', definition: 'Formacja niedźwiedzia. Cena rośnie, ale zakres ruchów zacieśnia się przy spadającym wolumenie, co zapowiada mocny spadek.', visualType: 'CHART_WEDGE_BEAR', example: 'Wyczerpanie wolumenu w klinie skutkowało załamaniem wsparcia.' },
-        { id: 'doji', term: 'Świeca Doji', category: 'PATTERNS', definition: 'Świeca, w której cena otwarcia i zamknięcia są prawie równe. Wskazuje na całkowitą równowagę i niezdecydowanie rynku.', visualType: 'CANDLE_DOJI', example: 'Doji na szczycie dziennego wykresu ostrzega przed korektą.' },
-        { id: 'hammer', term: 'Młot Byczy (Hammer)', category: 'PATTERNS', definition: 'Świeca odwrócenia z małym korpusem u góry i długim dolnym knotem (minimum 2x długości korpusu), odrzucająca niższe ceny.', visualType: 'CANDLE_HAMMER', example: 'Odbicie na poziomie wsparcia dało świetny punkt wejścia.' },
-        { id: 'engulfing', term: 'Objęcie Bycze (Engulfing)', category: 'PATTERNS', definition: 'Silna formacja odwrócenia, w której duża zielona świeca całkowicie pochłania korpus poprzedniej czerwonej świecy.', visualType: 'CANDLE_ENGULFING', example: 'Kupujący przejęli kontrolę na dołku wyprzedaży.' },
-        { id: 'morningstar', term: 'Gwiazda Poranna (Morning Star)', category: 'PATTERNS', definition: 'Trzyświecowa formacja odwrócenia na dnie: długa czerwona świeca, świeca niezdecydowania z luką i silna zielona świeca.', visualType: 'CANDLE_MORNING_STAR', example: 'Potwierdzenie zakończenia korekty na interwale 4H.' },
-        { id: 'shootingstar', term: 'Spadająca Gwiazda (Shooting Star)', category: 'PATTERNS', definition: 'Świeca niedźwiedzia z małym dolnym korpusem i długim górnym knotem, pokazująca agresywne odrzucenie na szczycie.', visualType: 'CANDLE_SHOOTING_STAR', example: 'Próba nowego szczytu zakończyła się knotem i zrzutem.' },
-        { id: 'cupandhandle', term: 'Filiżanka z Uchem', category: 'PATTERNS', definition: 'Bycza formacja długoterminowej akumulacji: zaokrąglone dno (filiżanka) i łagodna korekta (ucho) przed silnym wybiciem.', visualType: 'CHART_CUP_HANDLE', example: 'Długoterminowa baza przed atakiem na nowe ATH.' },
-        { id: 'doubletop', term: 'Podwójny Szczyt ("M")', category: 'PATTERNS', definition: 'Formacja odwrócenia w dół. Cena dwukrotnie uderza w ten sam opór, nie może go przebić i spada poniżej dołka.', visualType: 'CHART_DOUBLE_TOP', example: 'Dwukrotne odrzucenie z poziomu $70,000.' },
-        { id: 'doublebottom', term: 'Podwójne Dno ("W")', category: 'PATTERNS', definition: 'Formacja odwrócenia w górę. Cena dwukrotnie broni strefy wsparcia, tworząc solidną podstawę pod rajd cenowy.', visualType: 'CHART_DOUBLE_BOTTOM', example: 'Podwójne odbicie od wsparcia na poziomie $60,000.' },
-        { id: 'ascendingtriangle', term: 'Trójkąt Zwyżkujący', category: 'PATTERNS', definition: 'Formacja byka z płaskim oporem i coraz wyższymi dołkami, pokazująca rosnącą presję kupujących przed wybiciem.', visualType: 'CHART_ASC_TRIANGLE', example: 'Cena dociskana do oporu $100 aż do wybicia.' },
-        { id: 'descendingtriangle', term: 'Trójkąt Zniżkujący', category: 'PATTERNS', definition: 'Formacja niedźwiedzia z płaskim wsparciem i coraz niższymi szczytami. Oznacza stopniowe wyczerpywanie popytu.', visualType: 'CHART_DESC_TRIANGLE', example: 'Wsparcie osłabione kolejnymi testami pękło.' },
-        { id: 'smc', term: 'Smart Money Concepts (SMC)', category: 'PATTERNS', definition: 'Metodologia śledząca zlecenia instytucji i banków: polowanie na płynność detalistów przed wykonaniem właściwego ruchu.', visualType: 'CHART_SMC', example: 'Zgarnięcie stop-lossów przed właściwym rajdem cenowym.' },
-        { id: 'orderblock', term: 'Blok Zleceń (Order Block / OB)', category: 'PATTERNS', definition: 'Ostatnia przeciwna świeca przed impulsem wybiciowym, w której instytucje pozostawiły niewypełnione zlecenia oczekujące.', visualType: 'CHART_OB', example: 'Cena przetestowała byczy blok zleceń na poziomie $62,400.' },
-        { id: 'fvg', term: 'Luka Płynności (Fair Value Gap / FVG)', category: 'PATTERNS', definition: 'Nierównowaga cenowa między knotem świecy 1 i 3, pozostawiająca pustą przestrzeń, którą rynek z reguły wypełnia.', visualType: 'CHART_FVG', example: 'Wejście z limitu na poziomie 50% FVG.' },
-        { id: 'bos', term: 'BOS (Przełamanie Struktury)', category: 'PATTERNS', definition: 'Zamknięcie korpusu świecy ponad ostatnim szczytem (w trendzie wzrostowym) potwierdzające kontynuację trendu.', visualType: 'CHART_SMC', example: 'Świeca 4H zamknęła się powyżej szczytu tworząc BOS.' },
-        { id: 'choch', term: 'CHoCH (Zmiana Charakteru Rynku)', category: 'PATTERNS', definition: 'Pierwsze wybicie przeciwnego punktu strukturalnego sygnalizujące wczesne odwrócenie trendu ze spadkowego na wzrostowy.', visualType: 'CHART_SMC', example: 'CHoCH na interwale 15m dał wczesny sygnał zakończenia korekty.' },
-        { id: 'liquiditysweep', term: 'Czyszczenie Płynności (Liquidity Sweep)', category: 'PATTERNS', definition: 'Szybkie wybicie knotem ponad równe szczyty lub pod dołki w celu aktywacji zleceń stop loss przed natychmiastowym zwrotem.', visualType: 'CHART_SMC', example: 'Zdjęcie płynności sesji azjatyckiej i dynamiczny spadek.' },
-        { id: 'breakerblock', term: 'Breaker Block', category: 'PATTERNS', definition: 'Przebity Order Block, który po zdjęciu płynności staje się strefą wsparcia lub oporu przy powrocie ceny.', visualType: 'CHART_OB', example: 'Przebity blok niedźwiedzi działa teraz jako wsparcie.' },
-
-        // ==========================================
-        // 2. WSKAŹNIKI TECHNICZNE I MECHANIKA RYNKU
-        // ==========================================
-        { id: 'rsi', term: 'RSI (Indeks Siły Względnej)', category: 'TECHNICAL', definition: 'Wskaźnik momentum (0-100). Wartości powyżej 70 oznaczają wykupienie rynku, a poniżej 30 wyprzedanie.', example: 'Bycza dywergencja: cena spada, a RSI rośnie.', visualType: 'NONE' },
-        { id: 'macd', term: 'MACD (Zbieżność i Rozbieżność)', category: 'TECHNICAL', definition: 'Wskaźnik podążający za trendem na bazie dwóch średnich EMA. Przecięcie linii sygnałowej w górę sugeruje wejście w pozycję.', example: 'Złoty Krzyż MACD powyżej zera potwierdził hossę.', visualType: 'NONE' },
-        { id: 'bollinger', term: 'Wstęgi Bollingera', category: 'TECHNICAL', definition: 'Wstęgi zmienności wokół 20-okresowej średniej SMA. Zaciśnięcie wstęg zwiastuje gwałtowny wybuch zmienności.', example: 'Ściśnięcie wstęg zakończyło się rajdem o 25%.', visualType: 'NONE' },
-        { id: 'fibonacci', term: 'Poziomy Fibonacciego (Golden Pocket)', category: 'TECHNICAL', definition: 'Poziome zniesienia matematyczne. Strefa 0.618 - 0.65 to tzw. Złota Kieszeń o najwyższym prawdopodobieństwie odbicia w trendzie.', example: 'Idealne wejście w pozycję na zniesieniu 0.618.', visualType: 'NONE' },
-        { id: 'ema', term: 'Średnie EMA 200 i EMA 50', category: 'TECHNICAL', definition: 'Wykładnicze średnie kroczące. Przecięcie EMA 50 ponad EMA 200 to Złoty Krzyż (hossa); przecięcie w dół to Krzyż Śmierci (bessa).', example: 'Utrzymanie ceny powyżej 200 EMA świadczy o sile rynku.', visualType: 'NONE' },
-        { id: 'volume', term: 'Profil Wolumenu i Poziom POC', category: 'TECHNICAL', definition: 'Rozkład wolumenu według poziomów cenowych. POC (Point of Control) to poziom o najwyższym obrocie, działający jak magnes na cenę.', example: 'Test poziomu POC na cenie $64k zadziałał jako silne wsparcie.', visualType: 'NONE' },
-        { id: 'fundingrate', term: 'Funding Rate (Stopa Finansowania)', category: 'TECHNICAL', definition: 'Płatności między pozycjami long i short na kontraktach perpetual. Bardzo wysoki funding oznacza przegrzanie rynku i ryzyko zrzutu.', example: 'Ekstremalnie ujemny funding wywołał short squeeze.', visualType: 'NONE' },
-        { id: 'openinterest', term: 'Open Interest (Otwarte Pozycje)', category: 'TECHNICAL', definition: 'Łączna liczba aktywnych kontraktów na rynku instrumentów pochodnych. Wzrost ceny wraz ze wzrostem OI potwierdza napływ nowego kapitału.', example: 'Spadek ceny przy spadku OI oznaczał jedynie likwidację longów.', visualType: 'NONE' },
-        { id: 'cvd', term: 'CVD (Skumulowana Delta Wolumenu)', category: 'TECHNICAL', definition: 'Różnica między rynkowym wolumenem kupna a sprzedaży. Dywergencja z ceną ujawnia ukrytą absorpcję zleceniami limit.', example: 'CVD rosło podczas gdy cena stała w miejscu — akumulacja instytucji.', visualType: 'NONE' },
-        { id: 'liqheatmap', term: 'Mapa Likwidacji (Liquidation Heatmap)', category: 'TECHNICAL', definition: 'Wizualna mapa stref, w których skoncentrowane są likwidacje pozycji z dużą dźwignią. Cena zachowuje się jak magnes dążąc do tych poziomów.', example: 'Cena knotem zebrała pulę likwidacji na $68k i natychmiast spadła.', visualType: 'NONE' },
-        { id: 'orderbookdepth', term: 'Głębokość Księgi Zleceń i Spoofing', category: 'TECHNICAL', definition: 'Zestawienie zleceń kupna i sprzedaży. Spoofing to manipulacja polegająca na stawianiu fałszywych ścian zleceń i kasowaniu ich przed realizacją.', example: 'Fałszywa ściana 500 BTC została wycofana tuż przed dojściem ceny.', visualType: 'NONE' },
-
-        // ==========================================
-        // 3. PSYCHOLOGIA, ZARZĄDZANIE RYZYKIEM I KAPITAŁEM
-        // ==========================================
-        { id: 'riskreward', term: 'Stosunek Zysku do Ryzyka (Risk/Reward)', category: 'PSYCHOLOGY', definition: 'Matematyczny stosunek potencjalnej straty do zysku. Przy R:R 1:3 możesz mylić się w 60% zagrań i nadal osiągać stabilny zysk.', example: 'Ryzykujesz $100, aby zarobić $300 (setup 1:3 R:R).', visualType: 'NONE' },
-        { id: 'onepercentrule', term: 'Zasada 1% Ryzyka na Transakcję', category: 'PSYCHOLOGY', definition: 'Złota reguła tradingu: maksymalna strata przy uderzeniu w Stop Loss nie może przekraczać 1-2% całego kapitału na rachunku.', example: 'Rachunek $10,000 — strata maksymalna $100 na jedną pozycję.', visualType: 'NONE' },
-        { id: 'fomo', term: 'FOMO (Strach Przed Pominięciem)', category: 'PSYCHOLOGY', definition: 'Emocjonalny impuls kupowania aktywa, które już mocno wzrosło, wywołany chciwością. Główna przyczyna strat początkujących inwestorów.', example: 'Kupowanie memecoina po wzroście o 300% na zielonej świecy.', visualType: 'NONE' },
-        { id: 'fud', term: 'FUD (Strach, Niepewność, Wątpliwość)', category: 'PSYCHOLOGY', definition: 'Celowe szerzenie negatywnych lub fałszywych informacji w celu wywołania paniki i odkupienia aktywów taniej przez wielkich graczy.', example: 'Sprzedaż w panice po nagłówkach o zakazie krypto.', visualType: 'NONE' },
-        { id: 'revengetrading', term: 'Revenge Trading (Trading w Tilcie)', category: 'PSYCHOLOGY', definition: 'Próba natychmiastowego odrobienia straty poprzez otwarcie nieprzemyślanych pozycji z maksymalną dźwignią. Najkrótsza droga do wyzerowania konta.', example: 'Otrzymał stopa i wszedł całą kwotą z dźwignią 50x.', visualType: 'NONE' },
-        { id: 'dca', term: 'DCA (Uśrednianie Kosztu w Dolarach)', category: 'PSYCHOLOGY', definition: 'Strategia regularnego zakupu za stałą kwotę w stałych odstępach czasu niezależnie od ceny, eliminująca stres emocjonalny.', example: 'Inwestowanie $50 w BTC w każdy poniedziałek.', visualType: 'NONE' },
-        { id: 'diamondhands', term: 'Diamentowe vs Papierowe Ręce', category: 'PSYCHOLOGY', definition: '"Diamentowe Ręce" utrzymują pozycje wbrew dużej zmienności; "Papierowe Ręce" panicznie sprzedają przy pierwszym spadku.', example: 'Trzymanie pozycji spotowych mimo korekty o 30%.', visualType: 'NONE' },
-        { id: 'biasconfirmation', term: 'Błąd Konfirmacji i Utracone Koszty', category: 'PSYCHOLOGY', definition: 'Szukanie w sieci wyłącznie opinii potwierdzających Twoją stratną pozycję zamiast zaakceptowania technicznego wybicia stop lossa.', example: 'Szukanie optymistycznych postów gdy wykres zanegował setup.', visualType: 'NONE' },
-
-        // ==========================================
-        // 4. BEZPIECZEŃSTWO, OCHRONA PRZED OSZUSTWAMI I SMART CONTRACTS
-        // ==========================================
-        { id: 'seed', term: 'Fraza Seed (Secret Recovery Phrase)', category: 'SECURITY', definition: 'Sekwencja 12 lub 24 słów stanowiąca klucz główny do Twojego portfela. Każdy, kto ją pozna, przejmuje całkowitą kontrolę nad Twoimi środkami.', example: 'Zapisz offline na stali; NIGDY nie wpisuj na stronach internetowych.', visualType: 'NONE' },
-        { id: '2fa', term: '2FA (Uwierzytelnianie Dwuskładnikowe)', category: 'SECURITY', definition: 'Druga warstwa ochrony konta. Używaj kluczy YubiKey lub aplikacji uwierzytelniających (Google Authenticator), unikaj kodów SMS (ryzyko SIM-swap).', example: 'Zabezpieczenie konta giełdowego kluczem sprzętowym.', visualType: 'NONE' },
-        { id: 'coldstorage', term: 'Zimny Portfel (Hardware Wallet)', category: 'SECURITY', definition: 'Dedykowane urządzenia fizyczne (Ledger, Trezor, Keystone) przechowujące klucze prywatne w odizolowanym środowisku offline.', example: '90% długoterminowego kapitału trzymane na zimnym portfelu.', visualType: 'NONE' },
-        { id: 'drainers', term: 'Drainery i Podpisy Pozwoleń (Permit Scams)', category: 'SECURITY', definition: 'Złośliwe skrypty wyłudzające podpisy transakcji (Permit/Approval). Jeden nieostrożny podpis daje oszustom prawo do wyczyszczenia portfela.', example: 'Regularne cofanie starych uprawnień na revoke.cash.', visualType: 'NONE' },
-        { id: 'addresspoisoning', term: 'Address Poisoning (Zatruwanie Adresów)', category: 'SECURITY', definition: 'Oszuści tworzą adres z identycznymi pierwszymi i ostatnimi znakami co Twój i wysyłają 0 monet, licząc że skopiujesz adres z historii.', example: 'Zawsze weryfikuj cały ciąg znaków adresu, nie kopiuj z historii.', visualType: 'NONE' },
-        { id: 'honeypot', term: 'Honeypot i Tokeny ze 100% Podatkiem', category: 'SECURITY', definition: 'Oszukańczy smart contract pozwalający na zakup tokena, lecz blokujący funkcję sprzedaży sell() lub nakładający 100% podatku.', example: 'Sprawdzenie kontraktu na Honeypot.is przed zakupem.', visualType: 'NONE' },
-        { id: 'slippage', term: 'Slippage (Poślizg Cenowy) i Boty MEV', category: 'SECURITY', definition: 'Dopuszczalna różnica między ceną oczekiwaną a zrealizowaną na DEX. Zbyt wysoki poślizg (>2%) naraża Cię na atak typu sandwich ze strony botów MEV.', example: 'Ustawienie poślizgu na 0.5% ochroniło transakcję przed botem MEV.', visualType: 'NONE' },
-        { id: 'fdv', term: 'Kapitalizacja vs FDV (Pełne Rozwodnienie)', category: 'SECURITY', definition: 'Market Cap to wartość monet w obiegu. FDV to wartość po wyemitowaniu całej podaży. Gigantyczne FDV oznacza brutalną presję zrzutu z unlocków.', example: 'Kapitalizacja $100M przy FDV $5B doprowadziła do spadku o 80%.', visualType: 'NONE' },
-        { id: 'smartcontract', term: 'Audyt Smart Contractu i Uprawnienia Admina', category: 'SECURITY', definition: 'Ukryte luki w kodzie lub scentralizowane uprawnienia (możliwość nieograniczonego bicia monet mint() lub blokowania transferów).', example: 'Twórca tokena zachował funkcję mint() umożliwiającą zrzut.', visualType: 'NONE' },
+        {
+            id: 'blockchain_basics',
+            term: 'Czym jest Blockchain i jak działa',
+            category: 'BASICS',
+            definition: 'Zdecentralizowana, niezmienna baza danych, w której transakcje łączone są w kryptograficznie zabezpieczone bloki bez pośrednictwa banków.',
+            example: 'Węzły sieci weryfikują transakcje matematycznym algorytmem konsensusu.',
+            visualType: 'CHART_SMC',
+            videoData: {
+                youtubeId: 'SSo_EIwHSd4',
+                title: 'What is Blockchain Technology and How Does It Work?',
+                duration: '5:42',
+                sourceName: 'Binance Academy (Kurs oficjalny)',
+                takeaways: [
+                    'Blockchain eliminuje pośredników, obniżając prowizje i przyspieszając rozliczenia.',
+                    'Transakcje są publiczne i nieodwracalne — nikt nie może ich cofnąć.',
+                    'Bezpieczeństwo zapewnia rozproszona sieć tysięcy niezależnych węzłów.'
+                ]
+            }
+        },
+        {
+            id: 'bitcoin_intro',
+            term: 'Bitcoin (BTC) — Cyfrowe Złoto i Halving',
+            category: 'BASICS',
+            definition: 'Pierwsza kryptowaluta o twardym limicie 21 milionów monet i halvingu co 4 lata chroniącym przed inflacją.',
+            example: 'Halving ogranicza nową podaż BTC o połowę co 210,000 bloków.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'bBC-nXj3Ng4',
+                title: 'What is Bitcoin and How Does It Work?',
+                duration: '6:15',
+                sourceName: 'Binance Academy (Kurs oficjalny)',
+                takeaways: [
+                    'Żaden bank centralny nie może dodrukować monet Bitcoin.',
+                    'Ścisły limit 21,000,000 monet gwarantuje rzadkość.',
+                    'Przechowuj Bitcoin na własnym zimnym portfelu sprzętowym.'
+                ]
+            }
+        },
+        {
+            id: 'account_security_2fa',
+            term: 'Rejestracja konta, Weryfikacja KYC i 2FA',
+            category: 'BASICS',
+            definition: 'Podstawowe zasady tworzenia konta: uwierzytelnienie dwuskładnikowe (Google Authenticator) oraz weryfikacja tożsamości.',
+            example: 'Klucz 2FA uniemożliwia zalogowanie się oszustowi nawet przy znajomości hasła.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'QJNCi9U8h-c',
+                title: 'Account Security & How to Enable 2FA Authenticator',
+                duration: '4:50',
+                sourceName: 'Binance Academy (Kurs oficjalny)',
+                takeaways: [
+                    'Unikaj kodów SMS ze względu na ataki typu SIM-swap.',
+                    'Używaj kluczy YubiKey lub aplikacji Authenticator.',
+                    'Zapisz klucz zapasowy 2FA na kartce papieru.'
+                ]
+            }
+        },
+        {
+            id: 'spot_vs_futures',
+            term: 'Spot vs Futures: Dźwignia i Ryzyko Likwidacji',
+            category: 'TRADING',
+            definition: 'Na rynku Spot posiadasz rzeczywiste monety bez ryzyka likwidacji. Na rynku Futures handlujesz kontraktami z dźwignią finansową.',
+            example: 'Dźwignia 10x zwiększa potencjalny zysk, lecz ruch o 10% przeciw pozycji oznacza likwidację.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'w_3B_wX-f2M',
+                title: 'Spot vs Futures Trading: Understanding the Risks and Leverage',
+                duration: '9:30',
+                sourceName: 'Binance Academy (Kurs oficjalny)',
+                takeaways: [
+                    'Początkujący powinni zaczynać wyłącznie od rynku Spot.',
+                    'Na kontraktach Futures bezwzględnie ustawiaj zlecenie Stop-Loss.',
+                    'Wysoka dźwignia (20x-100x) prowadzi do szybkiego wyzerowania kapitału.'
+                ]
+            }
+        },
+        {
+            id: 'pinbar_hammer',
+            term: 'Młot Byczy i Formacja Pin Bar (Odrzucenie Ceny)',
+            category: 'PATTERNS',
+            definition: 'Świeca odwrócenia z małym ciałem i długim dolnym knotem, oznaczająca agresywne przejęcie kontroli przez kupujących.',
+            example: 'Pin bar na poziomie wsparcia dał czysty sygnał wejścia w pozycję długą.',
+            visualType: 'CANDLE_HAMMER',
+            videoData: {
+                youtubeId: 'W3pB58_v6fA',
+                title: 'How to Trade Pin Bars and Candlestick Reversal Patterns',
+                duration: '8:50',
+                sourceName: 'Binance Academy (Kurs oficjalny)',
+                takeaways: [
+                    'Im dłuższy knot świecy, tym silniejsze odrzucenie poziomu cenowego.',
+                    'Szukaj formacji Pin Bar na kluczowych poziomach wsparcia i oporu.',
+                    'Wejście po zamknięciu świecy ze zleceniem obronnym pod knotem.'
+                ]
+            }
+        },
+        {
+            id: 'hns',
+            term: 'Głowa i Ramiona',
+            category: 'PATTERNS',
+            definition: 'Klasyczna formacja odwrócenia z trzema szczytami. Wybicie linii szyi w dół potwierdza zmianę trendu na spadkowy.',
+            visualType: 'CHART_HEAD_SHOULDERS',
+            example: 'Cena nie zdołała wybić szczytu i przebiła linię szyi.'
+        },
+        {
+            id: 'smc',
+            term: 'Smart Money Concepts (SMC)',
+            category: 'PATTERNS',
+            definition: 'Metodologia śledzenia zleceń instytucjonalnych i manipulacji płynnością przed właściwym ruchem rynku.',
+            visualType: 'CHART_SMC',
+            example: 'Wybicie stop lossów inwestorów detalicznych przed pompą.'
+        },
+        {
+            id: 'wallets_storage',
+            term: 'Portfele Krypto: Zimne vs Gorące i Bezpieczeństwo',
+            category: 'SECURITY',
+            definition: 'Fizyczne portfele sprzętowe trzymają klucze prywatne całkowicie odizolowane od internetu i wirusów.',
+            example: '90% aktywów długoterminowych przechowywane na Ledgerze.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'g2w8y7n5L78',
+                title: 'Crypto Wallet Guide: Cold vs Hot Storage & Seed Phrase Safety',
+                duration: '11:10',
+                sourceName: 'Binance Academy (Kurs oficjalny)',
+                takeaways: [
+                    'Nigdy nie rób zdjęć i nie zapisuj 12-24 słów w chmurze lub telefonie.',
+                    'Zapisz frazę seed na papierze lub tytanie i schowaj w bezpiecznym miejscu.',
+                    'Pomoc techniczna nigdy nie prosi o podanie frazy seed.'
+                ]
+            }
+        },
+        {
+            id: 'fomo_psychology',
+            term: 'Psychologia Rynku: Jak Opanować FOMO i Chciwość',
+            category: 'PSYCHOLOGY',
+            definition: 'FOMO to impuls kupowania na szczycie ze strachu przed przegapieniem zysków. Profesjonaliści handlują plan, nie emocje.',
+            example: 'Nie goń zielonych świec, gdy rynek wzrósł już o 100%.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: '6A_fB1z3M8c',
+                title: 'Trading Psychology: Conquering FOMO, FUD, and Greed',
+                duration: '8:25',
+                sourceName: 'Binance Academy (Kurs oficjalny)',
+                takeaways: [
+                    'Przegapiona transakcja nie oznacza straty — ochrona kapitału jest najważniejsza.',
+                    'Zawsze realizuj z góry przygotowany plan transakcyjny.',
+                    'Zrób przerwę od wykresów po serii stratnych pozycji.'
+                ]
+            }
+        },
+        {
+            id: 'onepercentrule',
+            term: 'Zasada 1% Ryzyka na Transakcję',
+            category: 'PSYCHOLOGY',
+            definition: 'Maksymalna strata przy uderzeniu w Stop Loss nie powinna przekraczać 1-2% całego kapitału inwestycyjnego.',
+            example: 'Kapitał $10,000 — maksymalna strata na zagranie to $100.',
+            visualType: 'NONE'
+        }
     ]
 };

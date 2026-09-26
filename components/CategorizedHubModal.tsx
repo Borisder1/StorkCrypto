@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { triggerHaptic } from '../utils/haptics';
 import { 
-    RadarIcon, ActivityIcon, PieChartIcon, BookIcon, NewspaperIcon, BotIcon,
+    RadarIcon, ActivityIcon, PieChartIcon, NewspaperIcon, BotIcon,
     ShieldIcon, ZapIcon, GlobeIcon, WalletIcon, BellIcon, UsersIcon, SparklesIcon,
     TerminalIcon, SearchIcon, AwardIcon
 } from './icons';
@@ -72,10 +72,9 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
             ]
         },
         {
-            title: "🎓 Академія & Інфо",
+            title: "📊 Новини & Календар",
             items: [
                 { name: "Crypto News", icon: <NewspaperIcon className="text-blue-400" />, desc: "Оперативні новини крипторинку", action: () => handleAction(() => navigateTo('news')) },
-                { name: "Крипто Академія", icon: <BookIcon className="text-brand-purple" />, desc: "Уроки від початківця до PRO, квізи та графіки (+50 XP)", action: () => handleAction(() => navigateTo('media')) },
                 { name: "Economic Calendar", icon: <ZapIcon className="text-amber-400" />, desc: "Макроекономічні події", action: () => handleAction(() => setShowCalendar(true)) },
             ]
         },

@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { StorkIcon, TelegramIcon, LinkIcon, ActivityIcon, ShieldIcon, BotIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
 import { safeOpenTelegramInvoice } from '../utils/telegram';
+import { useScrollLock } from '../utils/useScrollLock';
 
 interface SubscriptionModalProps {
     onClose: () => void;
@@ -13,7 +14,7 @@ interface SubscriptionModalProps {
 type PaymentMethod = 'TON' | 'STRIPE' | 'CRYPTO' | 'STARS';
 
 const StarIcon: React.FC<{className?: string}> = ({className}) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
         <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
     </svg>
 );
@@ -22,23 +23,40 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
     const { settings, showToast, requestSubscriptionAction, userStats, upgradeUserTier, updateUserStats } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
     
+    useScrollLock(true);
+
     const [step, setStep] = useState<'SELECT' | 'PAY' | 'REDIRECT' | 'VERIFY'>('SELECT');
     const [selectedPlan, setSelectedPlan] = useState<'PRO' | 'WHALE' | null>(null);
     const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('STARS');
     const [txHash, setTxHash] = useState('');
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+
+    const isMountedRef = useRef(true);
+    const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const stepRef = useRef(step);
     
+    useEffect(() => {
+        stepRef.current = step;
+    }, [step]);
+
     const adminWallet = settings?.adminTreasuryWallet || "NOT_SET";
     const plans = settings?.subscriptionPlans || [];
 
     useEffect(() => {
+        isMountedRef.current = true;
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 onClose();
             }
         };
         window.addEventListener('keydown', handleKeyDown);
-        return () => window.removeEventListener('keydown', handleKeyDown);
+        return () => {
+            isMountedRef.current = false;
+            if (fallbackTimerRef.current) {
+                clearTimeout(fallbackTimerRef.current);
+            }
+            window.removeEventListener('keydown', handleKeyDown);
+        };
     }, [onClose]);
 
     const handleSelectPlan = (planId: 'PRO' | 'WHALE') => {
@@ -66,6 +84,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
 
             const opened = safeOpenTelegramInvoice(invoiceUrl, (status: string) => {
                 invoiceHandled = true;
+                if (!isMountedRef.current) return;
                 setIsProcessingPayment(false);
                 if (status === 'paid') {
                     setStep('VERIFY');
@@ -81,8 +100,9 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
 
             if (opened) {
                 // Give 2.5 seconds for invoice popup, if it fails or doesn't open -> fallback
-                setTimeout(() => {
-                    if (!invoiceHandled && step === 'REDIRECT') {
+                if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
+                fallbackTimerRef.current = setTimeout(() => {
+                    if (isMountedRef.current && !invoiceHandled && stepRef.current === 'REDIRECT') {
                         processInAppStarsPayment(starsCost, currentStars);
                         setIsProcessingPayment(false);
                     }
@@ -92,12 +112,16 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
 
             // In-App Stars Balance Direct Fallback when openInvoice is unsupported (e.g. Telegram WebApp v6.0)
             processInAppStarsPayment(starsCost, currentStars);
-            setIsProcessingPayment(false);
+            if (isMountedRef.current) {
+                setIsProcessingPayment(false);
+            }
 
         } catch (e) {
-            setIsProcessingPayment(false);
-            setStep('PAY');
-            showToast(t('sub.payment_failed'));
+            if (isMountedRef.current) {
+                setIsProcessingPayment(false);
+                setStep('PAY');
+                showToast(t('sub.payment_failed'));
+            }
         }
     };
 
@@ -106,6 +130,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         const finalStars = Math.max(currentStars, starsCost + 100);
         
         await new Promise(r => setTimeout(r, 800));
+        if (!isMountedRef.current) return;
+
         setStep('VERIFY');
         const mockHash = 'STARS_TX_' + Math.random().toString(36).substring(2, 10).toUpperCase();
         setTxHash(mockHash);
@@ -194,7 +220,11 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                             <li key={i} className="text-xs text-slate-300 flex items-center gap-3"><div className={`w-1.5 h-1.5 rounded-full ${p.id === 'WHALE' ? 'bg-brand-purple' : 'bg-brand-cyan'}`}></div>{feat}</li>
                                         ))}
                                     </ul>
-                                    <button onClick={() => handleSelectPlan(p.id as any)} className={`relative z-10 w-full py-4 font-black font-orbitron text-[10px] rounded-2xl transition-all uppercase tracking-[0.2em] shadow-lg ${p.id === 'WHALE' ? 'bg-brand-purple text-white hover:shadow-[0_0_20px_#8b5cf6]' : 'bg-brand-cyan text-black hover:shadow-[0_0_20px_#00d9ff]'}`}>
+                                    <button 
+                                        onClick={() => handleSelectPlan(p.id as any)} 
+                                        aria-label={`${t('sub.initialize')} ${p.name}`}
+                                        className={`relative z-10 w-full py-4 font-black font-orbitron text-[10px] rounded-2xl transition-all uppercase tracking-[0.2em] shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${p.id === 'WHALE' ? 'bg-brand-purple text-white hover:shadow-[0_0_20px_#8b5cf6]' : 'bg-brand-cyan text-black hover:shadow-[0_0_20px_#00d9ff]'}`}
+                                    >
                                         {t('sub.initialize')} {p.name}
                                     </button>
                                 </div>
@@ -204,12 +234,24 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
 
                     {step === 'PAY' && (
                         <div className="space-y-5 animate-fade-in">
-                            <div className="grid grid-cols-2 gap-2">
-                                <button onClick={() => setSelectedMethod('STARS')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all ${selectedMethod === 'STARS' ? 'bg-yellow-500/20 border-yellow-500' : 'bg-white/5 border-transparent opacity-60'}`}>
+                            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Метод оплати підписки">
+                                <button 
+                                    role="radio"
+                                    aria-checked={selectedMethod === 'STARS'}
+                                    aria-label="Оплата через Telegram Stars"
+                                    onClick={() => { triggerHaptic('selection'); setSelectedMethod('STARS'); }} 
+                                    className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 ${selectedMethod === 'STARS' ? 'bg-yellow-500/20 border-yellow-500' : 'bg-white/5 border-transparent opacity-60'}`}
+                                >
                                     <StarIcon className="w-8 h-8 text-yellow-400" />
                                     <span className="font-black text-[10px] text-white uppercase">{t('sub.tg_stars')}</span>
                                 </button>
-                                <button onClick={() => setSelectedMethod('TON')} className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all ${selectedMethod === 'TON' ? 'bg-brand-cyan/20 border-brand-cyan' : 'bg-white/5 border-transparent opacity-60'}`}>
+                                <button 
+                                    role="radio"
+                                    aria-checked={selectedMethod === 'TON'}
+                                    aria-label="Оплата через TON Wallet"
+                                    onClick={() => { triggerHaptic('selection'); setSelectedMethod('TON'); }} 
+                                    className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${selectedMethod === 'TON' ? 'bg-brand-cyan/20 border-brand-cyan' : 'bg-white/5 border-transparent opacity-60'}`}
+                                >
                                     <TelegramIcon className="w-8 h-8 text-brand-cyan" />
                                     <span className="font-black text-[10px] text-white uppercase">{t('sub.ton_wallet')}</span>
                                 </button>
@@ -227,7 +269,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                         onClick={handleStarsPayment} 
                                         disabled={isProcessingPayment}
                                         aria-label={t('sub.pay_stars')}
-                                        className={`w-full py-4 bg-[#0088cc] text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg ${isProcessingPayment ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#0077b3]'}`}
+                                        className={`w-full py-4 bg-[#0088cc] text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${isProcessingPayment ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#0077b3]'}`}
                                     >
                                         {isProcessingPayment ? 'PROCESSING...' : t('sub.pay_stars')}
                                     </button>
@@ -235,7 +277,25 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                             ) : (
                                 <div className="bg-black/60 rounded-3xl p-6 border border-white/5">
                                     <p className="text-[10px] text-slate-500 uppercase font-black mb-3">{t('sub.deposit_ton')}</p>
-                                    <div className="bg-white/5 p-4 rounded-2xl border border-white/10 mb-4 break-all cursor-copy" onClick={() => { navigator.clipboard.writeText(adminWallet); showToast(t('sub.copied')); }}>
+                                    <div 
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label={`Скопіювати TON адресу: ${adminWallet}`}
+                                        onClick={() => { 
+                                            navigator.clipboard.writeText(adminWallet); 
+                                            showToast(t('sub.copied')); 
+                                            triggerHaptic('light'); 
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                navigator.clipboard.writeText(adminWallet); 
+                                                showToast(t('sub.copied')); 
+                                                triggerHaptic('light');
+                                            }
+                                        }}
+                                        className="bg-white/5 p-4 rounded-2xl border border-white/10 mb-4 break-all cursor-copy hover:border-brand-cyan/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan transition-all"
+                                    >
                                         <p className="text-xs font-mono text-brand-cyan">{adminWallet}</p>
                                     </div>
                                     <input 
@@ -244,13 +304,13 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                         value={txHash} 
                                         onChange={(e) => setTxHash(e.target.value)} 
                                         aria-label={t('sub.tx_hash_placeholder') || 'Хеш транзакції'}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-mono mb-4" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-mono mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan" 
                                         placeholder={t('sub.tx_hash_placeholder')} 
                                     />
                                     <button 
                                         onClick={handleManualPaymentNotify} 
                                         aria-label="Підтвердити хеш транзакції"
-                                        className="w-full py-4 bg-brand-green text-black font-black rounded-2xl uppercase text-xs"
+                                        className="w-full py-4 bg-brand-green text-black font-black rounded-2xl uppercase text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green active:scale-[0.99] transition-all"
                                     >
                                         {t('sub.verify_hash')}
                                     </button>

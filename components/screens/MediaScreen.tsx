@@ -2,72 +2,88 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../../store';
 import { getTranslation } from '../../utils/translations';
-import { BookIcon, SearchIcon, ChevronRightIcon, ShieldIcon, CheckIcon, ZapIcon } from '../icons';
+import { BookIcon, SearchIcon, ChevronRightIcon, ShieldIcon, CheckIcon, ZapIcon, PlayIcon, SparklesIcon } from '../icons';
 import { triggerHaptic } from '../../utils/haptics';
-import { AcademyTerm, Language } from '../../types';
+import { AcademyTerm, AcademyCategory, Language } from '../../types';
 import { ChartPattern } from '../ChartPatterns';
 import QuizModal from '../QuizModal';
 import UpgradeBanner from '../UpgradeBanner';
 import { TacticalBackground } from '../TacticalBackground';
 import { ACADEMY_DATABASE } from '../MediaContent';
 import { HelpIndicator } from '../HelpIndicator';
+import { VideoLessonModal } from '../VideoLessonModal';
 
 const STORAGE_KEY = 'stork_academy_completed_ids';
 
 const QUIZZES: Record<Language, Record<string, { question: string; options: string[]; answer: string }>> = {
     en: {
+        blockchain_basics: { question: "Can a central bank reverse or delete confirmed blockchain transactions?", options: ["No, blockchain records are immutable", "Yes, with a court order"], answer: "No, blockchain records are immutable" },
+        bitcoin_intro: { question: "What is the maximum hard cap of Bitcoin ever to exist?", options: ["21,000,000 BTC", "100,000,000 BTC"], answer: "21,000,000 BTC" },
+        account_security_2fa: { question: "Which 2FA method is most secure against SIM swapping?", options: ["Hardware Key / Authenticator App", "SMS Text Message"], answer: "Hardware Key / Authenticator App" },
+        p2p_trading_guide: { question: "When should you release crypto in a P2P trade?", options: ["Only after checking funds in bank app", "Immediately after buyer sends a screenshot"], answer: "Only after checking funds in bank app" },
+        spot_vs_futures: { question: "Does spot trading have a liquidation risk without leverage?", options: ["No, you own the underlying asset", "Yes, upon 10% drop"], answer: "No, you own the underlying asset" },
+        orders_guide: { question: "Which order type ensures you never buy above your target limit price?", options: ["Limit Order", "Market Order"], answer: "Limit Order" },
+        pinbar_hammer: { question: "What does a long lower wick on a hammer indicate?", options: ["Aggressive buyer price rejection", "Seller domination"], answer: "Aggressive buyer price rejection" },
+        wallets_storage: { question: "Where should you store your 12-24 word secret seed phrase?", options: ["Offline on paper or metal", "In notes / cloud screenshot"], answer: "Offline on paper or metal" },
+        fomo_psychology: { question: "What should a trader do when an asset has already pumped 200%?", options: ["Wait for pullback / seek another setup", "Ape in with maximum leverage"], answer: "Wait for pullback / seek another setup" },
         rsi: { question: "Is RSI > 70 considered Overbought or Oversold?", options: ["Overbought", "Oversold"], answer: "Overbought" },
         macd: { question: "What does a Golden Cross suggest?", options: ["Bullish Entry", "Bearish Exit"], answer: "Bullish Entry" },
-        ob: { question: "What does Order Block (OB) act as?", options: ["Strong Support/Resistance", "Irrelevant Price Point"], answer: "Strong Support/Resistance" },
         orderblock: { question: "What does Order Block (OB) act as?", options: ["Strong Support/Resistance", "Irrelevant Price Point"], answer: "Strong Support/Resistance" },
         fvg: { question: "What does FVG represent in price action?", options: ["Price Imbalance / Gap", "Perfect Volume Balance"], answer: "Price Imbalance / Gap" },
         hns: { question: "Head & Shoulders is what type of pattern?", options: ["Reversal", "Continuation"], answer: "Reversal" },
         bullflag: { question: "Bull Flag signals potential movement in which direction?", options: ["Upward Continuation", "Downward Reversal"], answer: "Upward Continuation" },
-        fomo: { question: "What does FOMO stand for?", options: ["Fear Of Missing Out", "Future Options Market Order"], answer: "Fear Of Missing Out" },
-        fud: { question: "What does FUD usually cause in traders?", options: ["Panic Selling", "Rational Hodling"], answer: "Panic Selling" },
-        seed: { question: "Who should you share your secret seed phrase with?", options: ["Nobody", "StorkCrypto Support"], answer: "Nobody" },
-        seedphrase: { question: "Who should you share your seed phrase with?", options: ["Nobody", "StorkCrypto Support"], answer: "Nobody" },
-        coldwallet: { question: "Where does a Cold Wallet store private keys?", options: ["Offline on Hardware", "Online in Cloud"], answer: "Offline on Hardware" },
-        coldstorage: { question: "Where does a Cold Wallet store private keys?", options: ["Offline on Hardware", "Online in Cloud"], answer: "Offline on Hardware" },
-        '2fa': { question: "Which 2FA method is most secure against SIM swapping?", options: ["Hardware Key / Authenticator App", "SMS Text Message"], answer: "Hardware Key / Authenticator App" },
         onepercentrule: { question: "How much capital should you risk per single trade?", options: ["1% - 2% of total capital", "25% - 50% of total capital"], answer: "1% - 2% of total capital" },
-        smc: { question: "What do Smart Money Concepts primarily track?", options: ["Institutional order flow & liquidity", "Random price noise"], answer: "Institutional order flow & liquidity" }
+        smc: { question: "What do Smart Money Concepts primarily track?", options: ["Institutional order flow & liquidity", "Random price noise"], answer: "Institutional order flow & liquidity" },
+        stablecoins_intro: { question: "What primarily backs fiat-pegged stablecoins like USDT?", options: ["US Treasuries & Cash Reserves", "Zero Collateral"], answer: "US Treasuries & Cash Reserves" },
+        p2p_scam_prevention: { question: "When should you release crypto in P2P escrow?", options: ["Only when money cleared in bank balance", "When buyer claims payment was sent"], answer: "Only when money cleared in bank balance" },
+        api_keys_security: { question: "Which permission MUST be disabled on exchange API keys?", options: ["Withdrawal Permissions", "Read Permissions"], answer: "Withdrawal Permissions" },
+        risk_reward_calc: { question: "What is the recommended minimum Risk-to-Reward (R:R)?", options: ["1:2 or 1:3", "1:0.5"], answer: "1:2 or 1:3" }
     },
     ua: {
+        blockchain_basics: { question: "Чи може окремий банк або уряд видалити транзакцію в блокчейні?", options: ["Ні, транзакції незворотні та захищені", "Так, за спеціальним запитом"], answer: "Ні, транзакції незворотні та захищені" },
+        bitcoin_intro: { question: "Яка максимальна фіксована кількість монет Bitcoin існуватиме?", options: ["21,000,000 BTC", "100,000,000 BTC"], answer: "21,000,000 BTC" },
+        account_security_2fa: { question: "Який метод 2FA найбільш захищений від перехоплення SIM-карти?", options: ["Апаратний ключ / Додаток-автентифікатор", "SMS повідомлення"], answer: "Апаратний ключ / Додаток-автентифікатор" },
+        p2p_trading_guide: { question: "Коли слід натискати 'Підтвердити отримання' в P2P угоді?", options: ["Тільки після перевірки балансу в банківському додатку", "Одразу як покупець скинув чек у чат"], answer: "Тільки після перевірки балансу в банківському додатку" },
+        spot_vs_futures: { question: "Чи існує ризик ліквідації депозиту на звичайному спотовому ринку?", options: ["Ні, ви володієте реальною монетою", "Так, при падінні ціни на 10%"], answer: "Ні, ви володієте реальною монетою" },
+        orders_guide: { question: "Який тип ордера гарантує вхід за точно обраною вами ціною?", options: ["Limit-ордер", "Market-ордер"], answer: "Limit-ордер" },
+        pinbar_hammer: { question: "Що означає довгий нижній ґніт (тінь) у свічці Молот (Пін-бар)?", options: ["Агресивне відхилення ціни покупцями", "Перевагу продавців"], answer: "Агресивне відхилення ціни покупцями" },
+        wallets_storage: { question: "Де безпечно зберігати сід-фразу з 12-24 слів?", options: ["Офлайн на папері або металі", "У нотатках або фото на телефоні"], answer: "Офлайн на папері або металі" },
+        fomo_psychology: { question: "Що робити, якщо актив уже виріс на +300% (FOMO)?", options: ["Чекати корекції або шукати іншу угоду", "Заходити на всю котлету на піку"], answer: "Чекати корекції або шукати іншу угоду" },
         rsi: { question: "Показник RSI > 70 означає Перекупленість чи Перепроданість?", options: ["Перекупленість", "Перепроданість"], answer: "Перекупленість" },
         macd: { question: "На що вказує 'Золотий хрест'?", options: ["Вхід у лонг", "Вихід з позиції"], answer: "Вхід у лонг" },
-        ob: { question: "Чим виступає Ордер Блок (OB)?", options: ["Підтримкою/Опором", "Жодним чином не впливає"], answer: "Підтримкою/Опором" },
         orderblock: { question: "Чим виступає Ордер Блок (OB)?", options: ["Підтримкою/Опором", "Жодним чином не впливає"], answer: "Підтримкою/Опором" },
         fvg: { question: "Що таке Імбаланс (FVG)?", options: ["Неефективність ціни / Розрив", "Рівномірний розподіл купівель"], answer: "Неефективність ціни / Розрив" },
         hns: { question: "Який тип патерну 'Голова і Плечі'?", options: ["Патерн розвороту", "Патерн продовження тренду"], answer: "Патерн розвороту" },
         bullflag: { question: "Бичачий Прапор сигналізує про:", options: ["Продовження росту", "Розворот тренду вниз"], answer: "Продовження росту" },
-        fomo: { question: "Що означає FOMO?", options: ["Страх втраченої вигоди", "Швидке виконання ордерів"], answer: "Страх втраченої вигоди" },
-        fud: { question: "Що зазвичай провокує FUD?", options: ["Панічні продажі", "Раціональне утримання"], answer: "Панічні продажі" },
-        seed: { question: "З ким можна ділитися сід-фразою?", options: ["Ні з ким", "Підтримка StorkCrypto"], answer: "Ні з ким" },
-        seedphrase: { question: "З ким можна ділитися сід-фразою?", options: ["Ні з ким", "Підтримка StorkCrypto"], answer: "Ні з ким" },
-        coldwallet: { question: "Де зберігає приватні ключі Холодний Гаманець?", options: ["Офлайн на пристрої", "Онлайн в хмарі"], answer: "Офлайн на пристрої" },
-        coldstorage: { question: "Де зберігає приватні ключі Холодний Гаманець?", options: ["Офлайн на пристрої", "Онлайн в хмарі"], answer: "Офлайн на пристрої" },
-        '2fa': { question: "Який метод 2FA найбільш захищений від перехоплення SIM-карти?", options: ["Апаратний ключ / Додаток-автентифікатор", "SMS повідомлення"], answer: "Апаратний ключ / Додаток-автентифікатор" },
         onepercentrule: { question: "Який максимальний відсоток депозиту радять ризикувати в одній угоді?", options: ["1% - 2% капіталу", "25% - 50% капіталу"], answer: "1% - 2% капіталу" },
-        smc: { question: "Що в першу чергу відстежують концепції Smart Money (SMC)?", options: ["Інституційні пули ліквідності та ордери", "Випадкові коливання ціни"], answer: "Інституційні пули ліквідності та ордери" }
+        smc: { question: "Що в першу чергу відстежують концепції Smart Money (SMC)?", options: ["Інституційні пули ліквідності та ордери", "Випадкові коливання ціни"], answer: "Інституційні пули ліквідності та ордери" },
+        stablecoins_intro: { question: "Чим підкріплений стейблкоїн USDT (Tether)?", options: ["Фіатними резервами та держоблігаціями США", "Тільки обіцянками без забезпечення"], answer: "Фіатними резервами та держоблігаціями США" },
+        p2p_scam_prevention: { question: "Що робити, якщо покупець у P2P просить відпустити крипту без грошей на картці?", options: ["Нізащо не підтверджувати та відкрити апеляцію", "Підтвердити і повірити покупцю"], answer: "Нізащо не підтверджувати та відкрити апеляцію" },
+        api_keys_security: { question: "Який дозвіл обов'язково вимикати при створенні біржових API ключів?", options: ["Withdrawal (Виведення коштів)", "Read-Only (Читання)"], answer: "Withdrawal (Виведення коштів)" },
+        risk_reward_calc: { question: "Яке рекомендоване співвідношення Ризик/Прибуток (Risk/Reward)?", options: ["Мінімум 1:2 або 1:3", "1:0.5 (ризик більший за прибуток)"], answer: "Мінімум 1:2 або 1:3" }
     },
     pl: {
+        blockchain_basics: { question: "Czy bank centralny może cofnąć potwierdzoną transakcję w blockchainie?", options: ["Nie, zapisy są niezmienne", "Tak, na wniosek sądu"], answer: "Nie, zapisy są niezmienne" },
+        bitcoin_intro: { question: "Jaki jest ścisły maksymalny limit podaży Bitcoin?", options: ["21,000,000 BTC", "100,000,000 BTC"], answer: "21,000,000 BTC" },
+        account_security_2fa: { question: "Która metoda 2FA jest najbezpieczniejsza przed atakiem SIM-swap?", options: ["Klucz sprzętowy / Aplikacja Authenticator", "Wiadomości SMS"], answer: "Klucz sprzętowy / Aplikacja Authenticator" },
+        p2p_trading_guide: { question: "Kiedy należy zwolnić krypto w transakcji P2P?", options: ["Dopiero po sprawdzeniu salda w aplikacji banku", "Od razu po wiadomości od kupującego"], answer: "Dopiero po sprawdzeniu salda w aplikacji banku" },
+        spot_vs_futures: { question: "Czy na rynku Spot bez dźwigni istnieje ryzyko likwidacji?", options: ["Nie, posiadasz rzeczywistą monetę", "Tak, przy spadku o 10%"], answer: "Nie, posiadasz rzeczywistą monetę" },
+        orders_guide: { question: "Który typ zlecenia gwarantuje zakup po ustalonej przez Ciebie cenie?", options: ["Zlecenie Limit", "Zlecenie Market"], answer: "Zlecenie Limit" },
+        pinbar_hammer: { question: "Co oznacza długi dolny knot świecy młota?", options: ["Agresywne odrzucenie ceny przez kupujących", "Dominację sprzedających"], answer: "Agresywne odrzucenie ceny przez kupujących" },
+        wallets_storage: { question: "Gdzie bezpiecznie przechowywać frazę seed?", options: ["Offline na papierze lub tytanie", "W chmurze lub notatkach telefonu"], answer: "Offline na papierze lub tytanie" },
+        fomo_psychology: { question: "Co powinien zrobić trader, gdy aktywo wzrosło już o 300% (FOMO)?", options: ["Poczekać na korektę lub szukać nowego setupu", "Kupować na samej górce z dźwignią"], answer: "Poczekać na korektę lub szukać nowego setupu" },
         rsi: { question: "Czy RSI > 70 oznacza Wykupienie czy Wyprzedanie?", options: ["Wykupienie", "Wyprzedanie"], answer: "Wykupienie" },
         macd: { question: "Co sugeruje Złoty Krzyż?", options: ["Wejście (Bullish)", "Wyjście (Bearish)"], answer: "Wejście (Bullish)" },
-        ob: { question: "Czym jest Order Block (OB)?", options: ["Silnym wsparciem/oporem", "Nieistotnym punktem"], answer: "Silnym wsparciem/oporem" },
         orderblock: { question: "Czym jest Order Block (OB)?", options: ["Silnym wsparciem/oporem", "Nieistotnym punktem"], answer: "Silnym wsparciem/oporem" },
         fvg: { question: "Co FVG reprezentuje w akcji cenowej?", options: ["Nierównowagę cenową / Lukę", "Idealny bilans wolumenu"], answer: "Nierównowagę cenową / Lukę" },
         hns: { question: "Jakim typem formacji jest Głowa z Ramionami?", options: ["Odwrócenia", "Kontynuacji"], answer: "Odwrócenia" },
         bullflag: { question: "W jakim kierunku sugeruje ruch Flaga Byka?", options: ["Kontynuacja wzrostów", "Odwrócenie spadków"], answer: "Kontynuacja wzrostów" },
-        fomo: { question: "Co oznacza skrót FOMO?", options: ["Strach przed pominięciem", "Zlecenie opcji rynkowych"], answer: "Strach przed pominięciem" },
-        fud: { question: "Co zazwyczaj wywołuje FUD u inwestorów?", options: ["Paniczną sprzedaż", "Racjonalny HODLing"], answer: "Paniczną sprzedaż" },
-        seed: { question: "Komu powinieneś udostępnić frazę seed?", options: ["Nikomu", "Wsparciu StorkCrypto"], answer: "Nikomu" },
-        seedphrase: { question: "Komu powinieneś udostępnić frazę seed?", options: ["Nikomu", "Wsparciu StorkCrypto"], answer: "Nikomu" },
-        coldwallet: { question: "Gdzie zimny portfel przechowuje klucze prywatne?", options: ["Offline na urządzeniu", "Online w chmurze"], answer: "Offline na urządzeniu" },
-        coldstorage: { question: "Gdzie zimny portfel przechowuje klucze prywatne?", options: ["Offline na urządzeniu", "Online w chmurze"], answer: "Offline na urządzeniu" },
-        '2fa': { question: "Która metoda 2FA jest najbezpieczniejsza przed atakiem SIM-swap?", options: ["Klucz sprzętowy / Aplikacja Authenticator", "Wiadomości SMS"], answer: "Klucz sprzętowy / Aplikacja Authenticator" },
         onepercentrule: { question: "Ile kapitału należy maksymalnie ryzykować w jednej transakcji?", options: ["1% - 2% całego kapitału", "25% - 50% całego kapitału"], answer: "1% - 2% całego kapitału" },
-        smc: { question: "Co głównie śledzą koncepcje Smart Money (SMC)?", options: ["Instytucjonalne pule płynności i zlecenia", "Przypadkowy szum rynkowy"], answer: "Instytucjonalne pule płynności i zlecenia" }
+        smc: { question: "Co głównie śledzą koncepcje Smart Money (SMC)?", options: ["Instytucjonalne pule płynności i zlecenia", "Przypadkowy szum rynkowy"], answer: "Instytucjonalne pule płynności i zlecenia" },
+        stablecoins_intro: { question: "Czym zabezpieczony jest stablecoin USDT?", options: ["Rezerwami fiat i obligacjami USA", "Brak zabezpieczenia"], answer: "Rezerwami fiat i obligacjami USA" },
+        p2p_scam_prevention: { question: "Kiedy zwolnić środki krypto w P2P?", options: ["Dopiero po wpływie pieniędzy na konto", "Na prośbę kupującego"], answer: "Dopiero po wpływie pieniędzy na konto" },
+        api_keys_security: { question: "Jakie uprawnienie należy zawsze wyłączyć w kluczach API?", options: ["Wypłaty (Withdrawal)", "Odczyt (Read-Only)"], answer: "Wypłaty (Withdrawal)" },
+        risk_reward_calc: { question: "Jaki jest zalecany minimalny stosunek Risk-to-Reward?", options: ["Minimum 1:2 lub 1:3", "1:0.5"], answer: "Minimum 1:2 lub 1:3" }
     }
 };
 
@@ -75,12 +91,13 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const { settings, selectedAcademyCategory, addXp, grantXp, updateQuestProgress, showToast } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
 
-    const [filter, setFilter] = useState<'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY'>(
-        selectedAcademyCategory || 'PATTERNS'
+    const [filter, setFilter] = useState<AcademyCategory>(
+        selectedAcademyCategory || 'BASICS'
     );
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [search, setSearch] = useState('');
     const [activeDrillTerm, setActiveDrillTerm] = useState<AcademyTerm | null>(null);
+    const [activeVideoLesson, setActiveVideoLesson] = useState<AcademyTerm | null>(null);
 
     // Interactive Inline Express Quiz state
     const [activeInlineQuizId, setActiveInlineQuizId] = useState<string | null>(null);
@@ -111,7 +128,9 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
-                if (activeDrillTerm) {
+                if (activeVideoLesson) {
+                    setActiveVideoLesson(null);
+                } else if (activeDrillTerm) {
                     setActiveDrillTerm(null);
                 } else if (activeInlineQuizId) {
                     setActiveInlineQuizId(null);
@@ -122,7 +141,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [activeDrillTerm, activeInlineQuizId, onClose]);
+    }, [activeVideoLesson, activeDrillTerm, activeInlineQuizId, onClose]);
 
     useEffect(() => {
         if (selectedAcademyCategory) {
@@ -156,12 +175,12 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         const specific = QUIZZES[currentLanguage]?.[item.id] || QUIZZES['en']?.[item.id];
         if (specific) return specific;
 
-        // Smart Category-based fallback questions
         if (item.category === 'PATTERNS') {
             const isBull = item.term.toLowerCase().includes('bull') || 
                            item.term.toLowerCase().includes('hammer') || 
                            item.term.toLowerCase().includes('cup') || 
                            item.term.toLowerCase().includes('bottom') ||
+                           item.term.toLowerCase().includes('молот') ||
                            item.term.toLowerCase().includes('бичач');
             return {
                 question: currentLanguage === 'ua' 
@@ -180,58 +199,51 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             };
         }
 
-        if (item.category === 'SECURITY') {
-            return {
-                question: currentLanguage === 'ua'
-                    ? `Яке головне правило безпеки стосується "${item.term}"?`
-                    : currentLanguage === 'pl'
-                    ? `Jaka jest kluczowa zasada bezpieczeństwa dla "${item.term}"?`
-                    : `What is the core security rule for "${item.term}"?`,
-                options: currentLanguage === 'ua'
-                    ? ["Зберігати конфіденційно і перевіряти підписи", "Поділитися у відкритому чаті для перевірки"]
-                    : currentLanguage === 'pl'
-                    ? ["Zachować poufność i weryfikować podpisy", "Udostępnić na czacie do weryfikacji"]
-                    : ["Keep secure/offline and verify signatures", "Share in public chat to test"],
-                answer: currentLanguage === 'ua' ? "Зберігати конфіденційно і перевіряти підписи"
-                    : currentLanguage === 'pl' ? "Zachować poufność i weryfikować podpisy"
-                    : "Keep secure/offline and verify signatures"
-            };
-        }
-
         return {
             question: currentLanguage === 'ua'
-                ? `Чи розумієте ви практичне застосування "${item.term}"?`
+                ? `Яке головне правило стосується теми "${item.term}"?`
                 : currentLanguage === 'pl'
-                ? `Czy rozumiesz praktyczne zastosowanie "${item.term}"?`
-                : `Do you understand the trading application of "${item.term}"?`,
+                ? `Jaka jest kluczowa zasada dla "${item.term}"?`
+                : `What is the core rule for "${item.term}"?`,
             options: currentLanguage === 'ua'
-                ? ["Так, концепція зрозуміла", "Ні, потрібен повтор"]
+                ? ["Дотримуватися ризик-менеджменту та верифікації", "Ігнорувати правила безпеки"]
                 : currentLanguage === 'pl'
-                ? ["Tak, pojęcie zrozumiałe", "Nie, muszę powtórzyć"]
-                : ["Yes, concept understood", "Need more practice"],
-            answer: currentLanguage === 'ua' ? "Так, концепція зрозуміла"
-                : currentLanguage === 'pl' ? "Tak, pojęcie zrozumiałe"
-                : "Yes, concept understood"
+                ? ["Stosować zarządzanie ryzykiem i weryfikację", "Ignorować zasady bezpieczeństwa"]
+                : ["Maintain strict risk management & verification", "Ignore security guidelines"],
+            answer: currentLanguage === 'ua' ? "Дотримуватися ризик-менеджменту та верифікації"
+                : currentLanguage === 'pl' ? "Stosować zarządzanie ryzykiem i weryfikację"
+                : "Maintain strict risk management & verification"
         };
     }, [currentLanguage]);
 
-    const handleInlineOptionClick = (item: AcademyTerm, optionText: string, correctAnswer: string) => {
-        if (optionText === correctAnswer || optionText.startsWith("Yes") || optionText.startsWith("Так") || optionText.startsWith("Tak")) {
-            triggerHaptic('success');
-            addXp(50);
-            grantXp(50, `Express Quiz: ${item.term}`);
-            updateQuestProgress('ACADEMY', 1);
+    const handleInlineOptionClick = (item: AcademyTerm, chosen: string, correct: string) => {
+        triggerHaptic('medium');
+        if (chosen === correct) {
+            setInlineQuizError(false);
             markTermCompleted(item.id);
-            setActiveInlineQuizId(null);
-            setInlineQuizError(null);
+            addXp(50);
+            grantXp(50, `Academy Quiz: ${item.term}`);
+            updateQuestProgress('ACADEMY', 1);
             showToast(t('academy.correct_toast'));
+            triggerHaptic('success');
+            setTimeout(() => {
+                setActiveInlineQuizId(null);
+                setInlineQuizError(null);
+            }, 600);
         } else {
-            triggerHaptic('error');
             setInlineQuizError(true);
-            showToast(t('academy.incorrect_toast'));
-            setTimeout(() => setInlineQuizError(null), 1600);
+            triggerHaptic('error');
+            setTimeout(() => setInlineQuizError(null), 1500);
         }
     };
+
+    const categoriesList: { id: AcademyCategory; label: string; icon: string }[] = [
+        { id: 'BASICS', label: t('academy.basics') || 'Основи', icon: '🚀' },
+        { id: 'TRADING', label: t('academy.trading') || 'Трейдинг', icon: '📈' },
+        { id: 'PATTERNS', label: t('academy.patterns') || 'Патерни', icon: '🕯️' },
+        { id: 'SECURITY', label: t('academy.security') || 'Безпека', icon: '🛡️' },
+        { id: 'PSYCHOLOGY', label: t('academy.psychology') || 'Психологія', icon: '🧠' },
+    ];
 
     return (
         <motion.div 
@@ -246,7 +258,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             <TacticalBackground />
             
             {/* Top Navigation Bar */}
-            <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-6 py-4 flex items-center justify-between shrink-0 relative z-20">
+            <div className="safe-area-pt bg-brand-card/90 backdrop-blur-2xl border-b border-white/10 px-5 sm:px-6 py-4 flex items-center justify-between shrink-0 relative z-20">
                 <div className="flex items-center gap-3">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose?.(); }}
@@ -262,8 +274,10 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                             </h1>
                             <HelpIndicator id="academy_hub" />
                         </div>
-                        <p className="text-[9px] text-brand-cyan font-mono uppercase tracking-widest">
-                            {t('academy.subtitle')}
+                        <p className="text-[9px] text-brand-cyan font-mono uppercase tracking-widest flex items-center gap-1">
+                            <span>StorkCrypto Academy</span>
+                            <span className="text-slate-500">•</span>
+                            <span className="text-emerald-400 font-bold">{t('academy.badge_subtitle') || 'Офіційна Програма'}</span>
                         </p>
                     </div>
                 </div>
@@ -315,44 +329,31 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </div>
                 </div>
 
-                {/* Category Navigation Tabs */}
+                {/* Responsive Category Navigation Tabs */}
                 <div 
                     role="tablist"
                     aria-label="Academy categories"
-                    className="grid grid-cols-4 gap-1.5 bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-6 shadow-inner"
+                    className="flex sm:grid sm:grid-cols-5 gap-1.5 overflow-x-auto no-scrollbar bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-6 shadow-inner"
                 >
-                    <button 
-                        role="tab"
-                        aria-selected={filter === 'PATTERNS'}
-                        onClick={() => { triggerHaptic('selection'); setFilter('PATTERNS'); }} 
-                        className={`py-3 rounded-xl text-[8px] sm:text-[9px] font-black font-orbitron transition-all uppercase tracking-wider text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${filter === 'PATTERNS' ? 'bg-brand-card text-brand-cyan shadow-xl border border-brand-cyan/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        {t('academy.patterns')}
-                    </button>
-                    <button 
-                        role="tab"
-                        aria-selected={filter === 'TECHNICAL'}
-                        onClick={() => { triggerHaptic('selection'); setFilter('TECHNICAL'); }} 
-                        className={`py-3 rounded-xl text-[8px] sm:text-[9px] font-black font-orbitron transition-all uppercase tracking-wider text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${filter === 'TECHNICAL' ? 'bg-brand-card text-brand-cyan shadow-xl border border-brand-cyan/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        {t('academy.technical')}
-                    </button>
-                    <button 
-                        role="tab"
-                        aria-selected={filter === 'PSYCHOLOGY'}
-                        onClick={() => { triggerHaptic('selection'); setFilter('PSYCHOLOGY'); }} 
-                        className={`py-3 rounded-xl text-[8px] sm:text-[9px] font-black font-orbitron transition-all uppercase tracking-wider text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${filter === 'PSYCHOLOGY' ? 'bg-brand-card text-brand-cyan shadow-xl border border-brand-cyan/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        {t('academy.psychology')}
-                    </button>
-                    <button 
-                        role="tab"
-                        aria-selected={filter === 'SECURITY'}
-                        onClick={() => { triggerHaptic('selection'); setFilter('SECURITY'); }} 
-                        className={`py-3 rounded-xl text-[8px] sm:text-[9px] font-black font-orbitron transition-all uppercase tracking-wider text-center focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${filter === 'SECURITY' ? 'bg-brand-card text-brand-cyan shadow-xl border border-brand-cyan/20' : 'text-slate-500 hover:text-slate-300'}`}
-                    >
-                        {t('academy.security')}
-                    </button>
+                    {categoriesList.map(cat => {
+                        const isSelected = filter === cat.id;
+                        return (
+                            <button
+                                key={cat.id}
+                                role="tab"
+                                aria-selected={isSelected}
+                                onClick={() => { triggerHaptic('selection'); setFilter(cat.id); }}
+                                className={`shrink-0 sm:shrink py-3 px-3 rounded-xl text-[9px] sm:text-[10px] font-black font-orbitron transition-all uppercase tracking-wider text-center flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${
+                                    isSelected 
+                                        ? 'bg-brand-card text-brand-cyan shadow-xl border border-brand-cyan/30' 
+                                        : 'text-slate-400 hover:text-white'
+                                }`}
+                            >
+                                <span className="text-xs">{cat.icon}</span>
+                                <span>{cat.label}</span>
+                            </button>
+                        );
+                    })}
                 </div>
 
                 {/* Search Bar */}
@@ -415,8 +416,8 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                         }}
                                         className="w-full p-4 flex items-center justify-between text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan/70"
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all ${
+                                        <div className="flex items-center gap-3 overflow-hidden pr-2">
+                                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center border transition-all shrink-0 ${
                                                 isExpanded 
                                                     ? 'bg-brand-cyan/20 border-brand-cyan text-brand-cyan' 
                                                     : isCompleted
@@ -426,26 +427,36 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                                 <ChevronRightIcon className={`w-4 h-4 transition-transform duration-300 ${isExpanded ? 'rotate-90' : ''}`} />
                                             </div>
 
-                                            <div>
-                                                <h4 className={`font-bold text-xs sm:text-sm tracking-wide ${isExpanded ? 'text-brand-cyan' : isCompleted ? 'text-slate-200' : 'text-white'}`}>
-                                                    {item.term}
-                                                </h4>
+                                            <div className="min-w-0">
+                                                <div className="flex items-center gap-2 flex-wrap">
+                                                    <h4 className={`font-bold text-xs sm:text-sm tracking-wide truncate ${isExpanded ? 'text-brand-cyan' : isCompleted ? 'text-slate-200' : 'text-white'}`}>
+                                                        {item.term}
+                                                    </h4>
+                                                    {item.videoData && (
+                                                        <span className="text-[8px] font-mono font-bold text-yellow-400 bg-yellow-400/10 px-2 py-0.5 rounded-md border border-yellow-400/30 flex items-center gap-1 shrink-0">
+                                                            <PlayIcon className="w-2.5 h-2.5 fill-current" />
+                                                            {item.videoData.duration}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className="text-[8px] text-slate-500 font-mono uppercase tracking-wider">
                                                     {t(`academy.${item.category.toLowerCase()}`)}
                                                 </span>
                                             </div>
                                         </div>
 
-                                        {isCompleted ? (
-                                            <span className="text-[9px] font-black text-brand-emerald bg-brand-emerald/10 px-2.5 py-1 rounded-lg border border-brand-emerald/30 flex items-center gap-1">
-                                                <CheckIcon className="w-3 h-3" />
-                                                ✓ {currentLanguage === 'ua' ? 'ВИВЧЕНО' : currentLanguage === 'pl' ? 'UKOŃCZONE' : 'MASTERED'}
-                                            </span>
-                                        ) : (
-                                            <span className="text-[9px] font-black text-brand-purple bg-brand-purple/10 px-2.5 py-1 rounded-lg border border-brand-purple/30">
-                                                +50 XP
-                                            </span>
-                                        )}
+                                        <div className="shrink-0">
+                                            {isCompleted ? (
+                                                <span className="text-[9px] font-black text-brand-emerald bg-brand-emerald/10 px-2.5 py-1 rounded-lg border border-brand-emerald/30 flex items-center gap-1">
+                                                    <CheckIcon className="w-3 h-3" />
+                                                    ✓ {currentLanguage === 'ua' ? 'ВИВЧЕНО' : currentLanguage === 'pl' ? 'UKOŃCZONE' : 'MASTERED'}
+                                                </span>
+                                            ) : (
+                                                <span className="text-[9px] font-black text-brand-purple bg-brand-purple/10 px-2.5 py-1 rounded-lg border border-brand-purple/30">
+                                                    +50 XP
+                                                </span>
+                                            )}
+                                        </div>
                                     </button>
 
                                     {/* Expanded Lesson Drawer */}
@@ -459,6 +470,41 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                                 className="px-4 pb-5 bg-black/30 border-t border-white/5"
                                             >
                                                 <div className="pt-4 space-y-4">
+                                                    {/* In-App Video Banner Callout if Lesson has Video */}
+                                                    {item.videoData && (
+                                                        <div className="rounded-2xl p-4 bg-gradient-to-r from-yellow-500/10 via-brand-purple/10 to-brand-cyan/10 border border-yellow-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[0_0_20px_rgba(234,179,8,0.1)]">
+                                                            <div>
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="text-[9px] font-mono font-bold text-yellow-400 uppercase tracking-wider flex items-center gap-1">
+                                                                        <span>🎬</span>
+                                                                        <span>{item.videoData.sourceName || 'Binance Academy'}</span>
+                                                                    </span>
+                                                                    <span className="text-[9px] font-mono text-slate-400">
+                                                                        ⏱️ {item.videoData.duration}
+                                                                    </span>
+                                                                </div>
+                                                                <h5 className="text-xs font-bold text-white font-orbitron">
+                                                                    {item.videoData.title || item.term}
+                                                                </h5>
+                                                                <p className="text-[10px] text-slate-400 font-mono mt-0.5">
+                                                                    Відео відтворюється всередині додатка без виходу в браузер
+                                                                </p>
+                                                            </div>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    triggerHaptic('medium');
+                                                                    setActiveVideoLesson(item);
+                                                                }}
+                                                                aria-label={`Дивитися відео-урок ${item.term}`}
+                                                                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-orbitron font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
+                                                            >
+                                                                <PlayIcon className="w-3.5 h-3.5 fill-current" />
+                                                                <span>{t('academy.watch_video')}</span>
+                                                            </button>
+                                                        </div>
+                                                    )}
+
                                                     {/* Chart Visualization if Pattern */}
                                                     {item.visualType && item.visualType !== 'NONE' && (
                                                         <div className="rounded-xl overflow-hidden border border-white/10 bg-black/40">
@@ -585,6 +631,18 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     )}
                 </div>
             </div>
+
+            {/* In-App Video Lesson Modal */}
+            {activeVideoLesson && (
+                <VideoLessonModal 
+                    lesson={activeVideoLesson}
+                    isCompleted={!!completedIds[activeVideoLesson.id]}
+                    onClose={() => setActiveVideoLesson(null)}
+                    onMarkCompleted={(termId) => {
+                        markTermCompleted(termId);
+                    }}
+                />
+            )}
 
             {/* 15s Timed Tactical Drill Modal */}
             {activeDrillTerm && (

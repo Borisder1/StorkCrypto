@@ -3,6 +3,7 @@ import React, { useEffect } from 'react';
 import { StorkIcon, TrendingUpIcon, BarChartIcon } from './icons';
 import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
+import { useScrollLock } from '../utils/useScrollLock';
 
 interface ShareModalProps {
     onClose: () => void;
@@ -16,8 +17,9 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, totalValue, totalPnL, 
     const t = (key: string) => getTranslation(settings.language, key);
     const isPositive = totalPnL >= 0;
 
+    useScrollLock(true);
+
     useEffect(() => {
-        document.body.style.overflow = 'hidden';
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 onClose();
@@ -25,7 +27,6 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, totalValue, totalPnL, 
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => { 
-            document.body.style.overflow = 'unset'; 
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [onClose]);

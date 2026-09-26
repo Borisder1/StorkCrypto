@@ -5,10 +5,13 @@ import { useStore } from '../store';
 import { UserIcon, ShieldIcon, SparklesIcon, ShareIcon, CopyIcon, ChevronRightIcon } from './icons';
 import { getTranslation } from '../utils/translations';
 import { triggerHaptic } from '../utils/haptics';
+import { useScrollLock } from '../utils/useScrollLock';
 
 const ReferralModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const { settings, grantXp, showToast, userStats } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
+    
+    useScrollLock(true);
     
     // Generate referral link based on user ID
     const userId = userStats.id.replace('tg_', '') || 'pilot_77';
@@ -24,7 +27,6 @@ const ReferralModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const tierBonus = invitedCount >= 10 ? '+25% XP' : invitedCount >= 5 ? '+15% XP' : '+5% XP';
 
     useEffect(() => {
-        document.body.style.overflow = 'hidden';
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
                 onClose();
@@ -32,7 +34,6 @@ const ReferralModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         };
         window.addEventListener('keydown', handleKeyDown);
         return () => { 
-            document.body.style.overflow = 'unset'; 
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [onClose]);
@@ -48,7 +49,26 @@ const ReferralModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         triggerHaptic('selection');
         const text = encodeURIComponent("🚀 Join my Cyber-Pilot Neural Squad in StorkCrypto! Get +100 STORK tokens & AI Trading Insights:");
         const url = `https://t.me/share/url?url=${encodeURIComponent(referralLink)}&text=${text}`;
-        window.open(url, '_blank');
+        
+        try {
+            const tg = (window as any).Telegram?.WebApp;
+            if (tg?.openTelegramLink) {
+                tg.openTelegramLink(url);
+            } else if (tg?.openLink) {
+                tg.openLink(url);
+            } else {
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        } catch (e) {
+            console.error("Failed to share telegram link:", e);
+        }
+
         grantXp(25, 'Shared to Telegram');
     };
 

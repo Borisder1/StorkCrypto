@@ -128,3 +128,22 @@ export const safeOpenTelegramInvoice = (invoiceUrl: string, callback?: (status: 
     return false;
 };
 
+export const safeOpenTelegramLink = (url: string) => {
+    const tg = getTelegramWebApp();
+    if (tg && typeof tg.openLink === 'function') {
+        try {
+            tg.openLink(url);
+            return;
+        } catch (e) {
+            console.warn("Telegram openLink failed, fallback to anchor click:", e);
+        }
+    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+};
+

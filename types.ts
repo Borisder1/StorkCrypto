@@ -321,13 +321,24 @@ export interface MomentumData {
 
 export type PatternType = 'BULLISH' | 'BEARISH' | 'NEUTRAL';
 
+export type AcademyCategory = 'BASICS' | 'TRADING' | 'PATTERNS' | 'TECHNICAL' | 'PSYCHOLOGY' | 'SECURITY';
+
+export interface AcademyVideoData {
+    youtubeId: string;
+    title: string;
+    duration: string;
+    sourceName: string;
+    takeaways: string[];
+}
+
 export interface AcademyTerm {
     id: string;
     term: string;
-    category: 'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY';
+    category: AcademyCategory;
     definition: string;
     example: string;
     visualType?: VisualType;
+    videoData?: AcademyVideoData;
 }
 
 export type VisualType = 'NONE' | 'CHART_HEAD_SHOULDERS' | 'CHART_DOUBLE_TOP' | 'CHART_DOUBLE_BOTTOM' | 'CHART_BULL_FLAG' | 'CHART_CUP_HANDLE' | 'CHART_ASC_TRIANGLE' | 'CHART_DESC_TRIANGLE' | 'CHART_WEDGE_BULL' | 'CHART_WEDGE_BEAR' | 'CANDLE_DOJI' | 'CANDLE_HAMMER' | 'CANDLE_ENGULFING' | 'CANDLE_MORNING_STAR' | 'CANDLE_SHOOTING_STAR' | 'CHART_OB' | 'CHART_FVG' | 'CHART_SMC';
@@ -398,9 +409,9 @@ export interface AppSlice {
     updateSettings: (settings: Partial<AppSettings>) => void;
     activeTab: NavItem;
     navigateTo: (tab: NavItem) => void;
-    selectedAcademyCategory?: 'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY' | null;
-    openAcademy: (category?: 'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY') => void;
-    setSelectedAcademyCategory: (category: 'TECHNICAL' | 'PATTERNS' | 'PSYCHOLOGY' | 'SECURITY' | null) => void;
+    selectedAcademyCategory?: AcademyCategory | null;
+    openAcademy: (category?: AcademyCategory) => void;
+    setSelectedAcademyCategory: (category: AcademyCategory | null) => void;
     isAIChatOpen: boolean;
     setIsAIChatOpen: (isOpen: boolean) => void;
     showCalendar: boolean;

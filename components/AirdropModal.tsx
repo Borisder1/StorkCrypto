@@ -1,11 +1,12 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { PickaxeIcon, TimerIcon, GiftIcon, ShieldIcon, TelegramIcon, LinkIcon, ChevronRightIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
 import { HelpIndicator } from './HelpIndicator';
+import { useScrollLock } from '../utils/useScrollLock';
 
 interface AirdropModalProps {
     onClose: () => void;
@@ -23,7 +24,7 @@ const HashLog: React.FC = () => {
     }, []);
 
     return (
-        <div className="font-mono text-[8px] text-green-500/60 leading-tight h-16 overflow-hidden flex flex-col-reverse">
+        <div aria-hidden="true" className="font-mono text-[8px] text-green-500/60 leading-tight h-16 overflow-hidden flex flex-col-reverse select-none">
             {hashes.map((h, i) => (
                 <div key={i} className="opacity-70">&gt; MINING_BLOCK: {h} [OK]</div>
             ))}
@@ -35,20 +36,33 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
     const { userStats, claimMining, completeAirdropTask, settings, showToast, setShowReferral, buyMiningBoost, buyStars } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
     
+    useScrollLock(true);
+
     const [currentTime, setCurrentTime] = useState(Date.now());
     const [minedAmount, setMinedAmount] = useState(0);
     const [progressPercent, setProgressPercent] = useState(0);
     const [isClaiming, setIsClaiming] = useState(false);
     const [completingTaskId, setCompletingTaskId] = useState<string | null>(null);
 
+    const isMountedRef = useRef(true);
+    const timeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
     const mining = userStats.mining;
     const tasks = userStats.tasks;
 
     useEffect(() => {
+        isMountedRef.current = true;
         const interval = setInterval(() => {
-            setCurrentTime(Date.now());
+            if (isMountedRef.current) {
+                setCurrentTime(Date.now());
+            }
         }, 1000);
-        return () => clearInterval(interval);
+        return () => {
+            isMountedRef.current = false;
+            clearInterval(interval);
+            timeoutsRef.current.forEach(clearTimeout);
+            timeoutsRef.current = [];
+        };
     }, []);
 
     useEffect(() => {
@@ -78,7 +92,29 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
             showToast(`${t('airdrop.harvested')} ${minedAmount.toFixed(2)} $STORK`);
             setMinedAmount(0);
         } finally {
-            setTimeout(() => setIsClaiming(false), 800);
+            const timer = setTimeout(() => {
+                if (isMountedRef.current) setIsClaiming(false);
+            }, 800);
+            timeoutsRef.current.push(timer);
+        }
+    };
+
+    const openSafeLink = (url: string) => {
+        try {
+            const tg = (window as any).Telegram?.WebApp;
+            if (tg?.openLink) {
+                tg.openLink(url);
+            } else {
+                const a = document.createElement('a');
+                a.href = url;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        } catch (e) {
+            console.error("Failed to open task link safely:", e);
         }
     };
 
@@ -94,19 +130,14 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
         }
 
         if (task.link) {
-            try {
-                if ((window as any).Telegram?.WebApp?.openLink) {
-                    (window as any).Telegram.WebApp.openLink(task.link);
-                } else {
-                    window.open(task.link, '_blank', 'noopener,noreferrer');
+            openSafeLink(task.link);
+            const timer = setTimeout(() => {
+                if (isMountedRef.current) {
+                    completeAirdropTask(task.id);
+                    setCompletingTaskId(null);
                 }
-            } catch (e) {
-                console.error("Failed to open link:", e);
-            }
-            setTimeout(() => {
-                completeAirdropTask(task.id);
-                setCompletingTaskId(null);
             }, 5000); // 5 sec delay for verification simulation
+            timeoutsRef.current.push(timer);
         } else {
             completeAirdropTask(task.id);
             setCompletingTaskId(null);
@@ -255,9 +286,10 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                                     triggerHaptic('medium');
                                     buyMiningBoost();
                                 }}
-                                className="mt-4 w-full py-2.5 bg-brand-purple text-white text-[9px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_15px_#8b5cf6] transition-all flex items-center justify-center gap-1.5"
+                                aria-label="Прискорити ядро майнінгу за 250 Stars"
+                                className="mt-4 w-full py-2.5 bg-brand-purple text-white text-[9px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_15px_#8b5cf6] transition-all flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple"
                             >
-                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24" aria-hidden="true">
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
                                 </svg>
                                 250 STARS
@@ -275,7 +307,8 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                                     triggerHaptic('medium');
                                     buyStars(500);
                                 }}
-                                className="mt-4 w-full py-2.5 bg-brand-cyan text-black text-[9px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_15px_#00d9ff] transition-all flex items-center justify-center gap-1"
+                                aria-label="Купити 500 Telegram Stars за 10 доларів"
+                                className="mt-4 w-full py-2.5 bg-brand-cyan text-black text-[9px] font-black uppercase tracking-wider rounded-xl hover:shadow-[0_0_15px_#00d9ff] transition-all flex items-center justify-center gap-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
                             >
                                 <span className="font-mono">$10</span> BUY 500 ⭐
                             </button>
@@ -290,31 +323,54 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
                     </h3>
                     
                     <div className="space-y-3">
-                        {tasks.map(task => (
-                            <div 
-                                key={task.id}
-                                onClick={() => handleTaskClick(task)}
-                                className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${task.isCompleted ? 'bg-brand-green/10 border-brand-green/30 opacity-60' : 'bg-brand-card/40 border-white/5 hover:border-brand-purple/40 active:scale-[0.98] cursor-pointer'}`}
-                            >
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${task.isCompleted ? 'border-brand-green bg-brand-green/20 text-brand-green' : 'border-white/10 bg-black/40 text-slate-400'}`}>
-                                        {task.icon === 'TELEGRAM' && <TelegramIcon className="w-5 h-5" />}
-                                        {task.icon === 'TWITTER' && <LinkIcon className="w-5 h-5" />}
-                                        {task.icon === 'WALLET' && <ShieldIcon className="w-5 h-5" />}
-                                        {task.icon === 'INVITE' && <GiftIcon className="w-5 h-5" />}
+                        {tasks.map(task => {
+                            const isPending = completingTaskId === task.id;
+                            return (
+                                <div 
+                                    key={task.id}
+                                    role="button"
+                                    tabIndex={task.isCompleted ? -1 : 0}
+                                    aria-label={`${task.title} — винагорода ${task.reward} STORK`}
+                                    aria-disabled={task.isCompleted || isPending}
+                                    onClick={() => handleTaskClick(task)}
+                                    onKeyDown={(e) => {
+                                        if (!task.isCompleted && !isPending && (e.key === 'Enter' || e.key === ' ')) {
+                                            e.preventDefault();
+                                            handleTaskClick(task);
+                                        }
+                                    }}
+                                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all select-none ${
+                                        task.isCompleted 
+                                            ? 'bg-brand-green/10 border-brand-green/30 opacity-60' 
+                                            : isPending
+                                                ? 'bg-brand-cyan/15 border-brand-cyan/50 scale-[0.99]'
+                                                : 'bg-brand-card/40 border-white/5 hover:border-brand-purple/40 active:scale-[0.98] cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan'
+                                    }`}
+                                >
+                                    <div className="flex items-center gap-4">
+                                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center border ${task.isCompleted ? 'border-brand-green bg-brand-green/20 text-brand-green' : 'border-white/10 bg-black/40 text-slate-400'}`}>
+                                            {task.icon === 'TELEGRAM' && <TelegramIcon className="w-5 h-5" />}
+                                            {task.icon === 'TWITTER' && <LinkIcon className="w-5 h-5" />}
+                                            {task.icon === 'WALLET' && <ShieldIcon className="w-5 h-5" />}
+                                            {task.icon === 'INVITE' && <GiftIcon className="w-5 h-5" />}
+                                        </div>
+                                        <div>
+                                            <p className={`text-xs font-bold ${task.isCompleted ? 'text-brand-green line-through' : 'text-white'}`}>{task.title}</p>
+                                            <p className="text-[9px] text-brand-purple font-mono font-bold">+{task.reward} $STORK</p>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <p className={`text-xs font-bold ${task.isCompleted ? 'text-brand-green line-through' : 'text-white'}`}>{task.title}</p>
-                                        <p className="text-[9px] text-brand-purple font-mono font-bold">+{task.reward} $STORK</p>
-                                    </div>
+                                    {isPending ? (
+                                        <span className="flex items-center gap-1.5 text-[9px] font-black text-brand-cyan uppercase bg-brand-cyan/15 border border-brand-cyan/30 px-2 py-1 rounded animate-pulse">
+                                            <ActivityIcon className="w-3 h-3 animate-spin" /> ВЕРИФІКАЦІЯ...
+                                        </span>
+                                    ) : task.isCompleted ? (
+                                        <span className="text-[9px] font-black text-brand-green uppercase bg-brand-green/10 px-2 py-1 rounded">{t('airdrop.done')}</span>
+                                    ) : (
+                                        <ChevronRightIcon className="w-4 h-4 text-slate-600" />
+                                    )}
                                 </div>
-                                {task.isCompleted ? (
-                                    <span className="text-[9px] font-black text-brand-green uppercase bg-brand-green/10 px-2 py-1 rounded">{t('airdrop.done')}</span>
-                                ) : (
-                                    <ChevronRightIcon className="w-4 h-4 text-slate-600" />
-                                )}
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 </div>
 

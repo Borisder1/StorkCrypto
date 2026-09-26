@@ -5,6 +5,7 @@ import { triggerHaptic } from '../utils/haptics';
 import { useStore } from '../store';
 import { walletService } from '../services/walletService';
 import { getTonConnectUI } from '../services/tonConnectService';
+import { useScrollLock } from '../utils/useScrollLock';
 
 interface WalletConnectModalProps {
     onClose: () => void;
@@ -15,6 +16,9 @@ type ModalCategory = 'ton' | 'exchange' | 'web3' | 'custom';
 export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose }) => {
     const tonConnectUI = getTonConnectUI();
     const { wallet, connectWallet, disconnectWallet, showToast } = useStore();
+    
+    useScrollLock(true);
+
     const [activeTab, setActiveTab] = useState<ModalCategory>('ton');
     const [customAddress, setCustomAddress] = useState('');
     const [customWalletType, setCustomWalletType] = useState('EVM / Exchange');
