@@ -15,11 +15,23 @@ const InfoModal: React.FC<InfoModalProps> = ({ title, description, features, onC
     
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = 'unset'; };
-    }, []);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => { 
+            document.body.style.overflow = 'unset'; 
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
 
     return (
         <motion.div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="info-modal-title"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
@@ -34,6 +46,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ title, description, features, onC
                 <div className="p-5 border-b border-white/5 flex justify-between items-center bg-brand-card/50">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose(); }}
+                        aria-label="Закрити інформаційне вікно"
                         className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
                     >
                         <ChevronRightIcon className="w-5 h-5 rotate-180" />
@@ -47,7 +60,7 @@ const InfoModal: React.FC<InfoModalProps> = ({ title, description, features, onC
                         <div className="w-16 h-16 rounded-2xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center mb-4 shadow-[0_0_20px_rgba(0,217,255,0.2)]">
                             <InfoIcon className="w-8 h-8 text-brand-cyan" />
                         </div>
-                        <h2 className="text-xl font-bold text-white font-orbitron mb-2 uppercase tracking-tight">{title}</h2>
+                        <h2 id="info-modal-title" className="text-xl font-bold text-white font-orbitron mb-2 uppercase tracking-tight">{title}</h2>
                         <div className="h-1 w-12 bg-brand-cyan rounded-full opacity-50"></div>
                     </div>
 

@@ -94,7 +94,15 @@ const AirdropModal: React.FC<AirdropModalProps> = ({ onClose }) => {
         }
 
         if (task.link) {
-            window.open(task.link, '_blank');
+            try {
+                if ((window as any).Telegram?.WebApp?.openLink) {
+                    (window as any).Telegram.WebApp.openLink(task.link);
+                } else {
+                    window.open(task.link, '_blank', 'noopener,noreferrer');
+                }
+            } catch (e) {
+                console.error("Failed to open link:", e);
+            }
             setTimeout(() => {
                 completeAirdropTask(task.id);
                 setCompletingTaskId(null);

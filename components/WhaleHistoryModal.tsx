@@ -13,11 +13,26 @@ const WhaleHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = 'unset'; };
-    }, []);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => { 
+            document.body.style.overflow = 'unset'; 
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/95 backdrop-blur-xl" onClick={onClose}>
+        <div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="whale-history-title"
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-6 bg-black/95 backdrop-blur-xl" 
+            onClick={onClose}
+        >
             <div className="bg-brand-bg border-t sm:border border-white/10 rounded-t-[3rem] sm:rounded-[3rem] w-full max-w-lg h-[90vh] overflow-hidden flex flex-col shadow-[0_0_80px_rgba(0,217,255,0.1)]" onClick={e => e.stopPropagation()}>
                 
                 <div className="p-6 border-b border-white/5 bg-brand-card/50 shrink-0">
@@ -27,11 +42,17 @@ const WhaleHistoryModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                 <ShieldIcon className="w-6 h-6 text-brand-cyan animate-pulse" />
                             </div>
                             <div>
-                                <h2 className="font-orbitron font-black text-lg text-white uppercase tracking-widest leading-none">{t('whale.archive')}</h2>
+                                <h2 id="whale-history-title" className="font-orbitron font-black text-lg text-white uppercase tracking-widest leading-none">{t('whale.archive')}</h2>
                                 <p className="text-[9px] text-slate-500 font-mono mt-1 uppercase">{t('whale.movements_log')}</p>
                             </div>
                         </div>
-                        <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 text-slate-500 hover:text-white flex items-center justify-center transition-colors">✕</button>
+                        <button 
+                            onClick={onClose} 
+                            aria-label="Закрити архів транзакцій китів"
+                            className="w-11 h-11 rounded-full bg-white/5 text-slate-500 hover:text-white flex items-center justify-center transition-colors text-lg"
+                        >
+                            ✕
+                        </button>
                     </div>
 
                     <div className="grid grid-cols-3 gap-3">

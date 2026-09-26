@@ -116,12 +116,22 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
           };
         }
 
-        const geminiRes = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-3.6-flash:generateContent?key=${geminiKey}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(geminiReqBody),
-          signal: controller.signal
-        });
+        const primaryModel = context.env?.AI_MODEL || 'gemini-2.5-flash';
+        const sendGeminiRequest = async (modelName: string) => {
+          return await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(geminiReqBody),
+            signal: controller.signal
+          });
+        };
+
+        let geminiRes = await sendGeminiRequest(primaryModel);
+
+        // Auto-fallback if the custom model returns 404 or 410
+        if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 410) && primaryModel !== 'gemini-2.5-flash') {
+          geminiRes = await sendGeminiRequest('gemini-2.5-flash');
+        }
 
         clearTimeout(timeoutId);
 
@@ -130,6 +140,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
           return new Response(JSON.stringify({
             error: 'UPSTREAM_AI_ERROR',
             status: geminiRes.status,
+            model: primaryModel,
             details: errDetails.slice(0, 200)
           }), {
             status: 502,
@@ -144,7 +155,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
           id: 'chatcmpl-' + Math.random().toString(36).substring(2, 12),
           object: 'chat.completion',
           created: Math.floor(Date.now() / 1000),
-          model: 'gemini-3.6-flash',
+          model: primaryModel,
           choices: [
             {
               index: 0,

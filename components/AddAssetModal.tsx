@@ -22,11 +22,20 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({ onClose, onAdd, mode = 'A
     const [amount, setAmount] = useState('');
     const [buyPrice, setBuyPrice] = useState('');
 
-    // 🔒 Lock Body Scroll
+    // 🔒 Lock Body Scroll & Escape listener
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = ''; };
-    }, []);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => { 
+            document.body.style.overflow = ''; 
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
 
     const filteredCoins = MASTER_ASSET_LIST.filter(c => 
         c.name.toLowerCase().includes(search.toLowerCase()) || 
@@ -56,7 +65,12 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({ onClose, onAdd, mode = 'A
     };
 
     return (
-        <div className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center">
+        <div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="add-asset-title"
+            className="fixed inset-0 z-[70] flex items-end sm:items-center justify-center"
+        >
             {/* Backdrop */}
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose}></div>
             
@@ -70,10 +84,16 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({ onClose, onAdd, mode = 'A
 
                 {/* Header */}
                 <div className="px-5 py-4 border-b border-brand-border bg-brand-card flex justify-between items-center shrink-0">
-                    <h2 className="font-orbitron font-bold text-xl text-white">
+                    <h2 id="add-asset-title" className="font-orbitron font-bold text-xl text-white">
                         {mode === 'TRADE' ? 'Select Pair' : t('add.title')}
                     </h2>
-                    <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 flex items-center justify-center transition-colors">✕</button>
+                    <button 
+                        onClick={onClose} 
+                        aria-label="Закрити вікно вибору активу"
+                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 flex items-center justify-center transition-colors"
+                    >
+                        ✕
+                    </button>
                 </div>
 
                 {/* Scrollable Content */}
@@ -87,6 +107,7 @@ const AddAssetModal: React.FC<AddAssetModalProps> = ({ onClose, onAdd, mode = 'A
                                     placeholder={t('add.search')} 
                                     value={search}
                                     onChange={e => setSearch(e.target.value)}
+                                    aria-label={t('add.search') || "Пошук активу"}
                                     autoFocus
                                     className="w-full bg-brand-bg border border-brand-border rounded-xl py-3 pl-12 pr-4 text-white placeholder-slate-600 focus:outline-none focus:border-brand-cyan transition-colors font-space-mono text-sm"
                                 />

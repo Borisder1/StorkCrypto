@@ -12,14 +12,23 @@ interface ShareModalProps {
 }
 
 const ShareModal: React.FC<ShareModalProps> = ({ onClose, totalValue, totalPnL, pnlPercent }) => {
-    const { settings, userStats, grantXp } = useStore();
+    const { settings, userStats, grantXp, showToast } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
     const isPositive = totalPnL >= 0;
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = 'unset'; };
-    }, []);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => { 
+            document.body.style.overflow = 'unset'; 
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
 
     const handleShare = async () => {
         grantXp(50, 'Shared Portfolio'); // XP REWARD
@@ -36,13 +45,24 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, totalValue, totalPnL, 
                 console.log('Error sharing', error);
             }
         } else {
-            navigator.clipboard.writeText(shareText);
-            alert('Stats copied to clipboard!');
+            try {
+                await navigator.clipboard.writeText(shareText);
+                if (showToast) {
+                    showToast(t('common.copied') || 'Stats copied to clipboard!');
+                }
+            } catch {
+                if (showToast) showToast('Failed to copy to clipboard');
+            }
         }
     };
 
     return (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center p-6 overflow-y-auto overscroll-contain">
+        <div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="share-modal-title"
+            className="fixed inset-0 z-[80] flex items-center justify-center p-6 overflow-y-auto overscroll-contain"
+        >
             <div className="fixed inset-0 bg-black/90 backdrop-blur-lg animate-fade-in" onClick={onClose}></div>
             
             <div className="relative z-10 w-full max-w-sm animate-zoom-in max-h-[90vh] sm:max-h-[85vh] flex flex-col justify-center my-auto">
@@ -59,7 +79,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, totalValue, totalPnL, 
                              </div>
                         </div>
 
-                        <h2 className="text-slate-400 text-xs font-space-mono uppercase tracking-widest mb-2">{t('share.title')}</h2>
+                        <h2 id="share-modal-title" className="text-slate-400 text-xs font-space-mono uppercase tracking-widest mb-2">{t('share.title')}</h2>
                         <p className="font-orbitron text-4xl font-black text-white mb-6">
                             ${totalValue.toLocaleString('en-US', {maximumFractionDigits: 0})}
                         </p>
@@ -99,6 +119,7 @@ const ShareModal: React.FC<ShareModalProps> = ({ onClose, totalValue, totalPnL, 
                     </button>
                     <button 
                         onClick={onClose}
+                        aria-label="Закрити вікно ділення портфоліо"
                         className="text-slate-500 text-xs font-bold py-2 hover:text-white transition-colors"
                     >
                         Close

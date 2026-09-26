@@ -53,13 +53,17 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
         const userId = state.userStats.id;
         const now = Date.now();
         const lastClaim = new Date(state.userStats.mining.lastClaimTime).getTime();
+        
+        // Prevent concurrent calls within 1.5 seconds
+        if (now - lastClaim < 1500) return;
+
         const diffSeconds = Math.min((now - lastClaim) / 1000, state.userStats.mining.storageCapacity * 3600);
         const estimatedEarned = diffSeconds * state.userStats.mining.miningRate;
 
         if (estimatedEarned < 0.01) return;
 
         const newBalance = state.userStats.storkBalance + estimatedEarned;
-        const newTime = new Date().toISOString();
+        const newTime = new Date(now).toISOString();
 
         set(s => ({
             userStats: {
@@ -82,19 +86,28 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     },
 
     completeAirdropTask: async (taskId) => {
-        const state = get();
-        const task = state.userStats.tasks.find(t => t.id === taskId);
-        if (task && !task.isCompleted) {
-            set(s => ({
+        let taskReward = 0;
+        set(s => {
+            const task = s.userStats.tasks.find(t => t.id === taskId);
+            if (!task || task.isCompleted) return s;
+            taskReward = task.reward;
+            return {
                 userStats: {
                     ...s.userStats,
                     storkBalance: s.userStats.storkBalance + task.reward,
                     tasks: s.userStats.tasks.map(t => t.id === taskId ? { ...t, isCompleted: true } : t)
                 }
-            }));
-            const userId = state.userStats.id;
+            };
+        });
+
+        if (taskReward > 0) {
+            const userId = get().userStats.id;
             if (userId && userId !== 'INIT' && !userId.startsWith('GUEST')) {
-                await supabase.rpc('claim_task_reward', { user_id_input: userId, task_id_input: taskId, reward_amount: task.reward });
+                try {
+                    await supabase.rpc('claim_task_reward', { user_id_input: userId, task_id_input: taskId, reward_amount: taskReward });
+                } catch (e) {
+                    console.error("Failed to sync task reward to DB", e);
+                }
             }
         }
     },
@@ -260,14 +273,23 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
         { id: 'q4', type: 'ACADEMY', title: 'Tactical Academy', description: 'Pass an Academy drill or knowledge quiz.', rewardXp: 150, progress: 0, target: 1, isClaimed: false }
     ],
     claimQuestReward: (id) => {
-        const state = get();
-        const quest = state.quests.find(q => q.id === id);
-        if (quest && quest.progress >= quest.target && !quest.isClaimed) {
-            get().grantXp(quest.rewardXp, `Quest Completed: ${quest.title}`);
-            if (get().showToast) get().showToast(`Quest Completed: ${quest.title}`);
-            set(s => ({
+        let rewardToGrant = 0;
+        let questTitle = '';
+        set(s => {
+            const quest = s.quests.find(q => q.id === id);
+            if (!quest || quest.progress < quest.target || quest.isClaimed) {
+                return s;
+            }
+            rewardToGrant = quest.rewardXp;
+            questTitle = quest.title;
+            return {
                 quests: s.quests.map(q => q.id === id ? { ...q, isClaimed: true } : q)
-            }));
+            };
+        });
+
+        if (rewardToGrant > 0) {
+            get().grantXp(rewardToGrant, `Quest Completed: ${questTitle}`);
+            if (get().showToast) get().showToast(`Quest Completed: ${questTitle}`);
         }
     },
     updateQuestProgress: (type, amount) => {

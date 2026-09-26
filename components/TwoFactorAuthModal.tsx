@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { ShieldIcon, ChevronRightIcon, CheckIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -7,6 +7,16 @@ const TwoFactorAuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [step, setStep] = useState<'INTRO' | 'QR' | 'VERIFY' | 'SUCCESS'>('INTRO');
     const [code, setCode] = useState('');
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') {
+                onClose();
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, [onClose]);
 
     // Mock secret for UI purposes
     const secret = "JBSWY3DPEHPK3PXP";
@@ -23,12 +33,21 @@ const TwoFactorAuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-[150] bg-brand-bg/95 backdrop-blur-3xl flex flex-col animate-fade-in">
+        <div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="two-factor-title"
+            className="fixed inset-0 z-[150] bg-brand-bg/95 backdrop-blur-3xl flex flex-col animate-fade-in"
+        >
             <div className="safe-area-pt px-6 py-5 flex items-center justify-between border-b border-white/10">
-                <button onClick={() => { triggerHaptic('light'); onClose(); }} className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all">
+                <button 
+                    onClick={() => { triggerHaptic('light'); onClose(); }} 
+                    aria-label="Закрити налаштування 2FA"
+                    className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 transition-all"
+                >
                     <ChevronRightIcon className="w-6 h-6 rotate-180" />
                 </button>
-                <h2 className="font-orbitron text-sm font-black text-white tracking-widest uppercase">2FA Setup</h2>
+                <h2 id="two-factor-title" className="font-orbitron text-sm font-black text-white tracking-widest uppercase">2FA Setup</h2>
                 <div className="w-10"></div>
             </div>
 
@@ -83,6 +102,7 @@ const TwoFactorAuthModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                             value={code}
                             onChange={(e) => { setCode(e.target.value.replace(/\D/g, '')); setError(''); }}
                             placeholder="000000"
+                            aria-label="Введіть 6-значний код безпеки 2FA"
                             className="w-full bg-black/50 border-2 border-brand-cyan/30 rounded-2xl p-4 text-center text-3xl font-mono text-white tracking-[0.5em] focus:border-brand-cyan focus:outline-none transition-colors mb-4"
                         />
                         

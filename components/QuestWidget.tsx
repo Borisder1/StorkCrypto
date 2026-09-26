@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '../store';
 import { ShieldIcon, TrendingUpIcon, ActivityIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -6,8 +6,18 @@ import { HelpIndicator } from './HelpIndicator';
 
 const QuestWidget: React.FC = () => {
     const { quests, claimQuestReward } = useStore();
+    const [claimingId, setClaimingId] = useState<string | null>(null);
 
-    const visibleQuests = quests.filter(q => !q.isClaimed || q.progress >= q.target).slice(0, 2);
+    // Show uncompleted quests or quests ready to be claimed
+    const visibleQuests = quests.filter(q => !q.isClaimed).slice(0, 2);
+
+    const handleClaim = (questId: string) => {
+        if (claimingId === questId) return;
+        setClaimingId(questId);
+        triggerHaptic('success');
+        claimQuestReward(questId);
+        setTimeout(() => setClaimingId(null), 800);
+    };
 
     if (visibleQuests.length === 0) return (
         <div className="bg-brand-card/30 border border-brand-border rounded-[2rem] p-4 flex flex-col items-center justify-center min-h-[100px] text-center">
@@ -51,10 +61,12 @@ const QuestWidget: React.FC = () => {
                                 </div>
                                 {isCompleted ? (
                                     <button 
-                                        onClick={() => { triggerHaptic('success'); claimQuestReward(quest.id); }}
-                                        className="px-2.5 py-1 bg-brand-cyan text-black text-[8px] font-black rounded-md shadow-[0_0_10px_var(--primary-color)] transition-all hover:scale-105 active:scale-95 uppercase font-orbitron"
+                                        disabled={claimingId === quest.id}
+                                        onClick={() => handleClaim(quest.id)}
+                                        aria-label={`Забрати нагороду за місію ${quest.title}`}
+                                        className="px-2.5 py-1 bg-brand-cyan text-black text-[8px] font-black rounded-md shadow-[0_0_10px_var(--primary-color)] transition-all hover:scale-105 active:scale-95 uppercase font-orbitron disabled:opacity-50"
                                     >
-                                        CLAIM
+                                        {claimingId === quest.id ? '...' : 'CLAIM'}
                                     </button>
                                 ) : (
                                     <span className="text-[9px] text-slate-500 font-mono font-bold">
