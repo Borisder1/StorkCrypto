@@ -316,7 +316,7 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Тримаю 85% капіталу на апаратному гаманці, а робочий депозит — на біржі.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'g2w8y7n5L78',
+                youtubeId: '1YyAzVmP9xQ',
                 title: 'Crypto Wallet Guide: Cold vs Hot Storage & Seed Phrase Safety',
                 duration: '11:10',
                 sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
@@ -575,7 +575,7 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Retain 90% of long-term crypto assets in cold storage.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'g2w8y7n5L78',
+                youtubeId: '1YyAzVmP9xQ',
                 title: 'Crypto Wallet Guide: Cold vs Hot Storage & Seed Phrase Safety',
                 duration: '11:10',
                 sourceName: 'Binance Academy (Official Course)',
@@ -735,7 +735,7 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: '90% aktywów długoterminowych przechowywane na Ledgerze.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'g2w8y7n5L78',
+                youtubeId: '1YyAzVmP9xQ',
                 title: 'Crypto Wallet Guide: Cold vs Hot Storage & Seed Phrase Safety',
                 duration: '11:10',
                 sourceName: 'Binance Academy (Kurs oficjalny)',

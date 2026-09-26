@@ -39,10 +39,36 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
     if (!videoData) return null;
 
     const directWatchUrl = `https://www.youtube.com/watch?v=${videoData.youtubeId}`;
-    const embedUrl = `https://www.youtube-nocookie.com/embed/${videoData.youtubeId}?autoplay=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1`;
+    const originParam = typeof window !== 'undefined' && window.location.origin
+        ? encodeURIComponent(window.location.origin)
+        : encodeURIComponent('https://storkcrypto.pages.dev');
+    const embedUrl = `https://www.youtube-nocookie.com/embed/${videoData.youtubeId}?autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=${originParam}`;
     const thumbnailUrl = `https://img.youtube.com/vi/${videoData.youtubeId}/hqdefault.jpg`;
 
     const [isPlayerActive, setIsPlayerActive] = useState(false);
+    const [playerError, setPlayerError] = useState<string | null>(null);
+    const [thumbFailed, setThumbFailed] = useState(false);
+
+    // Listen for YouTube IFrame API messages to catch error codes (100, 101, 150, 153, 2, 5)
+    useEffect(() => {
+        const handleIframeMessage = (event: MessageEvent) => {
+            try {
+                if (typeof event.data === 'string') {
+                    const parsed = JSON.parse(event.data);
+                    if (parsed.event === 'onError' || [2, 5, 100, 101, 150, 153].includes(parsed.info)) {
+                        setPlayerError('VIDEO_UNAVAILABLE');
+                    }
+                } else if (event.data?.event === 'onError' || [2, 5, 100, 101, 150, 153].includes(event.data?.info)) {
+                    setPlayerError('VIDEO_UNAVAILABLE');
+                }
+            } catch {
+                // Ignore non-json postMessages
+            }
+        };
+
+        window.addEventListener('message', handleIframeMessage);
+        return () => window.removeEventListener('message', handleIframeMessage);
+    }, []);
 
     // Fallback general exchange academy portals if specific article is not present
     const defaultOfficialSources: AcademyOfficialSource[] = [
@@ -158,9 +184,49 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
 
                     {/* Main Content Area */}
                     {viewMode === 'VIDEO' ? (
-                        /* Responsive In-App 16:9 Video Container with Poster Fallback */
+                        /* Responsive In-App 16:9 Video Container with Poster Fallback & Error State */
                         <div className="relative w-full aspect-video bg-black shrink-0 border-b border-white/10 overflow-hidden group">
-                            {isPlayerActive ? (
+                            {playerError ? (
+                                /* Cyberpunk Error Fallback Card */
+                                <div className="absolute inset-0 bg-[#060c18] flex flex-col items-center justify-center p-4 text-center space-y-2.5">
+                                    <div className="w-10 h-10 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 text-lg shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                                        ⚠️
+                                    </div>
+                                    <div className="space-y-1 max-w-sm">
+                                        <h4 className="text-xs font-orbitron font-bold text-white uppercase tracking-wider">
+                                            Обмеження вбудовування YouTube
+                                        </h4>
+                                        <p className="text-[10px] text-slate-300 font-mono leading-relaxed">
+                                            Автор або YouTube обмежили вбудований перегляд. Відкрийте відео у вікні Telegram або скористайтеся офіційною статтею біржі:
+                                        </p>
+                                    </div>
+                                    <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleOpenExternal(directWatchUrl)}
+                                            className="px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-orbitron font-bold text-[9px] uppercase tracking-wider flex items-center gap-1.5 shadow-lg active:scale-95 transition-all"
+                                        >
+                                            <PlayIcon className="w-2.5 h-2.5 fill-current" />
+                                            <span>Дивитися в Telegram ↗</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setViewMode('EXCHANGE_ARTICLES')}
+                                            className="px-3.5 py-1.5 rounded-xl bg-brand-cyan/20 hover:bg-brand-cyan/30 text-brand-cyan border border-brand-cyan/40 font-orbitron font-bold text-[9px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all"
+                                        >
+                                            <BookOpenIcon className="w-3 h-3" />
+                                            <span>Читати статтю біржі 📚</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => { setPlayerError(null); setIsPlayerActive(true); }}
+                                            className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white font-mono text-[9px] border border-white/10 transition-all"
+                                        >
+                                            ↻ Повторити
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : isPlayerActive ? (
                                 <iframe
                                     src={embedUrl}
                                     title={videoData.title || lesson.term}
@@ -170,7 +236,22 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
                                     referrerPolicy="strict-origin-when-cross-origin"
                                 />
                             ) : (
-                                <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-4 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(rgba(3,7,18,0.7), rgba(3,7,18,0.85)), url(${thumbnailUrl})` }}>
+                                <div
+                                    className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-4 bg-cover bg-center"
+                                    style={{
+                                        backgroundImage: thumbFailed
+                                            ? 'radial-gradient(circle at center, #0a1b36 0%, #030712 100%)'
+                                            : `linear-gradient(rgba(3,7,18,0.65), rgba(3,7,18,0.85)), url(${thumbnailUrl})`
+                                    }}
+                                >
+                                    {/* Invisible image loader to detect thumbnail failure early */}
+                                    <img
+                                        src={thumbnailUrl}
+                                        alt=""
+                                        className="hidden"
+                                        onError={() => setThumbFailed(true)}
+                                    />
+
                                     {/* Ambient Glow */}
                                     <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-black/60 pointer-events-none" />
 
