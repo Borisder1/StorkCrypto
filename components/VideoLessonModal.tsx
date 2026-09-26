@@ -39,8 +39,10 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
     if (!videoData) return null;
 
     const directWatchUrl = `https://www.youtube.com/watch?v=${videoData.youtubeId}`;
-    const originParam = typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : '';
-    const embedUrl = `https://www.youtube.com/embed/${videoData.youtubeId}?enablejsapi=1&origin=${originParam}&playsinline=1&modestbranding=1&rel=0`;
+    const embedUrl = `https://www.youtube-nocookie.com/embed/${videoData.youtubeId}?autoplay=1&playsinline=1&rel=0&modestbranding=1&enablejsapi=1`;
+    const thumbnailUrl = `https://img.youtube.com/vi/${videoData.youtubeId}/hqdefault.jpg`;
+
+    const [isPlayerActive, setIsPlayerActive] = useState(false);
 
     // Fallback general exchange academy portals if specific article is not present
     const defaultOfficialSources: AcademyOfficialSource[] = [
@@ -156,17 +158,58 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
 
                     {/* Main Content Area */}
                     {viewMode === 'VIDEO' ? (
-                        /* Responsive In-App 16:9 Video Container */
-                        <div className="relative w-full aspect-video bg-black shrink-0 border-b border-white/10">
-                            <iframe
-                                src={embedUrl}
-                                title={videoData.title || lesson.term}
-                                className="absolute inset-0 w-full h-full border-0"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                                allowFullScreen
-                                referrerPolicy="strict-origin-when-cross-origin"
-                                loading="lazy"
-                            />
+                        /* Responsive In-App 16:9 Video Container with Poster Fallback */
+                        <div className="relative w-full aspect-video bg-black shrink-0 border-b border-white/10 overflow-hidden group">
+                            {isPlayerActive ? (
+                                <iframe
+                                    src={embedUrl}
+                                    title={videoData.title || lesson.term}
+                                    className="absolute inset-0 w-full h-full border-0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allowFullScreen
+                                    referrerPolicy="strict-origin-when-cross-origin"
+                                />
+                            ) : (
+                                <div className="absolute inset-0 w-full h-full flex flex-col items-center justify-center p-4 bg-cover bg-center" style={{ backgroundImage: `linear-gradient(rgba(3,7,18,0.7), rgba(3,7,18,0.85)), url(${thumbnailUrl})` }}>
+                                    {/* Ambient Glow */}
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#030712] via-transparent to-black/60 pointer-events-none" />
+
+                                    {/* Play Button */}
+                                    <div className="relative z-10 flex flex-col items-center text-center gap-3">
+                                        <button
+                                            type="button"
+                                            onClick={() => { triggerHaptic('medium'); setIsPlayerActive(true); }}
+                                            aria-label="Запустити відео у вбудованому плеєрі"
+                                            className="w-16 h-16 rounded-2xl bg-brand-cyan hover:bg-white text-black flex items-center justify-center shadow-[0_0_30px_rgba(0,240,255,0.6)] hover:scale-105 active:scale-95 transition-all group-hover:shadow-[0_0_40px_rgba(0,240,255,0.9)]"
+                                        >
+                                            <PlayIcon className="w-8 h-8 ml-1 fill-current text-black" />
+                                        </button>
+
+                                        <div className="space-y-1 max-w-md">
+                                            <div className="text-xs font-orbitron font-bold text-white uppercase tracking-wider drop-shadow">
+                                                {videoData.title || lesson.term}
+                                            </div>
+                                            <div className="text-[10px] font-mono text-slate-300 flex items-center justify-center gap-2">
+                                                <span className="text-brand-cyan">HD 1080p</span>
+                                                <span>•</span>
+                                                <span>⏱️ {videoData.duration}</span>
+                                            </div>
+                                        </div>
+
+                                        {/* Telegram Native PiP Fallback Action */}
+                                        <div className="flex items-center gap-2 pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => handleOpenExternal(directWatchUrl)}
+                                                className="px-3 py-1.5 rounded-xl bg-red-600/30 hover:bg-red-600/40 text-red-300 hover:text-white border border-red-500/40 font-orbitron font-bold text-[9px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all shadow-md"
+                                            >
+                                                <PlayIcon className="w-2.5 h-2.5 fill-current" />
+                                                <span>Відкрити в Telegram PiP ↗</span>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         /* Exchange Academy Hub View */
