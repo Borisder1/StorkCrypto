@@ -11,7 +11,7 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
         soundEnabled: true, 
         adsEnabled: true, dataSaver: false,
         onboardingComplete: false, marketOverride: 'NORMAL', 
-        adminTreasuryWallet: 'UQAz12...88nxP',
+        adminTreasuryWallet: '',
         xpToProRate: 500, 
         pendingSubRequests: [],
         subscriptionPlans: [

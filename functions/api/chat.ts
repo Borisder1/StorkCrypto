@@ -6,6 +6,14 @@ interface ChatContext {
   env: Record<string, string>;
 }
 
+// Active production-verified model pool (NVIDIA NIM)
+const PRIMARY_NVIDIA_MODEL = 'meta/llama-3.3-70b-instruct';
+const FALLBACK_NVIDIA_MODELS = [
+  'meta/llama-3.3-70b-instruct',
+  'nvidia/llama-3.1-nemotron-70b-instruct',
+  'mistralai/mixtral-8x7b-instruct-v0.1'
+];
+
 // Allowed origins helper for secure CORS (supporting Telegram WebApp, localhost, and production domains)
 function getCorsHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get('Origin') || '';
@@ -47,8 +55,8 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
 
     if (!geminiKey && nvidiaKeys.length === 0) {
       return new Response(JSON.stringify({
-        error: 'AI_SERVICE_UNAVAILABLE',
-        message: 'Neither GEMINI_API_KEY nor NVIDIA_API_KEY is configured in environment variables'
+        error: 'AI_UNAVAILABLE',
+        message: 'AI neural engine service is currently not configured.'
       }), {
         status: 503,
         headers: corsHeaders
@@ -80,6 +88,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
       });
     }
 
+    // Request schema validation
     if (!requestBody || !Array.isArray(requestBody.messages) || requestBody.messages.length === 0) {
       return new Response(JSON.stringify({
         error: 'INVALID_REQUEST',
@@ -90,12 +99,26 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
       });
     }
 
+    // Validate message items
+    const validRoles = new Set(['system', 'user', 'assistant', 'model']);
+    for (const msg of requestBody.messages) {
+      if (!msg || typeof msg !== 'object' || !validRoles.has(msg.role) || typeof msg.content !== 'string') {
+        return new Response(JSON.stringify({
+          error: 'INVALID_REQUEST',
+          message: 'Each message must have a valid role and string content'
+        }), {
+          status: 400,
+          headers: corsHeaders
+        });
+      }
+    }
+
     // Fetch with 15s timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
-      // 1. Primary path: Google Gemini API (gemini-3.6-flash) if key is present
+      // 1. Primary path: Google Gemini API (gemini-2.5-flash) if key is present
       if (geminiKey) {
         const systemMsg = requestBody.messages.find((m: any) => m.role === 'system');
         const userMsgs = requestBody.messages.filter((m: any) => m.role !== 'system');
@@ -136,14 +159,11 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
         clearTimeout(timeoutId);
 
         if (!geminiRes.ok) {
-          const errDetails = await geminiRes.text();
           return new Response(JSON.stringify({
-            error: 'UPSTREAM_AI_ERROR',
-            status: geminiRes.status,
-            model: primaryModel,
-            details: errDetails.slice(0, 200)
+            error: 'AI_UNAVAILABLE',
+            message: 'AI neural engine is momentarily unavailable. Please try again shortly.'
           }), {
-            status: 502,
+            status: 503,
             headers: corsHeaders
           });
         }
@@ -155,7 +175,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
           id: 'chatcmpl-' + Math.random().toString(36).substring(2, 12),
           object: 'chat.completion',
           created: Math.floor(Date.now() / 1000),
-          model: primaryModel,
+          model: 'stork-neural-ai',
           choices: [
             {
               index: 0,
@@ -172,21 +192,14 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
         });
       }
 
-      // 2. Secondary path: NVIDIA NIM API with active catalog models
+      // 2. Secondary path: NVIDIA NIM API with active catalog models and cascade fallback
       const selectedKey = nvidiaKeys[Math.floor(Math.random() * nvidiaKeys.length)];
       
-      // Select non-EOL active model from environment or safe catalog
-      const requestedModel = typeof requestBody.model === 'string' ? requestBody.model : '';
-      let targetModel = context.env?.AI_MODEL || '';
-
-      if (!targetModel) {
-        if (requestedModel && !requestedModel.includes('llama-3.3-70b') && !requestedModel.includes('minimax') && !requestedModel.includes('m2.7')) {
-          targetModel = requestedModel;
-        } else {
-          // Standard active 70B model with high availability
-          targetModel = 'meta/llama-3.1-70b-instruct';
-        }
-      }
+      // Determine initial model to use
+      const configuredModel = context.env?.AI_MODEL;
+      const candidateModels = configuredModel
+        ? [configuredModel, ...FALLBACK_NVIDIA_MODELS.filter(m => m !== configuredModel)]
+        : FALLBACK_NVIDIA_MODELS;
 
       const sendUpstream = async (modelToUse: string) => {
         return await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
@@ -207,30 +220,47 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
         });
       };
 
-      let upstreamResponse = await sendUpstream(targetModel);
+      let upstreamResponse: Response | null = null;
+      let lastStatus = 503;
 
-      // If upstream model returned 404/410 (EOL or model not found), automatically fallback to meta/llama-3.1-70b-instruct
-      if (!upstreamResponse.ok && (upstreamResponse.status === 404 || upstreamResponse.status === 410) && targetModel !== 'meta/llama-3.1-70b-instruct') {
-        targetModel = 'meta/llama-3.1-70b-instruct';
-        upstreamResponse = await sendUpstream(targetModel);
+      for (const modelCandidate of candidateModels) {
+        try {
+          upstreamResponse = await sendUpstream(modelCandidate);
+          if (upstreamResponse.ok) {
+            break;
+          }
+          lastStatus = upstreamResponse.status;
+          // If model is retired (410), not found (404), or server error, continue cascade
+          if (upstreamResponse.status === 404 || upstreamResponse.status === 410 || upstreamResponse.status >= 500) {
+            continue;
+          } else {
+            // For other client errors (e.g. 400 bad payload), do not cascade
+            break;
+          }
+        } catch (callErr: any) {
+          if (callErr.name === 'AbortError') throw callErr;
+          continue;
+        }
       }
 
       clearTimeout(timeoutId);
 
-      if (!upstreamResponse.ok) {
-        const errorText = await upstreamResponse.text();
+      if (!upstreamResponse || !upstreamResponse.ok) {
         return new Response(JSON.stringify({
-          error: 'UPSTREAM_AI_ERROR',
-          status: upstreamResponse.status,
-          model: targetModel,
-          details: errorText.slice(0, 200)
+          error: 'AI_UNAVAILABLE',
+          message: 'AI neural engine is momentarily unavailable. Please try again shortly.'
         }), {
-          status: upstreamResponse.status >= 500 ? 502 : upstreamResponse.status,
+          status: 503,
           headers: corsHeaders
         });
       }
 
       const data = await upstreamResponse.json();
+      // Mask internal model name in production response
+      if (data && typeof data === 'object') {
+        data.model = 'stork-neural-ai';
+      }
+
       return new Response(JSON.stringify(data), {
         status: 200,
         headers: corsHeaders
@@ -251,7 +281,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
   } catch (err: any) {
     return new Response(JSON.stringify({
       error: 'INTERNAL_SERVER_ERROR',
-      message: err?.message || 'Unknown server error'
+      message: 'An unexpected internal error occurred'
     }), {
       status: 500,
       headers: corsHeaders

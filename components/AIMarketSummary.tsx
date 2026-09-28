@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { BotIcon, ActivityIcon, TrendingUpIcon } from './icons';
 import { generateProactiveInsight } from '../services/geminiService';
+import { getCryptoPrices } from '../services/priceService';
 import { triggerHaptic } from '../utils/haptics';
 import { useStore } from '../store';
 import { getTranslation } from '../utils/translations';
@@ -14,7 +15,46 @@ export const AIMarketSummary: React.FC = () => {
 
     const [summary, setSummary] = useState<string>('insight.initializing');
     const [loading, setLoading] = useState(true);
+    const [source, setSource] = useState<string>('SYNCING');
     const [chartData, setChartData] = useState<{val: number}[]>([]);
+
+    const getStatusBadge = () => {
+        if (settings?.marketOverride === 'PUMP' || settings?.marketOverride === 'DUMP') {
+            return {
+                label: 'DEMO',
+                iconColor: 'text-amber-400',
+                textColor: 'text-amber-400'
+            };
+        }
+        if (source === 'CACHE') {
+            return {
+                label: 'STALE',
+                iconColor: 'text-yellow-400',
+                textColor: 'text-yellow-400'
+            };
+        }
+        if (source === 'SYNCING') {
+            return {
+                label: 'SYNCING',
+                iconColor: 'text-cyan-400',
+                textColor: 'text-cyan-400'
+            };
+        }
+        if (source === 'OFFLINE') {
+            return {
+                label: 'OFFLINE',
+                iconColor: 'text-slate-400',
+                textColor: 'text-slate-400'
+            };
+        }
+        return {
+            label: 'LIVE',
+            iconColor: 'text-brand-green',
+            textColor: 'text-brand-green'
+        };
+    };
+
+    const statusBadge = getStatusBadge();
 
     useEffect(() => {
         // Generate dummy sparkline data
@@ -23,6 +63,15 @@ export const AIMarketSummary: React.FC = () => {
 
         const fetchSummary = async () => {
             try {
+                // Check market data freshness
+                try {
+                    const prices = await getCryptoPrices();
+                    const first = Object.values(prices)[0];
+                    setSource(first?.source || 'LIVE');
+                } catch {
+                    setSource('CACHE');
+                }
+
                 const insight = await generateProactiveInsight(['BTC', 'ETH', 'SOL']);
                 if (insight && insight.text) {
                     setSummary(insight.text);
@@ -83,9 +132,9 @@ export const AIMarketSummary: React.FC = () => {
                         <HelpIndicator id="ai_market_summary" />
                     </div>
                     <div className="flex items-center gap-1">
-                        <ActivityIcon className="w-2 h-2 text-brand-green animate-pulse" />
-                        <span className="text-[7px] text-brand-green font-mono uppercase">
-                            {t('upgrade.live') || 'LIVE'}
+                        <ActivityIcon className={`w-2 h-2 ${statusBadge.iconColor} animate-pulse`} />
+                        <span className={`text-[7px] ${statusBadge.textColor} font-mono uppercase font-bold tracking-wider`}>
+                            {statusBadge.label}
                         </span>
                     </div>
                 </div>

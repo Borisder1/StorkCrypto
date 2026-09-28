@@ -8,7 +8,9 @@
     "build": "vite build",
     "lint": "tsc --noEmit",
     "preview": "vite preview",
-    "start:bot": "node bot.js"
+    "start:bot": "node bot.js",
+    "test:academy": "node scripts/validate-academy-links.mjs",
+    "test:ai": "npx tsx scripts/test-ai-chat.mjs"
   },
   "dependencies": {
     "@google/genai": "1.38.0",

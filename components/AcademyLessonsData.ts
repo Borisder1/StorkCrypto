@@ -189,6 +189,36 @@ export const ACADEMY_LESSONS: AcademyLesson[] = [
         sourceVerifiedAt: '2026-09-28',
         embedStatus: 'verified',
         disclaimer: 'Офіційні матеріали про Web3-гаманці від OKX Learn.'
+    },
+    {
+        id: 'bybit_trading_strategies',
+        title: 'Bybit Learn: Crypto Trading Strategies for Beginners',
+        category: 'trading',
+        level: 'intermediate',
+        provider: 'bybit',
+        officialArticleUrl: 'https://learn.bybit.com/trading/crypto-trading-strategies/',
+        fallbackUrl: 'https://learn.bybit.com/trading/crypto-trading-strategies/',
+        spokenLanguage: 'en',
+        subtitleLanguages: ['en'],
+        duration: '8 хв читання',
+        sourceVerifiedAt: '2026-09-28',
+        embedStatus: 'verified',
+        disclaimer: 'Офіційна навчальна стаття Bybit Learn.'
+    },
+    {
+        id: 'binance_risk_management',
+        title: 'Binance Academy: Risk Management & Capital Preservation',
+        category: 'trading',
+        level: 'intermediate',
+        provider: 'binance',
+        officialArticleUrl: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners',
+        fallbackUrl: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners',
+        spokenLanguage: 'en',
+        subtitleLanguages: ['uk', 'en'],
+        duration: '6 хв читання',
+        sourceVerifiedAt: '2026-09-28',
+        embedStatus: 'verified',
+        disclaimer: 'Офіційний освітній матеріал Binance Academy.'
     }
 ];
 
