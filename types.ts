@@ -323,6 +323,25 @@ export type PatternType = 'BULLISH' | 'BEARISH' | 'NEUTRAL';
 
 export type AcademyCategory = 'BASICS' | 'TRADING' | 'PATTERNS' | 'TECHNICAL' | 'PSYCHOLOGY' | 'SECURITY';
 
+export type AcademyLesson = {
+    id: string;
+    title: string;
+    category: 'security' | 'basics' | 'trading' | 'technical-analysis' | 'wallets';
+    level: 'beginner' | 'intermediate' | 'pro';
+    provider: 'binance' | 'bybit' | 'okx';
+    officialArticleUrl?: string;
+    youtubeUrl?: string;
+    videoId?: string;
+    spokenLanguage: 'uk' | 'ru' | 'en' | string;
+    subtitleLanguages: string[];
+    duration?: string;
+    thumbnailUrl?: string;
+    sourceVerifiedAt?: string;
+    embedStatus?: 'verified' | 'blocked' | 'not_checked' | 'unavailable';
+    fallbackUrl: string;
+    disclaimer?: string;
+};
+
 export interface AcademyOfficialSource {
     name: string;
     url: string;
@@ -337,6 +356,15 @@ export interface AcademyVideoData {
     sourceName: string;
     takeaways: string[];
     officialSources?: AcademyOfficialSource[];
+    provider?: 'binance' | 'bybit' | 'okx';
+    officialArticleUrl?: string;
+    fallbackUrl?: string;
+    spokenLanguage?: string;
+    subtitleLanguages?: string[];
+    embedStatus?: 'verified' | 'blocked' | 'not_checked' | 'unavailable';
+    sourceVerifiedAt?: string;
+    disclaimer?: string;
+    level?: 'beginner' | 'intermediate' | 'pro';
 }
 
 export interface AcademyTerm {

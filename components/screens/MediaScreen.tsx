@@ -146,6 +146,8 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     useEffect(() => {
         if (selectedAcademyCategory) {
             setFilter(selectedAcademyCategory);
+        } else {
+            setFilter('BASICS');
         }
     }, [selectedAcademyCategory]);
 

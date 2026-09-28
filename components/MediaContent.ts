@@ -3,8 +3,40 @@ import { AcademyTerm, Language } from '../types';
 export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
     ua: [
         // ==========================================
-        // 1. ОСНОВИ КРИПТОВАЛЮТ ТА РЕЄСТРАЦІЯ (BASICS)
+        // 1. ОСНОВИ КРИПТОВАЛЮТ ТА БЕЗПЕКА (BASICS & SECURITY)
         // ==========================================
+        {
+            id: 'wallets_storage',
+            term: 'Гаманці: Холодні, Гарячі та Сід-фрази',
+            category: 'SECURITY',
+            definition: '«Not your keys, not your coins». Зберігання на біржі означає, що ключами володіє біржа. Холодні апаратні гаманці зберігають ключі офлайн, повністю ізольованими від шкідливого ПЗ.',
+            example: 'Тримаю 85% капіталу на апаратному гаманці, а робочий депозит — на біржі.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'd8IBpfs9bf4',
+                title: 'What are Crypto Wallets｜Explained for beginners',
+                duration: '5:12',
+                sourceName: 'Binance Academy (Official Video)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Офіційний освітній матеріал Binance Academy. Не є фінансовою порадою.',
+                takeaways: [
+                    'Ніколи не зберігайте сід-фразу на комп\'ютері, у хмарі, нотатках чи у вигляді скріншота в телефоні.',
+                    'Запишіть 12-24 слова виключно на папері або металевій пластині і сховайте в надійному місці.',
+                    'Співробітники підтримки StorkCrypto або біржі ніколи і за жодних обставин не попросять вашу сід-фразу.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained', badge: '🟡 Binance Гайд' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/crypto/what-is-a-crypto-wallet/', badge: '🟠 Bybit Wallets' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/wallets', badge: '⚫ OKX Web3 Wallets' }
+                ]
+            }
+        },
         {
             id: 'blockchain_basics',
             term: 'Що таке Блокчейн і як він працює',
@@ -13,10 +45,18 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Кожен вузол мережі перевіряє справжність переказу за математичним консенсусом.',
             visualType: 'CHART_SMC',
             videoData: {
-                youtubeId: 'SSo_EIwHSd4',
-                title: 'What is Blockchain Technology and How Does It Work?',
+                youtubeId: '3rL0OIXbMio',
+                title: 'How Does Blockchain Work｜Explained for Beginners',
                 duration: '5:42',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                sourceName: 'Binance Academy (Official Video)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Офіційний освітній матеріал Binance Academy. Не є фінансовою порадою.',
                 takeaways: [
                     'Блокчейн усуває посередників (банки, платіжні системи), зводячи комісії до мінімуму.',
                     'Усі транзакції публічні та незворотні — їх неможливо стерти чи змінити заднім числом.',
@@ -24,8 +64,8 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                 ],
                 officialSources: [
                     { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work', badge: '🟡 Офіційна стаття' },
-                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/glossary/blockchain', badge: '⚪ Гайд українською' },
-                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/blockchain/what-is-blockchain-technology/', badge: '🟠 Інтерактивний урок' }
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/blockchain/what-is-blockchain-technology/', badge: '🟠 Bybit Learn' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/security', badge: '⚫ OKX Security' }
                 ]
             }
         },
@@ -37,10 +77,18 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Халвінг зменшує нагороду майнерам удвічі, створюючи дефіцит пропозиції.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'bBC-nXj3Ng4',
-                title: 'What is Bitcoin and How Does It Work?',
+                youtubeId: 'Wnf2vKG90w8',
+                title: 'What is Bitcoin｜Explained For Beginners',
                 duration: '6:15',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                sourceName: 'Binance Academy (Official Video)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/what-is-bitcoin',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/what-is-bitcoin',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Офіційний освітній матеріал Binance Academy. Не є фінансовою порадою.',
                 takeaways: [
                     'Bitcoin не підпорядковується жодному центробанку — це математично захищений інструмент збереження вартості.',
                     'Неможливо надрукувати більше ніж 21,000,000 BTC, що робить його твердішим за золото.',
@@ -48,8 +96,70 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
                 ],
                 officialSources: [
                     { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-bitcoin', badge: '🟡 Офіційна стаття' },
-                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/glossary/bitcoin', badge: '⚪ Гайд українською' },
-                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/crypto/what-is-bitcoin-btc/', badge: '🟠 Інтерактивний урок' }
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/crypto/what-is-bitcoin-btc/', badge: '🟠 Bybit Bitcoin' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/bitcoin', badge: '⚫ OKX Bitcoin' }
+                ]
+            }
+        },
+        {
+            id: 'cryptocurrency_basics',
+            term: 'Що таке Криптовалюта та цифрові активи',
+            category: 'BASICS',
+            definition: 'Цифрова або віртуальна валюта, захищена криптографією, що унеможливлює підробку чи подвійне витрачання коштів.',
+            example: 'Транзакції передаються в одноранговій мережі P2P без банківських шлюзів.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'a5XfQWUUZM8',
+                title: 'What is Cryptocurrency｜Explained For Beginners',
+                duration: '4:45',
+                sourceName: 'Binance Academy (Official Video)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/what-is-cryptocurrency',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/what-is-cryptocurrency',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Офіційний освітній матеріал Binance Academy. Не є фінансовою порадою.',
+                takeaways: [
+                    'Криптовалюта функціонує на базі розподіленого консенсусу (PoW / PoS).',
+                    'Власник самостійно контролює доступ до своїх активів через закриті ключі.',
+                    'Ціна формується виключно ринковим балансом попиту та пропозиції.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-cryptocurrency', badge: '🟡 Офіційна стаття' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/blockchain/what-is-cryptocurrency/', badge: '🟠 Bybit Learn' }
+                ]
+            }
+        },
+        {
+            id: 'mining_intro',
+            term: 'Майнінг та Консенсус Proof-of-Work',
+            category: 'BASICS',
+            definition: 'Процес перевірки та запису транзакцій у блокчейн за допомогою обчислювальної потужності обладнання, за що майнери отримують винагороду новими монетами.',
+            example: 'Майнери забезпечують безпеку мережі Bitcoin через підбір криптографічного гешу.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: '2VtH-XAOjXw',
+                title: 'What is Cryptocurrency Mining｜Explained For Beginners',
+                duration: '5:30',
+                sourceName: 'Binance Academy (Official Video)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/what-is-crypto-mining-and-how-does-it-work',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/what-is-crypto-mining-and-how-does-it-work',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Офіційний освітній матеріал Binance Academy. Не є фінансовою порадою.',
+                takeaways: [
+                    'Майнінг гарантує захист мережі від подвійного витрачання та зловмисників.',
+                    'Складність майнінгу адаптується кожні 2016 блоків у Bitcoin.',
+                    'Халвінг зменшує нагороду за знайдений блок кожні 4 роки.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-crypto-mining-and-how-does-it-work', badge: '🟡 Binance Майнінг' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/security', badge: '⚫ OKX Security' }
                 ]
             }
         },
@@ -57,25 +167,9 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             id: 'ethereum_contracts',
             term: 'Ethereum (ETH) та Смарт-контракти',
             category: 'BASICS',
-            definition: 'Глобальний децентралізований суперкомп\'ютер (EVM), на якому працюють самовиконувані програми — смарт-контракти. Є фундаментальною базою для DeFi, NFT та стейблкоїнів.',
+            definition: 'Глобальний децентралізований комп\'ютер (EVM), на якому працюють самовиконувані програми — смарт-контракти. Фундаментальна база для DeFi, DEX та стейблкоїнів.',
             example: 'Смарт-контракт автоматично переказує кошти покупцю одразу після виконання умови.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: 'j93DXauPDr8',
-                title: 'What is Ethereum and What are Smart Contracts?',
-                duration: '7:20',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
-                takeaways: [
-                    'Смарт-контракти виконуються автоматично в коді без участі юристів чи нотаріусів.',
-                    'ETH використовується як паливо (Gas) для оплати обчислень у децентралізованій мережі.',
-                    'На базі Ethereum збудовані провідні проекти фінансового світу (Lending, DEX, RWA).'
-                ],
-                officialSources: [
-                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-ethereum', badge: '🟡 Офіційна стаття' },
-                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/glossary/ethereum', badge: '⚪ Гайд українською' },
-                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/blockchain/what-is-ethereum-eth/', badge: '🟠 Інтерактивний урок' }
-                ]
-            }
+            visualType: 'NONE'
         },
         {
             id: 'stablecoins_intro',
@@ -83,68 +177,23 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             category: 'BASICS',
             definition: 'Криптовалюти зі стабільною ціною 1:1 до долара США. Дозволяють фіксувати торговий прибуток та миттєво переказувати капітал між біржами без банківських затримок.',
             example: 'Зафіксував 70% профіту в USDT під час піку волатильності ринку.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: 'f_2cE5W1Y7o',
-                title: 'What Are Stablecoins and How Do They Work?',
-                duration: '6:05',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
-                takeaways: [
-                    'USDT та USDC забезпечені фіатними доларами та короткостроковими облігаціями США.',
-                    'Стейблкоїни дозволяють переказувати капітал у мережах TRC20, Arbitrum чи SOL за секунди.',
-                    'Диверсифікуйте стейблкоїни (50% USDT / 50% USDC), щоб мінімізувати ризики емітента.'
-                ],
-                officialSources: [
-                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-are-stablecoins', badge: '🟡 Офіційна стаття' },
-                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/glossary/stablecoin', badge: '⚪ Гайд українською' }
-                ]
-            }
+            visualType: 'NONE'
         },
         {
             id: 'account_security_2fa',
             term: 'Реєстрація акаунту, Верифікація (KYC) та 2FA',
             category: 'BASICS',
-            definition: 'Базовий протокол підготовки трейдера: реєстрація на платформі, проходження перевірки особи (KYC) та обов\'язкове підключення двофакторної автентифікації через додаток (Google Authenticator).',
-            example: 'Захист 2FA унеможливлює злам акаунту навіть у разі крадіжки основного пароля.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: 'QJNCi9U8h-c',
-                title: 'Account Security & How to Enable 2FA Authenticator',
-                duration: '4:50',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
-                takeaways: [
-                    'Ніколи не використовуйте прив\'язку через SMS 2FA — шахраї можуть перехопити SIM-карту (SIM-swap).',
-                    'Використовуйте тільки апаратні ключі або Google Authenticator / 1Password.',
-                    'Збережіть секретний резервний ключ відновлення 2FA на окремому аркуші паперу.'
-                ],
-                officialSources: [
-                    { name: 'Binance Security', url: 'https://academy.binance.com/uk/articles/two-factor-authentication-2fa-security', badge: '🟡 Офіційний гайд 2FA' },
-                    { name: 'WhiteBIT Security', url: 'https://whitebit.com/ua/academy/articles/crypto-security-rules', badge: '⚪ Безпека акаунту' }
-                ]
-            }
+            definition: 'Базовий протокол безпеки трейдера: перевірка особи (KYC) та обов\'язкове підключення двофакторної автентифікації через додаток (Google Authenticator / YubiKey).',
+            example: 'Захист 2FA унеможливлює злам акаунту навіть у разі витоку основного пароля.',
+            visualType: 'NONE'
         },
         {
             id: 'p2p_trading_guide',
             term: 'P2P Торгівля: Купівля з картки без посередників',
             category: 'BASICS',
-            definition: 'Peer-to-Peer торгівля дозволяє купувати та продавати USDT, BTC чи ETH напряму іншим людям за банківську гривню (UAH) або долари. Біржа виступає безпечним гарантом (Escrow).',
-            example: 'Поки продавець не отримав гривню на свою картку, крипта заморожена в арбітражі біржі.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: 'gL3lKz_Gj9A',
-                title: 'A Beginner\'s Guide to P2P Crypto Trading and Security',
-                duration: '8:45',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
-                takeaways: [
-                    'Ніколи не відпускайте крипту («Підтвердити отримання»), поки не перевірите баланс у банківському додатку.',
-                    'Торгуйте тільки з верифікованими мерчантами з високим рейтингом успішних угод (>98%).',
-                    'Не вказуйте у призначенні платежу слова «крипта», «USDT», «BTC» щоб уникнути фінансового фінмоніторингу.'
-                ],
-                officialSources: [
-                    { name: 'Binance P2P Guide', url: 'https://academy.binance.com/uk/articles/what-is-p2p-trading-and-how-does-it-work', badge: '🟡 Гайд з P2P торгівлі' },
-                    { name: 'Bybit P2P', url: 'https://learn.bybit.com/crypto/how-to-buy-crypto-with-p2p-trading/', badge: '🟠 Інструкція P2P' }
-                ]
-            }
+            definition: 'Peer-to-Peer торгівля дозволяє купувати та продавати USDT чи BTC напряму іншим користувачам за банківську картку. Біржа виступає безпечним гарантом (Escrow).',
+            example: 'Поки продавець не отримав кошти на свою картку, крипта заморожена в арбітражі біржі.',
+            visualType: 'NONE'
         },
         {
             id: 'p2p_scam_prevention',
@@ -160,48 +209,65 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
         // ==========================================
         {
             id: 'spot_vs_futures',
-            term: 'Спот проти Ф\'ючерсів: Різниця та Кредитне Плече',
+            term: 'Спот проти Ф\'ючерсів: Основи трейдингу',
             category: 'TRADING',
-            definition: 'На Спотовому ринку ви купуєте реальну монету і володієте нею без ризику примусової ліквідації. На Ф\'ючерсах ви торгуєте ціновими контрактами з кредитним плечем (Leverage), де є ризик повної втрати маржі.',
+            definition: 'На Спотовому ринку ви купуєте реальну монету і володієте нею без ризику примусової ліквідації. На Ф\'ючерсах ви торгуєте ціновими контрактами з кредитним плечем (Leverage).',
             example: 'Плече 10х множить прибуток у 10 разів, але рух ціни на 10% проти вас повністю ліквідує позицію.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'w_3B_wX-f2M',
-                title: 'Spot vs Futures Trading: Understanding the Risks and Leverage',
-                duration: '9:30',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                youtubeId: 'URZuENfa8tI',
+                title: 'Online Course For Beginners: Trading Fundamentals',
+                duration: '7:40',
+                sourceName: 'Binance Academy (Official Course)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Офіційний освітній курс Binance Academy. Не є фінансовою порадою.',
                 takeaways: [
                     'Початківцям рекомендується починати виключно зі спотового ринку (Spot).',
                     'Ф\'ючерси вимагають суворого виставлення Stop-Loss ордера в момент відкриття кожної угоди.',
                     'Уникайте великих плечей (20x, 50x, 100x) — біржова волатильність гарантовано ліквідує депозит.'
                 ],
                 officialSources: [
-                    { name: 'Binance Futures', url: 'https://academy.binance.com/uk/articles/what-are-forward-and-futures-contracts', badge: '🟡 Ф\'ючерси та Маржа' },
-                    { name: 'Bybit Derivatives', url: 'https://learn.bybit.com/derivatives/what-is-crypto-futures-trading/', badge: '🟠 Кредитне плече' },
-                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/articles/spot-vs-futures', badge: '⚪ Спот vs Ф\'ючерси' }
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners', badge: '🟡 Курс Трейдингу' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/trading/crypto-trading-strategies/', badge: '🟠 Bybit Trading' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/trading-basics', badge: '⚫ OKX Trading Basics' }
                 ]
             }
         },
         {
             id: 'orders_guide',
-            term: 'Типи ордерів: Market, Limit, Stop-Loss та Take-Profit',
+            term: 'Стратегії торгівлі та типи ордерів',
             category: 'TRADING',
-            definition: 'Market-ордер виконується миттєво за поточною ціною зі стакана. Limit-ордер чекає на обрану вами ціну зі зниженою комісією. Stop-Loss автоматично обмежує збитки, якщо ринок пішов проти вас.',
+            definition: 'Market-ордер виконується миттєво за поточною ціною зі стакана. Limit-ордер чекає на обрану вами ціну зі зниженою комісією. Stop-Loss обмежує збитки, якщо ринок пішов проти вас.',
             example: 'Виставив Limit-ордер на купівлю біткоїна за $62,000 зі стопом на $60,800.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'B3nIq2m2j7c',
-                title: 'How to Use Market, Limit, and Stop-Loss Orders',
-                duration: '7:15',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
+                youtubeId: 'YqoJ_fOHoH8',
+                title: 'Online Course For Beginners: Trading Strategies',
+                duration: '8:15',
+                sourceName: 'Binance Academy (Official Course)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/trading-strategies-for-beginners',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/trading-strategies-for-beginners',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Офіційний освітній курс Binance Academy. Не є фінансовою порадою.',
                 takeaways: [
                     'Використовуйте Limit-ордери, щоб контролювати точну ціну входу і не переплачувати комісію taker.',
                     'Завжди розраховуйте свій Stop-Loss до входу в угоду, а не після того, як позиція пішла в мінус.',
                     'Take-Profit ордери дозволяють фіксувати прибуток частинами (50% на першій цілі, 50% на другій).'
                 ],
                 officialSources: [
-                    { name: 'Binance Orders', url: 'https://academy.binance.com/uk/articles/understanding-the-different-order-types', badge: '🟡 Гайд по ордерах' },
-                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/articles/order-types', badge: '⚪ Stop-Loss та Limit' }
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/trading-strategies-for-beginners', badge: '🟡 Торгові Стратегії' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/trading/crypto-trading-strategies/', badge: '🟠 Bybit Strategies' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/technical-analysis', badge: '⚫ OKX Технічний Аналіз' }
                 ]
             }
         },
@@ -231,22 +297,7 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             category: 'PATTERNS',
             definition: 'Класична свічка розвороту з крихітним тілом угорі та довгим нижнім ґнотом (удвічі довшим за тіло). Демонструє миттєве агресивне відхилення продавців сильним покупцем.',
             example: 'Пін-бар на денному рівні підтримки дав бездоганний сигнал для відкриття лонгу.',
-            visualType: 'CANDLE_HAMMER',
-            videoData: {
-                youtubeId: 'W3pB58_v6fA',
-                title: 'How to Trade Pin Bars and Candlestick Reversal Patterns',
-                duration: '8:50',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
-                takeaways: [
-                    'Чим довший ґніт (тінь) свічки відносно тіла, тим сильніший сигнал відхилення ціни.',
-                    'Пін-бар має вагу тільки на ключових горизонтальних рівнях або ордерблоках, а не посередині діапазону.',
-                    'Вхід здійснюється на закритті свічки або на 50% корекції ґнота зі стопом за мінімум.'
-                ],
-                officialSources: [
-                    { name: 'Binance Patterns', url: 'https://academy.binance.com/uk/articles/a-beginners-guide-to-classical-chart-patterns', badge: '🟡 Свічкові патерни' },
-                    { name: 'Bybit Technicals', url: 'https://learn.bybit.com/candlestick-patterns/pin-bar-candlestick-pattern/', badge: '🟠 Pin Bar гайд' }
-                ]
-            }
+            visualType: 'CANDLE_HAMMER'
         },
         {
             id: 'doji',
@@ -306,51 +357,7 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
         },
 
         // ==========================================
-        // 4. БЕЗПЕКА ТА ЗБЕРЕЖЕННЯ (SECURITY)
-        // ==========================================
-        {
-            id: 'wallets_storage',
-            term: 'Гаманці: Холодні, Гарячі та Сід-фрази',
-            category: 'SECURITY',
-            definition: '«Not your keys, not your coins». Зберігання на біржі означає, що ключами володіє біржа. Холодні апаратні гаманці (Ledger, Trezor) зберігають ключі офлайн, повністю ізольованими від вірусів.',
-            example: 'Тримаю 85% капіталу на апаратному гаманці, а робочий депозит — на біржі.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: '1YyAzVmP9xQ',
-                title: 'Crypto Wallet Guide: Cold vs Hot Storage & Seed Phrase Safety',
-                duration: '11:10',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
-                takeaways: [
-                    'Ніколи не зберігайте сід-фразу на комп\'ютері, у хмарі, нотатках чи у вигляді скріншота в телефоні.',
-                    'Запишіть 12-24 слова виключно на папері або металевій пластині і сховайте в надійному місці.',
-                    'Співробітники підтримки StorkCrypto або біржі ніколи і за жодних обставин не попросять вашу сід-фразу.'
-                ],
-                officialSources: [
-                    { name: 'Binance Wallets', url: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained', badge: '🟡 Типи криптогаманців' },
-                    { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy/articles/crypto-wallets-guide', badge: '⚪ Холодні vs Гарячі' },
-                    { name: 'OKX Web3', url: 'https://www.okx.com/learn/what-is-a-crypto-wallet', badge: '⚫ Web3 гаманці' }
-                ]
-            }
-        },
-        {
-            id: 'api_keys_security',
-            term: 'API-Ключі: Безпечне підключення до терміналів',
-            category: 'SECURITY',
-            definition: 'Правила створення API-ключів біржі: завжди суворо забороняйте право «Withdrawal» (виведення коштів), вмикайте IP Whitelist та регулярно перевіряйте історію звернень.',
-            example: 'Підключив термінал через API в режимі Read/Trade Only без доступу до виведення балансу.',
-            visualType: 'NONE'
-        },
-        {
-            id: 'scam_drainers',
-            term: 'Фішинг, Дрейнери та Шкідливі Підписи (Permit)',
-            category: 'SECURITY',
-            definition: 'Атаки, коли користувач підключає Web3 гаманець до підробленого сайту і підписує дозвіл (setApprovalForAll або Permit). Один невірний клік передає контрактному сканеру право спустошити ваш баланс.',
-            example: 'Перед підписом завжди перевіряйте домен сайту та перевіряйте дозволи на revoke.cash.',
-            visualType: 'NONE'
-        },
-
-        // ==========================================
-        // 5. ПСИХОЛОГІЯ ТА РИЗИК-МЕНЕДЖМЕНТ (PSYCHOLOGY)
+        // 4. ПСИХОЛОГІЯ ТА РИЗИК-МЕНЕДЖМЕНТ (PSYCHOLOGY)
         // ==========================================
         {
             id: 'fomo_psychology',
@@ -358,22 +365,7 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             category: 'PSYCHOLOGY',
             definition: 'FOMO — синдром страху втраченої вигоди, коли новачок купує монету після +300% росту. FUD — панічний продаж на штучно створених новинах перед тим, як великі гравці викуплять дно.',
             example: 'Професійний трейдер ніколи не біжить за поїздом, який уже вирушив.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: '6A_fB1z3M8c',
-                title: 'Trading Psychology: Conquering FOMO, FUD, and Greed',
-                duration: '8:25',
-                sourceName: 'StorkCrypto Video • Матеріали Binance Academy',
-                takeaways: [
-                    'Якщо актив уже дав великий імпульс — угоду пропущено, чекайте корекції або шукайте іншу монету.',
-                    'Усі успішні трейдери мають заздалегідь прописаний торговий план і діють як холодні оператори.',
-                    'Ніколи не торгуйте в стані ейфорії після великого профіту або в розпачі після стоп-лоссу.'
-                ],
-                officialSources: [
-                    { name: 'Binance Psychology', url: 'https://academy.binance.com/uk/articles/the-psychology-of-market-cycles', badge: '🟡 Психологія ринку' },
-                    { name: 'Bybit Risk Management', url: 'https://learn.bybit.com/trading/crypto-risk-management/', badge: '🟠 Ризик-менеджмент' }
-                ]
-            }
+            visualType: 'NONE'
         },
         {
             id: 'onepercentrule',
@@ -395,6 +387,38 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
 
     en: [
         {
+            id: 'wallets_storage',
+            term: 'Wallet Security: Cold vs Hot Storage & Seed Phrases',
+            category: 'SECURITY',
+            definition: 'Hardware cold storage isolates your private keys in a secure enclave offline, preventing remote draining attacks and malware access.',
+            example: 'Retain 90% of long-term crypto assets in cold storage.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'd8IBpfs9bf4',
+                title: 'What are Crypto Wallets — Explained for Beginners',
+                duration: '5:12',
+                sourceName: 'Binance Academy (Official Course)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Official educational guide by Binance Academy. Not financial advice.',
+                takeaways: [
+                    'Never photograph or digitally store your 12-24 word seed phrase.',
+                    'Keep your recovery phrase on stainless steel in a fireproof location.',
+                    'Support staff will never ask for your recovery phrase or private keys.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained', badge: '🟡 Binance Guide' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/crypto/what-is-a-crypto-wallet/', badge: '🟠 Bybit Wallets' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/wallets', badge: '⚫ OKX Wallets' }
+                ]
+            }
+        },
+        {
             id: 'blockchain_basics',
             term: 'What is Blockchain and How it Works',
             category: 'BASICS',
@@ -402,14 +426,26 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Consensus nodes verify transactions with mathematics, not human trust.',
             visualType: 'CHART_SMC',
             videoData: {
-                youtubeId: 'SSo_EIwHSd4',
-                title: 'What is Blockchain Technology and How Does It Work?',
+                youtubeId: '3rL0OIXbMio',
+                title: 'How Does Blockchain Work｜Explained for Beginners',
                 duration: '5:42',
                 sourceName: 'Binance Academy (Official Course)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Official educational course by Binance Academy. Not financial advice.',
                 takeaways: [
                     'Blockchain eliminates intermediaries, lowering settlement fees and counterparty risks.',
                     'Transactions are immutable: once confirmed on-chain, records cannot be altered.',
                     'Security is maintained by global decentralized validator consensus.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work', badge: '🟡 Binance Article' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/blockchain/what-is-blockchain-technology/', badge: '🟠 Bybit Learn' }
                 ]
             }
         },
@@ -421,52 +457,27 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Halving cuts mining inflation in half, reinforcing programmatic scarcity.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'bBC-nXj3Ng4',
-                title: 'What is Bitcoin and How Does It Work?',
+                youtubeId: 'Wnf2vKG90w8',
+                title: 'What is Bitcoin｜Explained For Beginners',
                 duration: '6:15',
                 sourceName: 'Binance Academy (Official Course)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/what-is-bitcoin',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/what-is-bitcoin',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Official educational course by Binance Academy. Not financial advice.',
                 takeaways: [
                     'No central authority can dilute Bitcoin\'s 21,000,000 supply limit.',
                     'Self-custody empowers holders with sovereign wealth protection.',
                     'Global 24/7 liquidity makes it an institutional hedge against fiat inflation.'
-                ]
-            }
-        },
-        {
-            id: 'account_security_2fa',
-            term: 'Account Setup, KYC & 2FA Protection',
-            category: 'BASICS',
-            definition: 'The standard onboarding protocol: creating your account, completing identity verification (KYC), and binding hardware or authenticator app 2FA.',
-            example: 'TOTP 2FA prevents account hijacking even if your master password is breached.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: 'QJNCi9U8h-c',
-                title: 'Account Security & How to Enable 2FA Authenticator',
-                duration: '4:50',
-                sourceName: 'Binance Academy (Official Course)',
-                takeaways: [
-                    'Avoid SMS 2FA due to SIM swapping vulnerabilities.',
-                    'Use Google Authenticator or physical YubiKeys for impenetrable defense.',
-                    'Store the 2FA secret backup seed key offline on paper.'
-                ]
-            }
-        },
-        {
-            id: 'p2p_trading_guide',
-            term: 'P2P Trading: Safe Fiat-to-Crypto Swaps',
-            category: 'BASICS',
-            definition: 'Peer-to-Peer trading enables direct buying and selling of USDT or BTC with local bank transfers using an automated exchange escrow guarantee.',
-            example: 'Crypto remains locked in escrow until the seller confirms bank transfer receipt.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: 'gL3lKz_Gj9A',
-                title: 'A Beginner\'s Guide to P2P Crypto Trading and Security',
-                duration: '8:45',
-                sourceName: 'Binance Academy (Official Course)',
-                takeaways: [
-                    'Never release crypto before verifying funds directly inside your banking app.',
-                    'Trade only with verified merchants with >98% completion rates.',
-                    'Keep all communications strictly inside the official platform chat.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-bitcoin', badge: '🟡 Binance Article' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/crypto/what-is-bitcoin-btc/', badge: '🟠 Bybit Learn' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/bitcoin', badge: '⚫ OKX Bitcoin' }
                 ]
             }
         },
@@ -478,14 +489,26 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: '10x leverage multiplies gains but 10% adverse price move causes 100% loss.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'w_3B_wX-f2M',
-                title: 'Spot vs Futures Trading: Understanding the Risks and Leverage',
-                duration: '9:30',
+                youtubeId: 'URZuENfa8tI',
+                title: 'Online Course For Beginners: Trading Fundamentals',
+                duration: '7:40',
                 sourceName: 'Binance Academy (Official Course)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Official educational course by Binance Academy. Not financial advice.',
                 takeaways: [
                     'Beginners should build disciplined track records on Spot before attempting derivatives.',
                     'Always define and place a hard Stop-Loss order at position inception.',
                     'High leverage (20x-100x) turns statistical trading into reckless gambling.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners', badge: '🟡 Trading Guide' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/trading/crypto-trading-strategies/', badge: '🟠 Bybit Learn' }
                 ]
             }
         },
@@ -497,14 +520,26 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Placed a limit buy order at support with a 1.5% stop loss.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'B3nIq2m2j7c',
-                title: 'How to Use Market, Limit, and Stop-Loss Orders',
-                duration: '7:15',
+                youtubeId: 'YqoJ_fOHoH8',
+                title: 'Online Course For Beginners: Trading Strategies',
+                duration: '8:15',
                 sourceName: 'Binance Academy (Official Course)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/trading-strategies-for-beginners',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/trading-strategies-for-beginners',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Official educational course by Binance Academy. Not financial advice.',
                 takeaways: [
                     'Use Limit orders to avoid slippage and pay lower maker fees.',
                     'Calculate your risk parameter before opening any position.',
                     'Scale out profits systematically using staged Take-Profit targets.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/trading-strategies-for-beginners', badge: '🟡 Trading Strategies' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/technical-analysis', badge: '⚫ OKX Learn' }
                 ]
             }
         },
@@ -514,18 +549,7 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             category: 'PATTERNS',
             definition: 'A powerful single-candle reversal with a small upper body and a long lower tail (2x+ body length), showing aggressive seller rejection at key support.',
             example: 'Pin-bar bounce off major support created a high-probability long entry.',
-            visualType: 'CANDLE_HAMMER',
-            videoData: {
-                youtubeId: 'W3pB58_v6fA',
-                title: 'How to Trade Pin Bars and Candlestick Reversal Patterns',
-                duration: '8:50',
-                sourceName: 'Binance Academy (Official Course)',
-                takeaways: [
-                    'The longer the wick relative to body, the stronger the institutional rejection.',
-                    'Pin bars carry high edge when formed at horizontal key levels or order blocks.',
-                    'Enter on candle close with stop loss placed below the wick extreme.'
-                ]
-            }
+            visualType: 'CANDLE_HAMMER'
         },
         {
             id: 'hns',
@@ -568,42 +592,12 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Limit order placed at 50% FVG (Consequent Encroachment).'
         },
         {
-            id: 'wallets_storage',
-            term: 'Wallet Security: Cold vs Hot Storage & Seed Phrases',
-            category: 'SECURITY',
-            definition: 'Hardware cold storage isolates your private keys in a secure enclave offline, preventing remote draining attacks and malware access.',
-            example: 'Retain 90% of long-term crypto assets in cold storage.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: '1YyAzVmP9xQ',
-                title: 'Crypto Wallet Guide: Cold vs Hot Storage & Seed Phrase Safety',
-                duration: '11:10',
-                sourceName: 'Binance Academy (Official Course)',
-                takeaways: [
-                    'Never photograph or digitally store your 12-24 word seed phrase.',
-                    'Keep your recovery phrase on stainless steel in a fireproof location.',
-                    'Support staff will never ask for your recovery phrase or private keys.'
-                ]
-            }
-        },
-        {
             id: 'fomo_psychology',
             term: 'Trading Psychology: Overcoming FOMO and Greed',
             category: 'PSYCHOLOGY',
             definition: 'FOMO causes retail traders to buy at local tops out of emotional fear of missing out. Professional traders remain dispassionate and patient.',
             example: 'Never chase extended green candles after multiple parabolic days.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: '6A_fB1z3M8c',
-                title: 'Trading Psychology: Conquering FOMO, FUD, and Greed',
-                duration: '8:25',
-                sourceName: 'Binance Academy (Official Course)',
-                takeaways: [
-                    'Missed trades are part of the game; capital preservation comes first.',
-                    'Follow a pre-written trading plan and execute without emotional hesitation.',
-                    'Step away from trading screens after experiencing consecutive losses.'
-                ]
-            }
+            visualType: 'NONE'
         },
         {
             id: 'onepercentrule',
@@ -617,6 +611,38 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
 
     pl: [
         {
+            id: 'wallets_storage',
+            term: 'Portfele Krypto: Zimne vs Gorące i Bezpieczeństwo',
+            category: 'SECURITY',
+            definition: 'Fizyczne portfele sprzętowe trzymają klucze prywatne całkowicie odizolowane od internetu i wirusów.',
+            example: '90% aktywów długoterminowych przechowywane na Ledgerze.',
+            visualType: 'NONE',
+            videoData: {
+                youtubeId: 'd8IBpfs9bf4',
+                title: 'What are Crypto Wallets — Explained for Beginners',
+                duration: '5:12',
+                sourceName: 'Binance Academy (Kurs oficjalny)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Oficjalny poradnik Binance Academy. Nie stanowi porady finansowej.',
+                takeaways: [
+                    'Nigdy nie rób zdjęć i nie zapisuj 12-24 słów w chmurze lub telefonie.',
+                    'Zapisz frazę seed na papierze lub tytanie i schowaj w bezpiecznym miejscu.',
+                    'Pomoc techniczna nigdy nie prosi o podanie frazy seed.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/crypto-wallet-types-explained', badge: '🟡 Binance Guide' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/crypto/what-is-a-crypto-wallet/', badge: '🟠 Bybit Wallets' },
+                    { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn/tag/wallets', badge: '⚫ OKX Wallets' }
+                ]
+            }
+        },
+        {
             id: 'blockchain_basics',
             term: 'Czym jest Blockchain i jak działa',
             category: 'BASICS',
@@ -624,14 +650,26 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Węzły sieci weryfikują transakcje matematycznym algorytmem konsensusu.',
             visualType: 'CHART_SMC',
             videoData: {
-                youtubeId: 'SSo_EIwHSd4',
-                title: 'What is Blockchain Technology and How Does It Work?',
+                youtubeId: '3rL0OIXbMio',
+                title: 'How Does Blockchain Work｜Explained for Beginners',
                 duration: '5:42',
                 sourceName: 'Binance Academy (Kurs oficjalny)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Oficjalny poradnik Binance Academy. Nie stanowi porady finansowej.',
                 takeaways: [
                     'Blockchain eliminuje pośredników, obniżając prowizje i przyspieszając rozliczenia.',
                     'Transakcje są publiczne i nieodwracalne — nikt nie może ich cofnąć.',
                     'Bezpieczeństwo zapewnia rozproszona sieć tysięcy niezależnych węzłów.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-blockchain-and-how-does-it-work', badge: '🟡 Binance Article' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/blockchain/what-is-blockchain-technology/', badge: '🟠 Bybit Learn' }
                 ]
             }
         },
@@ -643,33 +681,26 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Halving ogranicza nową podaż BTC o połowę co 210,000 bloków.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'bBC-nXj3Ng4',
-                title: 'What is Bitcoin and How Does It Work?',
+                youtubeId: 'Wnf2vKG90w8',
+                title: 'What is Bitcoin｜Explained For Beginners',
                 duration: '6:15',
                 sourceName: 'Binance Academy (Kurs oficjalny)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/what-is-bitcoin',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/what-is-bitcoin',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Oficjalny poradnik Binance Academy. Nie stanowi porady finansowej.',
                 takeaways: [
                     'Żaden bank centralny nie może dodrukować monet Bitcoin.',
                     'Ścisły limit 21,000,000 monet gwarantuje rzadkość.',
                     'Przechowuj Bitcoin na własnym zimnym portfelu sprzętowym.'
-                ]
-            }
-        },
-        {
-            id: 'account_security_2fa',
-            term: 'Rejestracja konta, Weryfikacja KYC i 2FA',
-            category: 'BASICS',
-            definition: 'Podstawowe zasady tworzenia konta: uwierzytelnienie dwuskładnikowe (Google Authenticator) oraz weryfikacja tożsamości.',
-            example: 'Klucz 2FA uniemożliwia zalogowanie się oszustowi nawet przy znajomości hasła.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: 'QJNCi9U8h-c',
-                title: 'Account Security & How to Enable 2FA Authenticator',
-                duration: '4:50',
-                sourceName: 'Binance Academy (Kurs oficjalny)',
-                takeaways: [
-                    'Unikaj kodów SMS ze względu na ataki typu SIM-swap.',
-                    'Używaj kluczy YubiKey lub aplikacji Authenticator.',
-                    'Zapisz klucz zapasowy 2FA na kartce papieru.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/what-is-bitcoin', badge: '🟡 Binance Article' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/crypto/what-is-bitcoin-btc/', badge: '🟠 Bybit Learn' }
                 ]
             }
         },
@@ -681,14 +712,26 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Dźwignia 10x zwiększa potencjalny zysk, lecz ruch o 10% przeciw pozycji oznacza likwidację.',
             visualType: 'NONE',
             videoData: {
-                youtubeId: 'w_3B_wX-f2M',
-                title: 'Spot vs Futures Trading: Understanding the Risks and Leverage',
-                duration: '9:30',
+                youtubeId: 'URZuENfa8tI',
+                title: 'Online Course For Beginners: Trading Fundamentals',
+                duration: '7:40',
                 sourceName: 'Binance Academy (Kurs oficjalny)',
+                provider: 'binance',
+                spokenLanguage: 'en',
+                subtitleLanguages: ['uk', 'en'],
+                officialArticleUrl: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners',
+                fallbackUrl: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners',
+                sourceVerifiedAt: '2026-09-28',
+                embedStatus: 'verified',
+                disclaimer: 'Oficjalny kurs Binance Academy. Nie stanowi porady finansowej.',
                 takeaways: [
                     'Początkujący powinni zaczynać wyłącznie od rynku Spot.',
                     'Na kontraktach Futures bezwzględnie ustawiaj zlecenie Stop-Loss.',
                     'Wysoka dźwignia (20x-100x) prowadzi do szybkiego wyzerowania kapitału.'
+                ],
+                officialSources: [
+                    { name: 'Binance Academy', url: 'https://academy.binance.com/uk/articles/a-complete-guide-to-cryptocurrency-trading-for-beginners', badge: '🟡 Kurs Binance' },
+                    { name: 'Bybit Learn', url: 'https://learn.bybit.com/trading/crypto-trading-strategies/', badge: '🟠 Bybit Learn' }
                 ]
             }
         },
@@ -698,18 +741,7 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             category: 'PATTERNS',
             definition: 'Świeca odwrócenia z małym ciałem i długim dolnym knotem, oznaczająca agresywne przejęcie kontroli przez kupujących.',
             example: 'Pin bar na poziomie wsparcia dał czysty sygnał wejścia w pozycję długą.',
-            visualType: 'CANDLE_HAMMER',
-            videoData: {
-                youtubeId: 'W3pB58_v6fA',
-                title: 'How to Trade Pin Bars and Candlestick Reversal Patterns',
-                duration: '8:50',
-                sourceName: 'Binance Academy (Kurs oficjalny)',
-                takeaways: [
-                    'Im dłuższy knot świecy, tym silniejsze odrzucenie poziomu cenowego.',
-                    'Szukaj formacji Pin Bar na kluczowych poziomach wsparcia i oporu.',
-                    'Wejście po zamknięciu świecy ze zleceniem obronnym pod knotem.'
-                ]
-            }
+            visualType: 'CANDLE_HAMMER'
         },
         {
             id: 'hns',
@@ -728,42 +760,12 @@ export const ACADEMY_DATABASE: Record<Language, AcademyTerm[]> = {
             example: 'Wybicie stop lossów inwestorów detalicznych przed pompą.'
         },
         {
-            id: 'wallets_storage',
-            term: 'Portfele Krypto: Zimne vs Gorące i Bezpieczeństwo',
-            category: 'SECURITY',
-            definition: 'Fizyczne portfele sprzętowe trzymają klucze prywatne całkowicie odizolowane od internetu i wirusów.',
-            example: '90% aktywów długoterminowych przechowywane na Ledgerze.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: '1YyAzVmP9xQ',
-                title: 'Crypto Wallet Guide: Cold vs Hot Storage & Seed Phrase Safety',
-                duration: '11:10',
-                sourceName: 'Binance Academy (Kurs oficjalny)',
-                takeaways: [
-                    'Nigdy nie rób zdjęć i nie zapisuj 12-24 słów w chmurze lub telefonie.',
-                    'Zapisz frazę seed na papierze lub tytanie i schowaj w bezpiecznym miejscu.',
-                    'Pomoc techniczna nigdy nie prosi o podanie frazy seed.'
-                ]
-            }
-        },
-        {
             id: 'fomo_psychology',
             term: 'Psychologia Rynku: Jak Opanować FOMO i Chciwość',
             category: 'PSYCHOLOGY',
             definition: 'FOMO to impuls kupowania na szczycie ze strachu przed przegapieniem zysków. Profesjonaliści handlują plan, nie emocje.',
             example: 'Nie goń zielonych świec, gdy rynek wzrósł już o 100%.',
-            visualType: 'NONE',
-            videoData: {
-                youtubeId: '6A_fB1z3M8c',
-                title: 'Trading Psychology: Conquering FOMO, FUD, and Greed',
-                duration: '8:25',
-                sourceName: 'Binance Academy (Kurs oficjalny)',
-                takeaways: [
-                    'Przegapiona transakcja nie oznacza straty — ochrona kapitału jest najważniejsza.',
-                    'Zawsze realizuj z góry przygotowany plan transakcyjny.',
-                    'Zrób przerwę od wykresów po serii stratnych pozycji.'
-                ]
-            }
+            visualType: 'NONE'
         },
         {
             id: 'onepercentrule',
