@@ -323,22 +323,46 @@ export type PatternType = 'BULLISH' | 'BEARISH' | 'NEUTRAL';
 
 export type AcademyCategory = 'BASICS' | 'TRADING' | 'PATTERNS' | 'TECHNICAL' | 'PSYCHOLOGY' | 'SECURITY';
 
-export type AcademyLesson = {
-    id: string;
-    title: string;
-    category: 'security' | 'basics' | 'trading' | 'technical-analysis' | 'wallets';
-    level: 'beginner' | 'intermediate' | 'pro';
+export type AcademyLanguage = 'uk' | 'ru' | 'en';
+
+export type DataStatus = 'LIVE' | 'DELAYED' | 'STALE' | 'DEMO' | 'ERROR' | 'LOADING';
+
+export type AcademyVariant = {
+    language: AcademyLanguage;
+    spokenLanguage: string;
+    subtitleLanguages: string[];
     provider: 'binance' | 'bybit' | 'okx';
-    officialArticleUrl?: string;
+    title: string;
+    description: string;
     youtubeUrl?: string;
     videoId?: string;
-    spokenLanguage: 'uk' | 'ru' | 'en' | string;
-    subtitleLanguages: string[];
+    officialArticleUrl?: string;
+    fallbackUrl: string;
+    duration?: string;
+    validationStatus: 'verified' | 'unavailable' | 'article_only' | 'not_checked';
+    verifiedAt?: string;
+    thumbnailUrl?: string;
+    disclaimer?: string;
+};
+
+export type AcademyLesson = {
+    id: string;
+    category: 'basics' | 'trading' | 'patterns' | 'security' | 'psychology';
+    level: 'beginner' | 'intermediate' | 'pro';
+    variants: Partial<Record<AcademyLanguage, AcademyVariant>>;
+    // Backward compatibility optional properties
+    title?: string;
+    provider?: 'binance' | 'bybit' | 'okx';
+    videoId?: string;
+    youtubeUrl?: string;
+    officialArticleUrl?: string;
+    spokenLanguage?: string;
+    subtitleLanguages?: string[];
     duration?: string;
     thumbnailUrl?: string;
+    fallbackUrl?: string;
     sourceVerifiedAt?: string;
     embedStatus?: 'verified' | 'blocked' | 'not_checked' | 'unavailable';
-    fallbackUrl: string;
     disclaimer?: string;
 };
 

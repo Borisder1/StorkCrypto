@@ -1,14 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useScrollLock } from '../utils/useScrollLock';
 import { triggerHaptic } from '../utils/haptics';
 import { useStore } from '../store';
-import { AcademyTerm, AcademyOfficialSource } from '../types';
+import { AcademyTerm, AcademyOfficialSource, AcademyLanguage, AcademyVariant } from '../types';
+import { ACADEMY_LESSONS_MAP, resolveLessonVariant } from './AcademyLessonsData';
 import { PlayIcon, CheckIcon, SparklesIcon, GlobeIcon, BookOpenIcon, ExternalLinkIcon } from './icons';
 import { safeOpenTelegramLink } from '../utils/telegram';
 
+type PlayerState = 'loading' | 'ready' | 'playing' | 'paused' | 'buffering' | 'autoplay_blocked' | 'video_unavailable' | 'embedding_blocked' | 'network_error';
+
 interface VideoLessonModalProps {
     lesson: AcademyTerm;
+    preferredLang?: AcademyLanguage;
+    onSwitchLanguage?: (newLang: AcademyLanguage) => void;
     onClose: () => void;
     onMarkCompleted?: (lessonId: string) => void;
     isCompleted?: boolean;
@@ -16,6 +21,8 @@ interface VideoLessonModalProps {
 
 export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
     lesson,
+    preferredLang = 'uk',
+    onSwitchLanguage,
     onClose,
     onMarkCompleted,
     isCompleted = false
@@ -24,7 +31,9 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
     const { grantXp, showToast } = useStore();
     const [rewardClaimed, setRewardClaimed] = useState(isCompleted);
     const [viewMode, setViewMode] = useState<'VIDEO' | 'EXCHANGE_ARTICLES'>('VIDEO');
+    const [currentLang, setCurrentLang] = useState<AcademyLanguage>(preferredLang);
 
+    // Escape listener for accessibility
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -35,17 +44,46 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose]);
 
-    const videoData = lesson.videoData;
-    if (!videoData) return null;
+    // Resolve variant from centralized typed catalog using 6-step fallback
+    const academyLesson = ACADEMY_LESSONS_MAP.get(lesson.id);
+    const resolved = academyLesson
+        ? resolveLessonVariant(academyLesson, currentLang)
+        : null;
 
-    const directWatchUrl = `https://www.youtube.com/watch?v=${videoData.youtubeId}`;
+    const variant: AcademyVariant | null = resolved ? resolved.variant : (lesson.videoData ? {
+        language: currentLang,
+        spokenLanguage: lesson.videoData.spokenLanguage || 'en',
+        subtitleLanguages: lesson.videoData.subtitleLanguages || ['uk', 'ru', 'en'],
+        provider: lesson.videoData.provider || 'binance',
+        title: lesson.videoData.title || lesson.term,
+        description: lesson.definition,
+        videoId: lesson.videoData.youtubeId,
+        youtubeUrl: `https://www.youtube.com/watch?v=${lesson.videoData.youtubeId}`,
+        officialArticleUrl: lesson.videoData.officialArticleUrl,
+        fallbackUrl: lesson.videoData.fallbackUrl || 'https://academy.binance.com/uk',
+        duration: lesson.videoData.duration,
+        validationStatus: 'verified',
+        thumbnailUrl: `https://img.youtube.com/vi/${lesson.videoData.youtubeId}/hqdefault.jpg`,
+        disclaimer: lesson.videoData.disclaimer
+    } : null);
+
+    const videoId = variant?.videoId || lesson.videoData?.youtubeId;
+    const directWatchUrl = videoId
+        ? `https://www.youtube.com/watch?v=${videoId}`
+        : (variant?.officialArticleUrl || 'https://academy.binance.com/uk');
+
     const originParam = typeof window !== 'undefined' && window.location.origin
         ? encodeURIComponent(window.location.origin)
         : encodeURIComponent('https://storkcrypto.pages.dev');
-    const embedUrl = `https://www.youtube-nocookie.com/embed/${videoData.youtubeId}?autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=${originParam}`;
-    const thumbnailUrl = `https://img.youtube.com/vi/${videoData.youtubeId}/hqdefault.jpg`;
+
+    const embedUrl = videoId
+        ? `https://www.youtube-nocookie.com/embed/${videoId}?autoplay=1&playsinline=1&rel=0&enablejsapi=1&origin=${originParam}`
+        : '';
+
+    const thumbnailUrl = variant?.thumbnailUrl || (videoId ? `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` : '');
 
     const [isPlayerActive, setIsPlayerActive] = useState(false);
+    const [playerState, setPlayerState] = useState<PlayerState>('loading');
     const [playerError, setPlayerError] = useState<string | null>(null);
     const [thumbFailed, setThumbFailed] = useState(false);
 
@@ -57,9 +95,14 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
                     const parsed = JSON.parse(event.data);
                     if (parsed.event === 'onError' || [2, 5, 100, 101, 150, 153].includes(parsed.info)) {
                         setPlayerError('VIDEO_UNAVAILABLE');
+                        setPlayerState('video_unavailable');
+                    }
+                    if (parsed.event === 'onReady') {
+                        setPlayerState('ready');
                     }
                 } else if (event.data?.event === 'onError' || [2, 5, 100, 101, 150, 153].includes(event.data?.info)) {
                     setPlayerError('VIDEO_UNAVAILABLE');
+                    setPlayerState('video_unavailable');
                 }
             } catch {
                 // Ignore non-json postMessages
@@ -72,20 +115,20 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
 
     // Fallback general exchange academy portals if specific article is not present
     const defaultOfficialSources: AcademyOfficialSource[] = [
-        { name: 'Binance Academy UA', url: 'https://academy.binance.com/uk', badge: '🟡 Binance Academy' },
-        { name: 'WhiteBIT Academy', url: 'https://whitebit.com/ua/academy', badge: '⚪ WhiteBIT Уроки' },
-        { name: 'Bybit Learn', url: 'https://learn.bybit.com', badge: '🟠 Bybit Посібники' }
+        { name: 'Binance Academy', url: 'https://academy.binance.com/uk', badge: '🟡 Binance Academy' },
+        { name: 'Bybit Learn', url: 'https://learn.bybit.com', badge: '🟠 Bybit Посібники' },
+        { name: 'OKX Learn', url: 'https://www.okx.com/en-us/learn', badge: '⚪ OKX Learn' }
     ];
 
-    const activeOfficialSources = (videoData.officialSources && videoData.officialSources.length > 0)
-        ? videoData.officialSources
+    const activeOfficialSources = (lesson.videoData?.officialSources && lesson.videoData.officialSources.length > 0)
+        ? lesson.videoData.officialSources
         : defaultOfficialSources;
 
     const handleClaimWatchReward = () => {
         if (rewardClaimed) return;
         triggerHaptic('success');
         setRewardClaimed(true);
-        grantXp(35, `Mastered Academy Lesson: ${lesson.term}`);
+        grantXp(35, `Mastered Academy Lesson: ${variant?.title || lesson.term}`);
         showToast('✓ Урок успішно засвоєно! +35 XP нараховано до профілю.');
         onMarkCompleted?.(lesson.id);
     };
@@ -93,6 +136,14 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
     const handleOpenExternal = (url: string) => {
         triggerHaptic('medium');
         safeOpenTelegramLink(url);
+    };
+
+    const handleCycleLanguage = () => {
+        triggerHaptic('selection');
+        const nextLang: AcademyLanguage = currentLang === 'uk' ? 'ru' : currentLang === 'ru' ? 'en' : 'uk';
+        setCurrentLang(nextLang);
+        onSwitchLanguage?.(nextLang);
+        setPlayerError(null);
     };
 
     return (
@@ -117,27 +168,42 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
                                 <PlayIcon className="w-4 h-4 ml-0.5 fill-current" />
                             </div>
                             <div className="min-w-0">
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-2 flex-wrap">
                                     <span className="text-[9px] font-mono font-bold uppercase tracking-wider text-brand-cyan bg-brand-cyan/10 px-2 py-0.5 rounded-full border border-brand-cyan/25">
-                                        Stork Academy Lab
+                                        Stork Academy Pro
                                     </span>
-                                    <span className="text-[9px] font-mono text-slate-400">
-                                        ⏱️ {videoData.duration}
-                                    </span>
+                                    {variant?.duration && (
+                                        <span className="text-[9px] font-mono text-slate-400">
+                                            ⏱️ {variant.duration}
+                                        </span>
+                                    )}
                                 </div>
                                 <h3 id="video-modal-title" className="text-white font-orbitron font-bold text-xs sm:text-sm tracking-wide truncate mt-0.5">
-                                    {lesson.term}
+                                    {variant?.title || lesson.term}
                                 </h3>
                             </div>
                         </div>
 
-                        <button
-                            onClick={() => { triggerHaptic('light'); onClose(); }}
-                            aria-label="Закрити відео-урок"
-                            className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-all text-xs font-mono shrink-0"
-                        >
-                            ✕
-                        </button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                            {/* In-Modal Language Switcher */}
+                            <button
+                                type="button"
+                                onClick={handleCycleLanguage}
+                                aria-label="Перемкнути мову уроку"
+                                className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-brand-cyan border border-white/10 hover:border-brand-cyan/40 text-[10px] font-mono font-bold uppercase transition-all flex items-center gap-1"
+                            >
+                                <span>🌐</span>
+                                <span>{currentLang.toUpperCase()}</span>
+                            </button>
+
+                            <button
+                                onClick={() => { triggerHaptic('light'); onClose(); }}
+                                aria-label="Закрити відео-урок"
+                                className="w-8 h-8 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white flex items-center justify-center transition-all text-xs font-mono"
+                            >
+                                ✕
+                            </button>
+                        </div>
                     </div>
 
                     {/* Mode Selector Tablist: Video Player vs Exchange Academy Hub */}
@@ -165,11 +231,11 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
                                 }`}
                             >
                                 <BookOpenIcon className="w-3 h-3" />
-                                <span>Біржові Академії ({activeOfficialSources.length})</span>
+                                <span>Офіційна Стаття Біржі</span>
                             </button>
                         </div>
 
-                        {viewMode === 'VIDEO' && (
+                        {viewMode === 'VIDEO' && videoId && (
                             <button
                                 type="button"
                                 onClick={() => handleOpenExternal(directWatchUrl)}
@@ -182,56 +248,78 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
                         )}
                     </div>
 
+                    {/* Fallback Notice Banner if Fallback Algorithm picked alternate language */}
+                    {resolved?.isFallback && resolved.fallbackReason && (
+                        <div className="mx-4 mt-3 p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-[10px] sm:text-[11px] font-mono flex items-center gap-2">
+                            <span className="text-sm">ℹ️</span>
+                            <span>{resolved.fallbackReason}</span>
+                        </div>
+                    )}
+
                     {/* Main Content Area */}
-                    {viewMode === 'VIDEO' ? (
+                    {viewMode === 'VIDEO' && videoId ? (
                         /* Responsive In-App 16:9 Video Container with Poster Fallback & Error State */
                         <div className="relative w-full aspect-video bg-black shrink-0 border-b border-white/10 overflow-hidden group">
                             {playerError ? (
-                                /* Cyberpunk Error Fallback Card */
+                                /* Specification-Compliant Error State with 5 Action Buttons */
                                 <div className="absolute inset-0 bg-[#060c18] flex flex-col items-center justify-center p-4 text-center space-y-2.5">
                                     <div className="w-10 h-10 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400 text-lg shadow-[0_0_20px_rgba(239,68,68,0.2)]">
                                         ⚠️
                                     </div>
                                     <div className="space-y-1 max-w-sm">
                                         <h4 className="text-xs font-orbitron font-bold text-white uppercase tracking-wider">
-                                            Обмеження вбудовування YouTube
+                                            Відео тимчасово недоступне
                                         </h4>
-                                        <p className="text-[10px] text-slate-300 font-mono leading-relaxed">
-                                            Автор або YouTube обмежили вбудований перегляд. Відкрийте відео у вікні Telegram або скористайтеся офіційною статтею біржі:
+                                        <p className="text-[11px] text-slate-300 font-mono leading-relaxed">
+                                            Відкрийте офіційну статтю або англійську версію.
                                         </p>
                                     </div>
-                                    <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleOpenExternal(directWatchUrl)}
-                                            className="px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-orbitron font-bold text-[9px] uppercase tracking-wider flex items-center gap-1.5 shadow-lg active:scale-95 transition-all"
-                                        >
-                                            <PlayIcon className="w-2.5 h-2.5 fill-current" />
-                                            <span>Дивитися в Telegram ↗</span>
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setViewMode('EXCHANGE_ARTICLES')}
-                                            className="px-3.5 py-1.5 rounded-xl bg-brand-cyan/20 hover:bg-brand-cyan/30 text-brand-cyan border border-brand-cyan/40 font-orbitron font-bold text-[9px] uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all"
-                                        >
-                                            <BookOpenIcon className="w-3 h-3" />
-                                            <span>Читати статтю біржі 📚</span>
-                                        </button>
+                                    <div className="flex flex-wrap items-center justify-center gap-2 pt-1 max-w-md">
                                         <button
                                             type="button"
                                             onClick={() => { setPlayerError(null); setIsPlayerActive(true); }}
-                                            className="px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white font-mono text-[9px] border border-white/10 transition-all"
+                                            className="px-3 py-1.5 rounded-xl bg-brand-cyan text-black font-orbitron font-bold text-[9px] uppercase tracking-wider shadow-lg active:scale-95 transition-all"
                                         >
                                             ↻ Повторити
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleOpenExternal(directWatchUrl)}
+                                            className="px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-500 text-white font-orbitron font-bold text-[9px] uppercase tracking-wider flex items-center gap-1 active:scale-95 transition-all"
+                                        >
+                                            <PlayIcon className="w-2.5 h-2.5 fill-current" />
+                                            <span>Відкрити на YouTube ↗</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleOpenExternal(variant?.officialArticleUrl || variant?.fallbackUrl || directWatchUrl)}
+                                            className="px-3 py-1.5 rounded-xl bg-brand-purple hover:bg-brand-purple/80 text-white font-orbitron font-bold text-[9px] uppercase tracking-wider flex items-center gap-1 active:scale-95 transition-all"
+                                        >
+                                            <BookOpenIcon className="w-2.5 h-2.5" />
+                                            <span>Відкрити офіційну статтю</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={handleCycleLanguage}
+                                            className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/15 text-white font-orbitron font-bold text-[9px] uppercase tracking-wider active:scale-95 transition-all"
+                                        >
+                                            🌐 Перемкнути мову
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={onClose}
+                                            className="px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-400 font-mono text-[9px] active:scale-95 transition-all"
+                                        >
+                                            Закрити
                                         </button>
                                     </div>
                                 </div>
                             ) : isPlayerActive ? (
                                 <iframe
                                     src={embedUrl}
-                                    title={videoData.title || lesson.term}
+                                    title={variant?.title || lesson.term}
                                     className="absolute inset-0 w-full h-full border-0"
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                     allowFullScreen
                                     referrerPolicy="strict-origin-when-cross-origin"
                                 />
@@ -268,16 +356,15 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
 
                                         <div className="space-y-1 max-w-md">
                                             <div className="text-xs font-orbitron font-bold text-white uppercase tracking-wider drop-shadow">
-                                                {videoData.title || lesson.term}
+                                                {variant?.title || lesson.term}
                                             </div>
                                             <div className="text-[10px] font-mono text-slate-300 flex items-center justify-center gap-2">
                                                 <span className="text-brand-cyan">HD 1080p</span>
                                                 <span>•</span>
-                                                <span>⏱️ {videoData.duration}</span>
+                                                <span>⏱️ {variant?.duration || lesson.videoData?.duration}</span>
                                             </div>
                                         </div>
 
-                                        {/* Telegram Native PiP Fallback Action */}
                                         <div className="flex items-center gap-2 pt-1">
                                             <button
                                                 type="button"
@@ -293,74 +380,59 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
                             )}
                         </div>
                     ) : (
-                        /* Exchange Academy Hub View */
+                        /* Exchange Academy Hub View / Article View */
                         <div className="p-4 bg-gradient-to-b from-[#060f1e] to-[#020617] border-b border-white/10 space-y-3 shrink-0">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <GlobeIcon className="w-4 h-4 text-brand-cyan" />
                                     <h4 className="text-xs font-orbitron font-bold text-white uppercase tracking-wider">
-                                        Офіційні матеріали провідних бірж
+                                        Офіційний навчальний матеріал біржі
                                     </h4>
                                 </div>
                                 <span className="text-[9px] font-mono text-slate-400 bg-white/5 px-2 py-0.5 rounded-full">
-                                    Прямий доступ ↗
+                                    {variant?.provider ? variant.provider.toUpperCase() : 'VERIFIED'}
                                 </span>
                             </div>
 
                             <p className="text-[11px] text-slate-300 font-mono leading-relaxed">
-                                Вивчайте цю тему безпосередньо в офіційних освітніх хабах бірж (Binance, WhiteBIT, Bybit, OKX) українською та англійською мовами:
+                                {variant?.description || lesson.definition}
                             </p>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                                {activeOfficialSources.map((source, index) => (
-                                    <button
-                                        key={index}
-                                        type="button"
-                                        onClick={() => handleOpenExternal(source.url)}
-                                        className="p-3 rounded-xl bg-black/60 hover:bg-white/10 border border-white/10 hover:border-brand-cyan/40 transition-all flex items-center justify-between group text-left active:scale-98"
-                                    >
-                                        <div className="flex items-center gap-2.5 min-w-0 pr-2">
-                                            <span className="w-2 h-2 rounded-full bg-brand-cyan group-hover:animate-ping shrink-0" />
-                                            <div className="truncate">
-                                                <div className="text-[11px] font-orbitron font-bold text-white group-hover:text-brand-cyan transition-colors truncate">
-                                                    {source.name}
-                                                </div>
-                                                <div className="text-[9px] font-mono text-slate-400 truncate">
-                                                    {source.badge}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <ExternalLinkIcon className="w-3.5 h-3.5 text-slate-400 group-hover:text-brand-cyan shrink-0" />
-                                    </button>
-                                ))}
+                            <div className="pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => handleOpenExternal(variant?.officialArticleUrl || variant?.fallbackUrl || 'https://academy.binance.com/uk')}
+                                    className="w-full p-3 rounded-xl bg-gradient-to-r from-brand-cyan/20 to-brand-purple/20 border border-brand-cyan/40 hover:border-brand-cyan text-white font-orbitron font-bold text-xs uppercase tracking-wider flex items-center justify-between group active:scale-98 transition-all"
+                                >
+                                    <div className="flex items-center gap-2.5">
+                                        <BookOpenIcon className="w-4 h-4 text-brand-cyan" />
+                                        <span>Читати повний офіційний посібник на {variant?.provider?.toUpperCase() || 'EXCHANGE'}</span>
+                                    </div>
+                                    <ExternalLinkIcon className="w-4 h-4 text-brand-cyan group-hover:translate-x-0.5 transition-transform" />
+                                </button>
                             </div>
                         </div>
                     )}
 
-                    {/* Lesson Overview & Key Takeaways */}
+                    {/* Lesson Overview & Honest Language Labels */}
                     <div className="p-5 overflow-y-auto custom-scrollbar space-y-4 flex-1">
-                        {/* Quick Exchange Links Pill Row in Video mode */}
-                        {viewMode === 'VIDEO' && activeOfficialSources.length > 0 && (
-                            <div className="space-y-1.5">
-                                <div className="text-[10px] font-orbitron text-slate-400 uppercase tracking-wider flex items-center justify-between">
-                                    <span>Офіційні статті за темою:</span>
-                                    <span className="text-[9px] font-mono text-brand-cyan">Біржові посібники ↗</span>
-                                </div>
-                                <div className="flex flex-wrap gap-1.5">
-                                    {activeOfficialSources.map((src, idx) => (
-                                        <button
-                                            key={idx}
-                                            type="button"
-                                            onClick={() => handleOpenExternal(src.url)}
-                                            className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 hover:border-brand-cyan/40 text-[10px] font-mono text-slate-300 hover:text-white flex items-center gap-1.5 transition-all active:scale-95"
-                                        >
-                                            <span>{src.badge}</span>
-                                            <span className="text-slate-500">↗</span>
-                                        </button>
-                                    ))}
-                                </div>
+                        {/* Section 3.4 Honest Language Labels */}
+                        <div className="flex flex-wrap gap-2 text-[10px] font-mono">
+                            <div className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                                <span className="text-slate-400">Мова озвучки: </span>
+                                <span className="font-bold text-white uppercase">{variant?.spokenLanguage || 'English'}</span>
                             </div>
-                        )}
+                            <div className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                                <span className="text-slate-400">Субтитри: </span>
+                                <span className="font-bold text-white uppercase">{variant?.subtitleLanguages?.join(', ') || 'UK, RU, EN'}</span>
+                            </div>
+                            <div className="bg-white/5 border border-white/10 px-2.5 py-1 rounded-lg">
+                                <span className="text-slate-400">Мова UI: </span>
+                                <span className="font-bold text-brand-cyan uppercase">
+                                    {currentLang === 'uk' ? 'Українська' : currentLang === 'ru' ? 'Російська' : 'English'}
+                                </span>
+                            </div>
+                        </div>
 
                         {/* Summary description */}
                         <div>
@@ -368,27 +440,9 @@ export const VideoLessonModal: React.FC<VideoLessonModalProps> = ({
                                 Короткий зміст уроку
                             </h4>
                             <p className="text-xs text-slate-300 font-mono leading-relaxed">
-                                {lesson.definition}
+                                {variant?.description || lesson.definition}
                             </p>
                         </div>
-
-                        {/* Key Takeaways */}
-                        {videoData.takeaways && videoData.takeaways.length > 0 && (
-                            <div className="rounded-2xl bg-black/40 border border-white/5 p-4 space-y-2">
-                                <h4 className="text-[10px] font-orbitron font-black text-white uppercase tracking-wider flex items-center gap-1.5">
-                                    <SparklesIcon className="w-3.5 h-3.5 text-brand-purple" />
-                                    Головні висновки для практики:
-                                </h4>
-                                <ul className="space-y-1.5">
-                                    {videoData.takeaways.map((point, idx) => (
-                                        <li key={idx} className="text-xs text-slate-300 font-mono flex items-start gap-2">
-                                            <span className="text-brand-cyan font-bold">•</span>
-                                            <span>{point}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
 
                         {/* Action reward button */}
                         <div className="pt-2">

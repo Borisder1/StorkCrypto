@@ -227,7 +227,7 @@ Google Search verification confirms stable developmental backing for the ${ticke
     return `Neural node connected. StorkCrypto AI is fully operational. Market feed channels are locked and ready. What specific parameters or smart structures would you like to analyze next?`;
 };
 
-export const DEFAULT_AI_MODEL = "gemini-3.6-flash";
+export const DEFAULT_AI_MODEL = "gemini-3.8-flash";
 
 export const resolveModelName = (name?: string): string => {
     if (!name || name === "gemini-3-flash-preview" || name === "gemini-3-flash" || name === "gemini-3.5-flash" || name.includes("minimax")) {

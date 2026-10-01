@@ -70,13 +70,43 @@ export async function validateLesson(lesson) {
 
   // 1. Basic properties
   if (!lesson.id) errors.push('Missing lesson id');
-  if (!lesson.title) errors.push('Missing lesson title');
   if (!lesson.fallbackUrl) errors.push('Missing required fallbackUrl');
   if (!lesson.provider || !['binance', 'bybit', 'okx'].includes(lesson.provider)) {
     errors.push(`Invalid provider: ${lesson.provider}`);
   }
 
-  // 2. URL allowlist validation
+  // 2. Strict check against deprecated ID
+  const rawString = JSON.stringify(lesson);
+  if (rawString.includes('g2w8y7n5L78')) {
+    errors.push('CRITICAL: Deprecated video ID "g2w8y7n5L78" detected in lesson data!');
+  }
+
+  // 3. Validate variants model
+  if (!lesson.variants || typeof lesson.variants !== 'object') {
+    errors.push('Missing typed variants object');
+  } else {
+    for (const lang of ['uk', 'ru', 'en']) {
+      const v = lesson.variants[lang];
+      if (v) {
+        if (!v.title) errors.push(`Variant [${lang}] missing title`);
+        if (!v.fallbackUrl) errors.push(`Variant [${lang}] missing fallbackUrl`);
+        if (v.officialArticleUrl) {
+          const check = validateUrl(v.officialArticleUrl);
+          if (!check.valid) errors.push(`Variant [${lang}] officialArticleUrl invalid: ${check.reason}`);
+        }
+        if (v.youtubeUrl) {
+          const check = validateUrl(v.youtubeUrl);
+          if (!check.valid) errors.push(`Variant [${lang}] youtubeUrl invalid: ${check.reason}`);
+        }
+        if (v.fallbackUrl) {
+          const check = validateUrl(v.fallbackUrl);
+          if (!check.valid) errors.push(`Variant [${lang}] fallbackUrl invalid: ${check.reason}`);
+        }
+      }
+    }
+  }
+
+  // 4. URL allowlist validation on top-level
   if (lesson.officialArticleUrl) {
     const v = validateUrl(lesson.officialArticleUrl);
     if (!v.valid) errors.push(`officialArticleUrl invalid: ${v.reason}`);
@@ -90,7 +120,7 @@ export async function validateLesson(lesson) {
     if (!v.valid) errors.push(`fallbackUrl invalid: ${v.reason}`);
   }
 
-  // 3. YouTube validation if video is attached
+  // 5. YouTube validation if video is attached
   let oEmbedResult = null;
   let thumbResult = null;
 
@@ -131,6 +161,7 @@ export async function validateLesson(lesson) {
     oEmbedStatus: oEmbedResult ? 200 : (lesson.videoId ? 404 : 'N/A'),
     thumbStatus: thumbResult ? thumbResult.status : (lesson.videoId ? 404 : 'N/A'),
     author: oEmbedResult?.author_name || lesson.provider,
+    variantsCount: Object.keys(lesson.variants || {}).length,
     errors
   };
 }

@@ -4,7 +4,7 @@ import { useStore } from '../../store';
 import { getTranslation } from '../../utils/translations';
 import { BookIcon, SearchIcon, ChevronRightIcon, ShieldIcon, CheckIcon, ZapIcon, PlayIcon, SparklesIcon } from '../icons';
 import { triggerHaptic } from '../../utils/haptics';
-import { AcademyTerm, AcademyCategory, Language } from '../../types';
+import { AcademyTerm, AcademyCategory, Language, AcademyLanguage } from '../../types';
 import { ChartPattern } from '../ChartPatterns';
 import QuizModal from '../QuizModal';
 import UpgradeBanner from '../UpgradeBanner';
@@ -12,8 +12,29 @@ import { TacticalBackground } from '../TacticalBackground';
 import { ACADEMY_DATABASE } from '../MediaContent';
 import { HelpIndicator } from '../HelpIndicator';
 import { VideoLessonModal } from '../VideoLessonModal';
+import { ACADEMY_LESSONS_MAP, resolveLessonVariant } from '../AcademyLessonsData';
 
 const STORAGE_KEY = 'stork_academy_completed_ids';
+
+function resolveAcademyLanguage(): AcademyLanguage {
+    if (typeof window !== 'undefined') {
+        const saved = localStorage.getItem('stork_academy_lang');
+        if (saved === 'uk' || saved === 'ru' || saved === 'en') return saved;
+        const tgLang = (window as any).Telegram?.WebApp?.initDataUnsafe?.user?.language_code;
+        if (tgLang && typeof tgLang === 'string') {
+            const low = tgLang.toLowerCase();
+            if (low.startsWith('uk')) return 'uk';
+            if (low.startsWith('ru')) return 'ru';
+            return 'en';
+        }
+        if (typeof navigator !== 'undefined' && navigator.language) {
+            const low = navigator.language.toLowerCase();
+            if (low.startsWith('uk')) return 'uk';
+            if (low.startsWith('ru')) return 'ru';
+        }
+    }
+    return 'uk';
+}
 
 const QUIZZES: Record<Language, Record<string, { question: string; options: string[]; answer: string }>> = {
     en: {
@@ -151,10 +172,47 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         }
     }, [selectedAcademyCategory]);
 
-    const currentLanguage = (settings?.language === 'ua' || settings?.language === 'pl') ? settings.language : 'en';
+    const [academyLang, setAcademyLang] = useState<AcademyLanguage>(() => resolveAcademyLanguage());
+
+    const handleSelectAcademyLang = (lang: AcademyLanguage) => {
+        triggerHaptic('selection');
+        setAcademyLang(lang);
+        if (typeof window !== 'undefined') {
+            try {
+                localStorage.setItem('stork_academy_lang', lang);
+            } catch {}
+        }
+    };
+
+    const currentLanguage: Language = (settings?.language === 'pl' && academyLang === 'uk') ? 'pl' : (academyLang === 'uk' ? 'ua' : (academyLang === 'en' ? 'en' : 'ua'));
     const currentContent = useMemo(() => {
-        return ACADEMY_DATABASE?.[currentLanguage] || ACADEMY_DATABASE?.['en'] || [];
-    }, [currentLanguage]);
+        const baseItems = ACADEMY_DATABASE?.[currentLanguage] || ACADEMY_DATABASE?.['en'] || [];
+        return baseItems.map(item => {
+            const acLesson = ACADEMY_LESSONS_MAP.get(item.id);
+            if (acLesson) {
+                const res = resolveLessonVariant(acLesson, academyLang);
+                if (res && res.variant) {
+                    return {
+                        ...item,
+                        term: res.variant.title || item.term,
+                        definition: res.variant.description || item.definition,
+                        videoData: res.variant.videoId ? {
+                            youtubeId: res.variant.videoId,
+                            title: res.variant.title,
+                            duration: res.variant.duration || item.videoData?.duration || '5 хв',
+                            sourceName: res.variant.provider === 'binance' ? 'Binance Academy' : res.variant.provider === 'bybit' ? 'Bybit Learn' : 'OKX Learn',
+                            takeaways: item.videoData?.takeaways || [],
+                            officialArticleUrl: res.variant.officialArticleUrl,
+                            fallbackUrl: res.variant.fallbackUrl,
+                            spokenLanguage: res.variant.spokenLanguage,
+                            subtitleLanguages: res.variant.subtitleLanguages
+                        } : item.videoData
+                    };
+                }
+            }
+            return item;
+        });
+    }, [currentLanguage, academyLang]);
 
     const filteredItems = useMemo(() => {
         return (currentContent || []).filter(item => {
@@ -302,6 +360,44 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             {/* Main Content Area */}
             <div className="flex-1 overflow-y-auto custom-scrollbar px-4 sm:px-6 pt-4 pb-32 relative z-10">
                 <UpgradeBanner />
+
+                {/* Visible Academy Language Selector Control (Section 3.2) */}
+                <div className="bg-brand-card/70 border border-brand-border/60 rounded-2xl p-3.5 mb-5 shadow-xl backdrop-blur-md">
+                    <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] font-orbitron font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
+                            <span>🌐</span>
+                            <span>{t('academy.lang_label') || 'МОВА НАВЧАННЯ'}</span>
+                        </span>
+                        <span className="text-[9px] font-mono text-slate-400">
+                            {academyLang === 'uk' ? 'Українська' : academyLang === 'ru' ? 'Російська' : 'English'}
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2" role="group" aria-label="Вибір мови навчання">
+                        {[
+                            { id: 'uk' as AcademyLanguage, label: 'Українська', flag: '🇺🇦' },
+                            { id: 'ru' as AcademyLanguage, label: 'Російська', flag: '🇷🇺' },
+                            { id: 'en' as AcademyLanguage, label: 'English', flag: '🇬🇧' }
+                        ].map(item => {
+                            const isActive = academyLang === item.id;
+                            return (
+                                <button
+                                    key={item.id}
+                                    type="button"
+                                    aria-pressed={isActive}
+                                    onClick={() => handleSelectAcademyLang(item.id)}
+                                    className={`min-h-[44px] min-w-[44px] px-2 py-2 rounded-xl text-xs font-bold font-mono transition-all flex items-center justify-center gap-1.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan active:scale-95 ${
+                                        isActive
+                                            ? 'bg-brand-cyan/20 border-2 border-brand-cyan text-brand-cyan shadow-[0_0_15px_rgba(0,240,255,0.25)]'
+                                            : 'bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
+                                    }`}
+                                >
+                                    <span className="text-sm">{item.flag}</span>
+                                    <span className="truncate">{item.label}</span>
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
 
                 {/* Interactive Academy Progress Card */}
                 <div className="bg-brand-card/70 border border-brand-border/60 rounded-2xl p-4 mb-6 shadow-xl backdrop-blur-md">
@@ -638,6 +734,8 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             {activeVideoLesson && (
                 <VideoLessonModal 
                     lesson={activeVideoLesson}
+                    preferredLang={academyLang}
+                    onSwitchLanguage={handleSelectAcademyLang}
                     isCompleted={!!completedIds[activeVideoLesson.id]}
                     onClose={() => setActiveVideoLesson(null)}
                     onMarkCompleted={(termId) => {

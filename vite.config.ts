@@ -101,7 +101,7 @@ function apiChatDevPlugin(apiKey: string) {
             }
 
             const response = await ai.models.generateContent({
-              model: 'gemini-3.6-flash',
+              model: 'gemini-3.8-flash',
               contents,
               config
             });
@@ -113,7 +113,7 @@ function apiChatDevPlugin(apiKey: string) {
               id: 'chatcmpl-' + Math.random().toString(36).substring(2, 12),
               object: 'chat.completion',
               created: Math.floor(Date.now() / 1000),
-              model: 'gemini-3.6-flash',
+              model: 'stork-neural-ai',
               choices: [
                 {
                   index: 0,
@@ -127,10 +127,10 @@ function apiChatDevPlugin(apiKey: string) {
             }));
           } catch (genErr: any) {
             console.error('[API/CHAT Middleware Error]', genErr?.message || genErr);
-            res.writeHead(502);
+            res.writeHead(503);
             res.end(JSON.stringify({
-              error: 'UPSTREAM_AI_ERROR',
-              message: genErr?.message || 'Upstream AI model generation failed'
+              error: 'AI_UNAVAILABLE',
+              message: 'AI neural engine is momentarily unavailable. Please try again shortly.'
             }));
           }
         });

@@ -118,7 +118,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
-      // 1. Primary path: Google Gemini API (gemini-2.5-flash) if key is present
+      // 1. Primary path: Google Gemini API (gemini-3.8-flash) if key is present
       if (geminiKey) {
         const systemMsg = requestBody.messages.find((m: any) => m.role === 'system');
         const userMsgs = requestBody.messages.filter((m: any) => m.role !== 'system');
@@ -139,7 +139,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
           };
         }
 
-        const primaryModel = context.env?.AI_MODEL || 'gemini-2.5-flash';
+        const primaryModel = context.env?.AI_MODEL || 'gemini-3.8-flash';
         const sendGeminiRequest = async (modelName: string) => {
           return await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`, {
             method: 'POST',
@@ -152,8 +152,8 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
         let geminiRes = await sendGeminiRequest(primaryModel);
 
         // Auto-fallback if the custom model returns 404 or 410
-        if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 410) && primaryModel !== 'gemini-2.5-flash') {
-          geminiRes = await sendGeminiRequest('gemini-2.5-flash');
+        if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 410) && primaryModel !== 'gemini-3.8-flash') {
+          geminiRes = await sendGeminiRequest('gemini-3.8-flash');
         }
 
         clearTimeout(timeoutId);

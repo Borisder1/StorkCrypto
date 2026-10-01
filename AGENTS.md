@@ -33,6 +33,13 @@
 - **Telegram WebApp v6.0 compatibility**:
   - `openInvoice` безпечно огорожено перевіркою версії `isTelegramVersionAtLeast('6.1')` у `utils/telegram.ts` та `SubscriptionModal.tsx`.
   - Забезпечено автоматичний плавний fallback на прямий баланс Stars при виклику у версіях Telegram WebApp < 6.1 без викидання помилки.
+- **Academy Language Architecture & Full Stabilization (30.09.2026)**:
+  - **Централізований каталог 13 уроків (`AcademyLessonsData.ts`, `types.ts`)**: Повна типізація `AcademyLanguage = 'uk' | 'ru' | 'en'`, `AcademyVariant` та `AcademyLesson` з перевіреними джерелами (Binance Academy, Bybit Learn, OKX Learn). Жодних вигаданих YouTube IDs, жодного OLX.
+  - **Селектор мови навчання (`MediaScreen.tsx`)**: Додано доступний блок перемикання мов (`МОВА НАВЧАННЯ` [🇺🇦 Українська] [🇷🇺 Російська] [🇬🇧 English]) з `aria-pressed`, тач-таргетами >= 44px, клавіатурною навігацією, збереженням у `localStorage` (`stork_academy_lang`) та автоматичним автовизначенням мови (`resolveAcademyLanguage()`).
+  - **Чесні лейбли та 6-ступеневий Fallback (`VideoLessonModal.tsx`)**: Розділення мови озвучки, субтитрів та UI; повідомлення користувача при показі резервної версії; 5-кнопковий інтерфейс відновлення при помилках (Повторити, YouTube, Стаття біржі, Перемкнути мову, Закрити).
+  - **CI-валідатор (`scripts/validate-academy-links.mjs`)**: Повна перевірка всіх 13 модулів та їхніх мовних варіантів (allowlist HTTPS, oEmbed 200, thumbnail 200, відсутність старого ID `g2w8y7n5L78`).
+  - **AI Chat (`/api/chat`, `vite.config.ts`, `functions/api/chat.ts`)**: Захищений контракт відповідей (400 для некоректного payload, 503 `AI_UNAVAILABLE` при відсутності ключів, маскування `stork-neural-ai`).
+  - **Незмінні активи**: `LoadingScreen.tsx` збережено у повній цілісності (суворо 6.5 секунд, бренд `#020617`).
 - **Follow-up Global Audit Fixes (P0, P1 & P2 - 28.09.2026)**:
   - **P0 AI Chat Recovery (`/functions/api/chat.ts`, `/scripts/test-ai-chat.mjs`)**: Усунено помилку HTTP 410 (EOL `meta/llama-3.1-70b-instruct`). Впроваджено актуальну модель `meta/llama-3.3-70b-instruct` та каскадний пул резервних моделей (`nvidia/llama-3.1-nemotron-70b-instruct`, `mistralai/mixtral-8x7b-instruct-v0.1`). Додано валідацію схеми запиту, таймаут 15с, маскування внутрішніх назв моделей (`stork-neural-ai`) та безпечну відповідь `503 AI_UNAVAILABLE` без витоку системних деталей.
   - **P1 Ринкові статуси свіжості (`/components/AIMarketSummary.tsx`)**: Усунено суперечливий зелений бейдж `LIVE` при застарілих даних (`source === 'CACHE'`). Індикатор тепер успадковує стан (`STALE`, `DEMO`, `SYNCING`, `OFFLINE`) і показує жовтий `STALE` при кеші, запобігаючи дезінформації користувача.
