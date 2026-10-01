@@ -301,29 +301,29 @@ export const EXPLANATIONS: Record<string, Record<'en' | 'ua' | 'pl', HelpExplana
     quests_center: {
         en: {
             title: "Quests System",
-            description: "Interactive task boards designed to educate users and unlock higher tier features.",
+            description: "Educational and demo tasks are displayed here. XP and rewards are confirmed by the server after verification. Do not tamper with localStorage to claim rewards.",
             features: [
-                "Daily Tasks: Fresh cognitive goals updated every 24 hours.",
-                "Knowledge Boost: Safe sandbox tutorials on DeFi routing and Web3 fundamentals.",
-                "Rewards Unlock: Direct score boosts and tier upgrades upon verification."
+                "Server Verification: Rewards and XP points require valid backend verification.",
+                "Demo Tasks: Safe practice drills designed to master Web3 navigation without risk.",
+                "Storage Security: Client-side tampering with local state is strictly rejected."
             ]
         },
         ua: {
-            title: "Рейтингові Квести",
-            description: "Інтерактивні місії для навчання базових інструментів Web3 та підвищення рангу.",
+            title: "Quests System",
+            description: "Тут відображаються навчальні та demo-завдання. XP і винагороди підтверджуються сервером після успішної перевірки. Не змінюйте localStorage для отримання винагород.",
             features: [
-                "Щоденні цілі: Скатні завдання, що оновлюються кожні 24 години.",
-                "Підвищення кваліфікації: Безпечні інструкції з взаємодії в DeFi екосистемі.",
-                "Сенсаційні бонуси: Нарахування рейтингових очок та просування у глобальній таблиці лідерів."
+                "Серверна верифікація: Нарахування XP та винагород підтверджуються виключно бекендом.",
+                "Навчальні місії: Безпечні практичні тренування для засвоєння інструментів крипторинку.",
+                "Захист сховища: Будь-які маніпуляції з localStorage ігноруються системою безпеки."
             ]
         },
         pl: {
             title: "System Zadań (Quests)",
-            description: "Interaktywne tablice z misjami edukującymi użytkownika i odblokowującymi funkcje premium.",
+            description: "Tutaj wyświetlane są zadania edukacyjne i demonstracyjne. XP i nagrody są potwierdzane przez serwer po pomyślnej weryfikacji. Nie modyfikuj localStorage w celu odebrania nagród.",
             features: [
-                "Codzienne wyzwania: Zadania odnawiane regularnie co 24 godziny.",
-                "Pigułka wiedzy: Safe sandbox objaśniający zasady transferów kryptograficznych.",
-                "Punkty doświadczenia: Bezpośrednie podnoszenie rangi profilu i pozycji w lidze."
+                "Weryfikacja serwerowa: Punkty XP i nagrody wymagają potwierdzenia po stronie serwera.",
+                "Zadania demo: Bezpieczne ćwiczenia praktyczne bez ryzyka utraty środków.",
+                "Ochrona danych: Modyfikacje lokalnego magazynu są odrzucane przez system."
             ]
         }
     },
@@ -533,29 +533,29 @@ export const EXPLANATIONS: Record<string, Record<'en' | 'ua' | 'pl', HelpExplana
     ai_market_summary: {
         en: {
             title: "AI Market Insight",
-            description: "Intelligent summarization of immediate market opportunities and trends.",
+            description: "This block briefly explains market signals and trends. Data can be LIVE, DELAYED, or STALE — check status and last update time. This is analytical information, not a profit guarantee.",
             features: [
-                "Dynamic Context: Continually absorbs binance prices and feed indices.",
-                "Strategic Advice: Formulates clean macro insights for portfolio safety.",
-                "Search Grounding: Validates current opinions through active search vectors."
+                "Status Hygiene: Visual badges reflect whether the underlying snapshot is LIVE, DELAYED, or STALE.",
+                "Analytical Context: Provides synthesized market signals for awareness rather than financial advice.",
+                "Data Transparency: Always monitor source timestamps and execution parameters."
             ]
         },
         ua: {
-            title: "ШІ-Огляд Крипторинку",
-            description: "Швидка автоматична вижимка найгарячіших можливостей та ризиків на ринку.",
+            title: "AI Market Insight",
+            description: "Цей блок стисло пояснює ринкові сигнали та тренди. Дані можуть бути LIVE, DELAYED або STALE — перевіряйте статус і час останнього оновлення. Це аналітична інформація, а не гарантія прибутку.",
             features: [
-                "Динамічний контекст: Враховує актуальні курси Binance та загальну атмосферу серед інвесторів.",
-                "Стратегічні підказки: Виробляє чіткі рекомендації для збереження вашого депозиту.",
-                "Синхрон пошуку: Фактологічно верифікує прогнози через пошукові вектори Google."
+                "Гігієна статусів: Індикатори чітко відображають стан котирувань: LIVE, DELAYED або STALE.",
+                "Аналітичний контекст: Синтез сигналів створений для аналітики, а не як гарантія прибутку.",
+                "Прозорість даних: Завжди звіряйте час останньої фіксації цін та біржові джерела."
             ]
         },
         pl: {
-            title: "Przegląd Globalny AI",
-            description: "Inteligentna synteza bieżących szans i zagrożeń na szerokim rynku crypto.",
+            title: "AI Market Insight",
+            description: "Ten blok krótko wyjaśnia sygnały rynkowe i trendy. Dane mogą mieć status LIVE, DELAYED lub STALE — sprawdzaj status i czas aktualizacji. To informacja analityczna, a nie gwarancja zysku.",
             features: [
-                "Kontekst na żywo: Automatycznie integruje notowania Binance oraz ogólny sentyment.",
-                "Porady strategiczne: Formuje jasne kroki chroniące kapitał i podkreślające okazje handlowe.",
-                "Uziemienie faktu: Dane są stale konfrontowane z publikacjami indeksowanymi w silniku Google."
+                "Status danych: Etykiety dokładnie odzwierciedlają czy dane są LIVE, DELAYED czy STALE.",
+                "Kontekst analityczny: Informacje służą celom edukacyjnym, a nie stanowią gwarancji zysku.",
+                "Transparentność: Regularnie weryfikuj czas ostatniej aktualizacji i źródła notowań."
             ]
         }
     }

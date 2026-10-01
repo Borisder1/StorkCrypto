@@ -17,6 +17,7 @@ interface WalletState {
 
 export interface TransactionResult {
     success: boolean;
+    isSimulation?: boolean;
     message?: string;
     hash?: string;
 }
@@ -102,16 +103,15 @@ export const walletService = {
         }
     },
 
-    // Transaction sender mock/wrapper
+    // Demo transaction sender simulator (Variant B: explicitly labeled demo simulator)
     async sendTransaction(to: string, amount: string, chain: ChainType): Promise<TransactionResult> {
-        console.log(`[Wallet] Sending ${amount} to ${to} on ${chain}`);
-        // In a real implementation, this would trigger the wallet provider (e.g. TON Connect's sendTransaction)
-        // Here we simulate the network delay for the UI flow
-        await delay(2000); 
+        console.log(`[Wallet Demo] Simulating vault allocation of ${amount} to ${to} on ${chain}`);
+        await delay(1200); 
         return {
             success: true,
-            hash: '0x' + Math.random().toString(16).slice(2, 34),
-            message: 'Transaction successfully broadcasted'
+            isSimulation: true,
+            hash: undefined,
+            message: 'DEMO SIMULATION — no blockchain transaction was sent'
         };
     }
 };

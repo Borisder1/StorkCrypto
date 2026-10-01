@@ -651,7 +651,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         </p>
                         <p className="flex justify-between items-center border-b border-white/5 pb-2">
                             <span className="text-slate-500">{t('profile.email')}</span> 
-                            <a href="mailto:storkcrypto90@gmail.com" className="font-bold text-brand-cyan hover:underline">storkcrypto90@gmail.com</a>
+                            <a href="mailto:contact@storkcrypto.io" className="font-bold text-brand-cyan hover:underline">contact@storkcrypto.io</a>
                         </p>
                         <p className="flex justify-between items-center pb-2">
                             <span className="text-slate-500">{t('profile.telegram')}</span> 

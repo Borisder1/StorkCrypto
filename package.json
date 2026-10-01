@@ -10,7 +10,8 @@
     "preview": "vite preview",
     "start:bot": "node bot.js",
     "test:academy": "node scripts/validate-academy-links.mjs",
-    "test:ai": "npx tsx scripts/test-ai-chat.mjs"
+    "test:ai": "npx tsx scripts/test-ai-chat.mjs",
+    "test:security": "node scripts/verify-security-audit.mjs"
   },
   "dependencies": {
     "@google/genai": "1.38.0",

@@ -19,6 +19,7 @@ const CopyStrategyModal: React.FC<CopyStrategyModalProps> = ({ trader, onClose }
     const [takeProfit, setTakeProfit] = useState<string>('30');
     const [stage, setStage] = useState<'CONFIG' | 'APPROVE' | 'DEPOSIT' | 'SUCCESS'>('CONFIG');
     const [txHash, setTxHash] = useState<string | null>(null);
+    const [isSimulation, setIsSimulation] = useState<boolean>(false);
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
@@ -36,14 +37,15 @@ const CopyStrategyModal: React.FC<CopyStrategyModalProps> = ({ trader, onClose }
 
         try {
             // Simulate Approval
-            await new Promise(r => setTimeout(r, 1500));
+            await new Promise(r => setTimeout(r, 1200));
             setStage('DEPOSIT');
             
-            // Simulate Smart Contract Deposit
+            // Demo Smart Contract Simulation
             const result = await walletService.sendTransaction("0xSyndicateVault", collateral, wallet.chain as any);
             
             if (result.success) {
-                setTxHash(result.hash || '0x...');
+                setIsSimulation(!!result.isSimulation);
+                setTxHash(result.hash || null);
                 triggerHaptic('success');
                 
                 // Finalize in Store
@@ -56,8 +58,8 @@ const CopyStrategyModal: React.FC<CopyStrategyModalProps> = ({ trader, onClose }
                 });
                 
                 setStage('SUCCESS');
-                setTimeout(onClose, 2000);
-                showToast(`Vault Deployed: ${trader.name}`);
+                setTimeout(onClose, 2500);
+                showToast(`Vault Deployed (Demo): ${trader.name}`);
             }
         } catch (e) {
             setStage('CONFIG');
@@ -159,15 +161,23 @@ const CopyStrategyModal: React.FC<CopyStrategyModalProps> = ({ trader, onClose }
                     )}
 
                     {stage === 'SUCCESS' && (
-                        <div className="flex flex-col items-center justify-center py-10 animate-zoom-in">
+                        <div className="flex flex-col items-center justify-center py-10 animate-zoom-in text-center px-4">
                             <div className="w-20 h-20 bg-brand-green/20 rounded-full flex items-center justify-center border-2 border-brand-green shadow-[0_0_30px_#22c55e] mb-6">
                                 <ShieldIcon className="w-10 h-10 text-brand-green" />
                             </div>
-                            <h3 className="text-white font-black font-orbitron text-xl uppercase tracking-widest mb-2">Vault Active</h3>
-                            <p className="text-xs text-slate-500 font-mono text-center max-w-[200px]">
-                                Smart Contract Deployed.<br/>
-                                <span className="text-[9px] text-slate-600 break-all">{txHash}</span>
-                            </p>
+                            <h3 className="text-white font-black font-orbitron text-xl uppercase tracking-widest mb-3">Vault Active</h3>
+                            {isSimulation ? (
+                                <div className="px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 font-mono text-[10px] uppercase font-bold tracking-wider max-w-[280px] shadow-[0_0_15px_rgba(245,158,11,0.15)]">
+                                    DEMO SIMULATION — no blockchain transaction was sent
+                                </div>
+                            ) : (
+                                txHash && (
+                                    <p className="text-xs text-slate-500 font-mono text-center max-w-[200px]">
+                                        Transaction Confirmed<br/>
+                                        <span className="text-[9px] text-slate-600 break-all">{txHash}</span>
+                                    </p>
+                                )
+                            )}
                         </div>
                     )}
 

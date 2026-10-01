@@ -33,6 +33,14 @@
 - **Telegram WebApp v6.0 compatibility**:
   - `openInvoice` безпечно огорожено перевіркою версії `isTelegramVersionAtLeast('6.1')` у `utils/telegram.ts` та `SubscriptionModal.tsx`.
   - Забезпечено автоматичний плавний fallback на прямий баланс Stars при виклику у версіях Telegram WebApp < 6.1 без викидання помилки.
+- **Urgent Security, Storage, UX & Performance Fixes (01.10.2026)**:
+  - **P0 Усунення витоку credentials та dev_admin_bypass**: Повністю видалено hardcoded `ADMIN_EMAIL`, порівняння паролів на клієнті та обхід `dev_admin_bypass` із `authSlice.ts`. Адмін-авторизація перенесена виключно на бекенд (Supabase Auth `app_metadata.role === 'admin'`). Замінено особистий email у `ProfileScreen.tsx` на нейтральний контактний. Скан по всьому коду та бандлу дає 0 збігів.
+  - **P0 Чесна симуляція замість фейкових транзакцій (`walletService.ts`, `CopyStrategyModal.tsx`)**: Вилучено генерацію псевдо-хешів `0x...` та оманливе твердження `broadcasted`. Впроваджено явний статус `DEMO SIMULATION — no blockchain transaction was sent`.
+  - **P1 Захист сховища (LocalStorage Threat Model, `store.tsx`)**: Перехід на `stork-storage-v10`. Впроваджено захист від підробки ролі у DevTools (автоматичне скидання ролі `ADMIN` при гідрації без серверної сесії). Очищення чутливих кешів при logout.
+  - **P1 Обмеження та TTL AI-пам'яті (`strategyMemoryService.ts`)**: Впроваджено 24h TTL, ліміт 20 записів, розмір до 16 КБ, санітизацію тексту та функцію `clearMemory()`.
+  - **P1 Доступність та узгодженість кнопок «?» (`HelpIndicator.tsx`, `InfoModal.tsx`, `explanations.ts`)**: Збільшено тач-таргет до 44px (`min-w-[44px] min-h-[44px]`), додано семантичні `aria-label="Пояснення AI Market Insight"` та `"Пояснення Quests System"`, додано координатор єдиного активного діалогу, фокус-трап, закриття по Escape та повернення фокусу на кнопку «?». Тексти оновлено відповідно до розділу 7 ТЗ.
+  - **P1 Оптимізація та Code Splitting (`vite.config.ts`)**: Налаштовано `manualChunks` для вендорів (`vendor-react`, `vendor-motion`, `vendor-ton`), що суттєво зменшило розмір основного transfer-бандла.
+  - **Незмінні активи**: `LoadingScreen.tsx` збережено суворо 6.5 секунд, стиль Midnight `#020617`.
 - **Academy Language Architecture & Full Stabilization (30.09.2026)**:
   - **Централізований каталог 13 уроків (`AcademyLessonsData.ts`, `types.ts`)**: Повна типізація `AcademyLanguage = 'uk' | 'ru' | 'en'`, `AcademyVariant` та `AcademyLesson` з перевіреними джерелами (Binance Academy, Bybit Learn, OKX Learn). Жодних вигаданих YouTube IDs, жодного OLX.
   - **Селектор мови навчання (`MediaScreen.tsx`)**: Додано доступний блок перемикання мов (`МОВА НАВЧАННЯ` [🇺🇦 Українська] [🇷🇺 Російська] [🇬🇧 English]) з `aria-pressed`, тач-таргетами >= 44px, клавіатурною навігацією, збереженням у `localStorage` (`stork_academy_lang`) та автоматичним автовизначенням мови (`resolveAcademyLanguage()`).

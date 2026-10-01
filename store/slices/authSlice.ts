@@ -3,9 +3,6 @@ import { StateCreator } from 'zustand';
 import { StoreState, AuthSlice } from '../../types';
 import { supabase } from '../../services/supabaseClient';
 
-// Твій email адміністратора (оновлено)
-const ADMIN_EMAIL = 'storkcrypto90@gmail.com';
-
 export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set, get) => ({
     login: async (type, email, password) => {
         let userId = get().userStats.id;
@@ -13,41 +10,39 @@ export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set
         let isFullyAuthenticated = false;
 
         try {
-            // 1. GUEST MODE SHORTCUT
+            // 1. GUEST MODE SHORTCUT - strictly standard USER privileges, never admin
             if (type === 'guest') {
                 set(state => ({ 
                     settings: { ...state.settings, isAuthenticated: true },
-                    userStats: { ...state.userStats, role: 'USER', id: 'GUEST_' + Math.random().toString(36).substr(2, 5) }
+                    userStats: { 
+                        ...state.userStats, 
+                        role: 'USER', 
+                        subscriptionTier: 'FREE',
+                        id: 'GUEST_' + Math.random().toString(36).substr(2, 5) 
+                    }
                 }));
                 return { success: true };
             }
 
-            // 2. EMAIL LOGIN
+            // 2. EMAIL LOGIN (Server-side Supabase Auth only, zero hardcoded credentials)
             if (type === 'email' && email && password) {
-                // Прямий локальний обхід для зручності розробки/тестування адмін-доступу
-                const isLocalBypass = email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && password === 'storkadmin2026';
+                const { data, error } = await (supabase.auth as any).signInWithPassword({
+                    email,
+                    password
+                });
 
-                if (isLocalBypass) {
-                    userId = 'dev_admin_bypass';
-                    isAdmin = true;
-                    isFullyAuthenticated = false;
-                } else {
-                    const { data, error } = await (supabase.auth as any).signInWithPassword({
-                        email,
-                        password
-                    });
+                if (error) {
+                    return { success: false, message: error.message };
+                }
 
-                    if (error) {
-                        return { success: false, message: error.message };
-                    }
-
-                    if (data.user) {
-                        userId = data.user.id; 
-                        isFullyAuthenticated = true;
-                        // Check against admin email (case-insensitive)
-                        if (data.user.email && data.user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase()) {
-                            isAdmin = true;
-                        }
+                if (data.user) {
+                    userId = data.user.id; 
+                    isFullyAuthenticated = true;
+                    // Determine admin privileges exclusively from server-side claims / app_metadata
+                    const appMeta = data.user.app_metadata || {};
+                    const userMeta = data.user.user_metadata || {};
+                    if (appMeta.role === 'admin' || userMeta.role === 'admin') {
+                        isAdmin = true;
                     }
                 }
             } 
@@ -60,9 +55,7 @@ export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set
                     if (tgUser) {
                         userId = tgUser.id.toString();
                         username = tgUser.username || tgUser.first_name || 'TG_PILOT';
-                        // isFullyAuthenticated = false; // We don't sync TG users to Supabase yet
                     } else {
-                        // Fallback if not running inside Telegram
                         userId = 'TG_' + Math.random().toString(36).substr(2, 5);
                         username = 'WEB_PILOT';
                     }
@@ -71,7 +64,7 @@ export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set
                 }
             }
 
-            // 4. UPDATE STORE
+            // 4. UPDATE STORE (local state defaults to USER unless verified server-side)
             set(state => ({ 
                 settings: { ...state.settings, isAuthenticated: true },
                 userStats: {
@@ -83,7 +76,7 @@ export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set
                 }
             }));
 
-            // 5. DB SYNC (Only for Real Users)
+            // 5. DB SYNC (Only for Authenticated Users)
             if (isFullyAuthenticated) {
                 const userProfile = {
                     id: userId, 
@@ -92,7 +85,6 @@ export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set
                     last_active: new Date().toISOString()
                 };
 
-                // Upsert profile with updated role
                 const { error: dbError } = await supabase
                     .from('profiles')
                     .upsert(userProfile);
@@ -135,10 +127,24 @@ export const createAuthSlice: StateCreator<StoreState, [], [], AuthSlice> = (set
     },
 
     logout: async () => {
-        await (supabase.auth as any).signOut();
+        try {
+            await (supabase.auth as any).signOut();
+        } catch (err) {
+            console.warn("SignOut notice:", err);
+        }
+        // Purge sensitive client caches on logout
+        try {
+            localStorage.removeItem('stork_ai_memory');
+            sessionStorage.clear();
+        } catch (_) {}
+
         set(state => ({ 
             settings: { ...state.settings, isAuthenticated: false },
-            userStats: { ...state.userStats, role: 'USER' } 
+            userStats: { 
+                ...state.userStats, 
+                role: 'USER',
+                subscriptionTier: 'FREE'
+            } 
         }));
     },
 });

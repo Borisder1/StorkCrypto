@@ -6,10 +6,18 @@ export interface SavedSignal extends TradingSignal {
     status: 'PENDING' | 'WIN' | 'LOSS';
     createdAt: number;
     resolvedAt?: number;
-    userId: string;
+    userId?: string;
 }
 
 const LOCAL_STORAGE_KEY = 'stork_ai_memory';
+const MAX_LOCAL_ENTRIES = 20;
+const MAX_LOCAL_BYTES = 16 * 1024; // 16 KB bound
+const SIGNAL_TTL_MS = 24 * 60 * 60 * 1000; // 24h TTL
+
+const sanitizeText = (str?: string, maxLen = 200): string => {
+    if (!str || typeof str !== 'string') return '';
+    return str.replace(/<[^>]*>?/gm, '').trim().slice(0, maxLen);
+};
 
 export const strategyMemoryService = {
     /**
@@ -19,6 +27,10 @@ export const strategyMemoryService = {
         const userId = getDeviceId();
         const newSignal: SavedSignal = {
             ...signal,
+            technical_summary: sanitizeText(signal.technical_summary, 250),
+            reasoning_chain: Array.isArray(signal.reasoning_chain) 
+                ? signal.reasoning_chain.map(r => sanitizeText(r, 120)).slice(0, 5) 
+                : [],
             id: crypto.randomUUID(),
             status: 'PENDING',
             createdAt: Date.now(),
@@ -30,11 +42,14 @@ export const strategyMemoryService = {
             const { error } = await supabase.from('ai_signals').insert([newSignal]);
             if (error) throw error;
         } catch (e) {
-            console.warn('[Memory] Supabase save failed, using local storage', e);
-            // 2. Local Fallback
+            console.warn('[Memory] Supabase save failed, using bounded local storage');
+            // 2. Local Fallback with strict bounds & no client PII
             const local = this.getLocalSignals();
-            local.push(newSignal);
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(local));
+            // Don't store persistent user ID in local browser storage
+            const sanitizedLocalSignal: SavedSignal = { ...newSignal, userId: undefined };
+            local.unshift(sanitizedLocalSignal);
+
+            this.persistBoundedLocal(local);
         }
     },
 
@@ -78,8 +93,8 @@ export const strategyMemoryService = {
                 else if (currentPrice >= signal.stopLoss) newStatus = 'LOSS';
             }
 
-            // Check expiration (e.g., 24 hours)
-            if (newStatus === 'PENDING' && Date.now() - signal.createdAt > 86400000) {
+            // Check expiration (24 hours TTL)
+            if (newStatus === 'PENDING' && Date.now() - signal.createdAt > SIGNAL_TTL_MS) {
                 newStatus = 'LOSS'; // Expired without hitting TP
             }
 
@@ -104,7 +119,7 @@ export const strategyMemoryService = {
                 const match = updates.find(u => u.id === l.id);
                 return match ? match : l;
             });
-            localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(updatedLocal));
+            this.persistBoundedLocal(updatedLocal);
         }
     },
 
@@ -151,11 +166,61 @@ export const strategyMemoryService = {
         }, {} as Record<string, { wins: number, total: number }>);
     },
 
+    /**
+     * Read local signals with automatic TTL pruning and size migration
+     */
     getLocalSignals(): SavedSignal[] {
+        if (typeof window === 'undefined' || !window.localStorage) return [];
         try {
-            return JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY) || '[]');
+            const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            if (!Array.isArray(parsed)) return [];
+
+            const now = Date.now();
+            // Prune expired signals (24h TTL) and bounded to MAX_LOCAL_ENTRIES
+            const valid = parsed
+                .filter(s => s && typeof s.createdAt === 'number' && (now - s.createdAt < SIGNAL_TTL_MS))
+                .slice(0, MAX_LOCAL_ENTRIES);
+
+            // If pruning changed length or old entries were cleaned, sync back
+            if (valid.length !== parsed.length || raw.length > MAX_LOCAL_BYTES) {
+                this.persistBoundedLocal(valid);
+            }
+
+            return valid;
         } catch {
             return [];
         }
+    },
+
+    /**
+     * Persist array to localStorage respecting byte size and max entries
+     */
+    persistBoundedLocal(signals: SavedSignal[]): void {
+        if (typeof window === 'undefined' || !window.localStorage) return;
+        try {
+            let bounded = signals.slice(0, MAX_LOCAL_ENTRIES);
+            let json = JSON.stringify(bounded);
+
+            while (json.length > MAX_LOCAL_BYTES && bounded.length > 1) {
+                bounded.pop();
+                json = JSON.stringify(bounded);
+            }
+
+            localStorage.setItem(LOCAL_STORAGE_KEY, json);
+        } catch (e) {
+            console.warn('[Memory] Failed to persist local storage memory', e);
+        }
+    },
+
+    /**
+     * Complete wipe of sensitive trading signals on logout or user reset
+     */
+    clearMemory(): void {
+        if (typeof window === 'undefined' || !window.localStorage) return;
+        try {
+            localStorage.removeItem(LOCAL_STORAGE_KEY);
+        } catch (_) {}
     }
 };

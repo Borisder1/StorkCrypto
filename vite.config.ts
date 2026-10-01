@@ -157,7 +157,16 @@ export default defineConfig(({ mode }) => {
       plugins: [react(), apiChatDevPlugin(activeGeminiKey)],
       build: {
         target: 'esnext',
-        chunkSizeWarningLimit: 1000
+        chunkSizeWarningLimit: 1000,
+        rollupOptions: {
+          output: {
+            manualChunks: {
+              'vendor-react': ['react', 'react-dom'],
+              'vendor-motion': ['motion', 'motion/react'],
+              'vendor-ton': ['@tonconnect/ui-react'],
+            }
+          }
+        }
       },
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || env.API_KEY || process.env.API_KEY || ""),

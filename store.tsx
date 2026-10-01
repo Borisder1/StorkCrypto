@@ -15,14 +15,20 @@ export const useStore = create<StoreState>()(
             ...createAppSlice(...a),
         }),
         { 
-            name: 'stork-storage-v9',
+            name: 'stork-storage-v10',
             partialize: (state) => {
                 const sanitizedSettings = state.settings ? { ...state.settings } : undefined;
                 if (sanitizedSettings && 'adminTreasuryWallet' in sanitizedSettings) {
                     delete (sanitizedSettings as any).adminTreasuryWallet;
                 }
+                // Never persist untrusted ADMIN role in localStorage
+                const safeStats = state.userStats ? {
+                    ...state.userStats,
+                    role: state.userStats.role === 'ADMIN' ? 'USER' : state.userStats.role
+                } : state.userStats;
+
                 return {
-                    userStats: state.userStats,
+                    userStats: safeStats,
                     settings: sanitizedSettings,
                     wallet: state.wallet ? {
                         address: state.wallet.address,
@@ -41,21 +47,22 @@ export const useStore = create<StoreState>()(
                     telegramBotConnected: state.telegramBotConnected
                 };
             },
-            onRehydrateStorage: () => () => {
-                // Ensure legacy admin keys are purged from local storage on client load
+            onRehydrateStorage: () => (state) => {
+                // Defense against DevTools / localStorage privilege escalation:
+                // Untrusted local storage can NEVER grant ADMIN rights
+                if (state && state.userStats) {
+                    if (state.userStats.role === 'ADMIN') {
+                        state.userStats.role = 'USER';
+                    }
+                }
+                // Purge legacy storage versions and sensitive data on client load
                 if (typeof window !== 'undefined' && window.localStorage) {
                     try {
-                        const raw = window.localStorage.getItem('stork-storage-v9');
-                        if (raw && raw.includes('adminTreasuryWallet')) {
-                            const parsed = JSON.parse(raw);
-                            if (parsed?.state?.settings?.adminTreasuryWallet) {
-                                delete parsed.state.settings.adminTreasuryWallet;
-                                window.localStorage.setItem('stork-storage-v9', JSON.stringify(parsed));
-                            }
-                        }
+                        window.localStorage.removeItem('stork-storage-v9');
+                        window.localStorage.removeItem('stork-storage-v8');
                     } catch {}
                 }
             }
-        } // Версія v9: Захищена персистенція без витоку модальних прапорів та адмін-гаманців
+        } // Версія v10: Zero-trust LocalStorage з блокуванням підробки ролей і purge застарілих схем
     )
 );
