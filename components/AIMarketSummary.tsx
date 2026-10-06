@@ -141,6 +141,13 @@ export const AIMarketSummary: React.FC = () => {
                 <p className="text-[10px] text-slate-300 font-mono leading-relaxed italic">
                     {renderSummary()}
                 </p>
+                <div className="mt-2 pt-1.5 border-t border-white/5 flex items-center justify-between text-[8px] font-mono text-slate-400">
+                    <div className="flex items-center gap-1.5">
+                        <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.textColor.replace('text-', 'bg-')} animate-pulse`}></span>
+                        <span>Джерело: <strong className="text-slate-300">Binance API · {statusBadge.label === 'LIVE' ? 'Онлайн сокет' : statusBadge.label === 'STALE' ? 'Кеш (затримка)' : statusBadge.label === 'OFFLINE' ? 'Офлайн резерв' : 'Синхронізація'}</strong></span>
+                    </div>
+                    <span className="text-slate-500">Авто-синхронізація: 30с</span>
+                </div>
             </div>
         </div>
     );

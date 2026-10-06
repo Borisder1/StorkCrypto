@@ -134,20 +134,56 @@ const HybridSignalCard = React.memo(({
                     </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 bg-black/40 rounded-2xl p-4 border border-white/5 mb-4 shadow-inner">
-                    <div className="text-center border-r border-white/5">
-                        <p className="text-[8px] text-slate-500 uppercase font-black mb-1">{t('signals.entry_short')}</p>
-                        <p className="text-[8px] font-mono font-bold text-white">${signal.entryPrice}</p>
-                    </div>
-                    <div className="text-center border-r border-white/5">
-                        <p className="text-[8px] text-slate-500 uppercase font-black mb-1">{t('signals.target_short')}</p>
-                        <p className={`text-[8px] font-mono font-bold ${isLong ? 'text-green-400' : 'text-red-400'}`}>${signal.takeProfit}</p>
-                    </div>
-                    <div className="text-center">
-                        <p className="text-[8px] text-slate-500 uppercase font-black mb-1">{t('signals.stop_short')}</p>
-                        <p className="text-[8px] font-mono font-bold text-slate-400">${signal.stopLoss}</p>
-                    </div>
-                </div>
+                {/* Trade Setup Summary & Visual Progress Line */}
+                {(() => {
+                    const entryNum = parseFloat(signal.entryPrice?.toString() || '0');
+                    const tpNum = parseFloat(signal.takeProfit?.toString() || '0');
+                    const slNum = parseFloat(signal.stopLoss?.toString() || '0');
+                    const rewardDiff = Math.abs(tpNum - entryNum);
+                    const riskDiff = Math.abs(entryNum - slNum);
+                    const rrRatio = (riskDiff > 0 && rewardDiff > 0) ? (rewardDiff / riskDiff).toFixed(1) : '2.4';
+
+                    return (
+                        <div className="bg-black/40 rounded-2xl p-4 border border-white/5 mb-4 shadow-inner">
+                            <div className="grid grid-cols-3 gap-2 pb-3 border-b border-white/5">
+                                <div className="text-center border-r border-white/5">
+                                    <p className="text-[8px] text-slate-500 uppercase font-black mb-1">{t('signals.entry_short')}</p>
+                                    <p className="text-[10px] font-mono font-bold text-white">${signal.entryPrice}</p>
+                                </div>
+                                <div className="text-center border-r border-white/5">
+                                    <p className="text-[8px] text-slate-500 uppercase font-black mb-1">{t('signals.target_short')}</p>
+                                    <p className={`text-[10px] font-mono font-bold ${isLong ? 'text-emerald-400' : 'text-rose-400'}`}>${signal.takeProfit}</p>
+                                </div>
+                                <div className="text-center">
+                                    <p className="text-[8px] text-slate-500 uppercase font-black mb-1">{t('signals.stop_short')}</p>
+                                    <p className="text-[10px] font-mono font-bold text-slate-400">${signal.stopLoss}</p>
+                                </div>
+                            </div>
+
+                            {/* Visual Risk/Reward Trade Setup Line */}
+                            <div className="pt-3">
+                                <div className="flex justify-between items-center text-[8px] font-mono mb-1.5 font-bold">
+                                    <span className="text-rose-400 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 inline-block"></span>
+                                        SL ${signal.stopLoss}
+                                    </span>
+                                    <span className="text-slate-400 px-1.5 py-0.5 rounded bg-white/5 border border-white/5">
+                                        R:R <span className="text-brand-cyan">1:{rrRatio}</span>
+                                    </span>
+                                    <span className="text-emerald-400 flex items-center gap-1">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block"></span>
+                                        TP ${signal.takeProfit}
+                                    </span>
+                                </div>
+                                <div className="h-1.5 w-full bg-black/60 rounded-full overflow-hidden flex relative">
+                                    <div className="h-full bg-rose-500/80 rounded-l-full" style={{ width: '28%' }} title="Ризик (SL)"></div>
+                                    <div className="h-full w-1.5 bg-white shadow-[0_0_6px_#fff]" title="Вхід"></div>
+                                    <div className="h-full bg-emerald-500/80 rounded-r-full flex-1" title="Ціль (TP)"></div>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })()}
 
                 <div className="flex items-center justify-between opacity-60 group-hover:opacity-100 transition-opacity">
                     <div className="flex gap-2">

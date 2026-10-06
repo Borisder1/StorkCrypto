@@ -40,6 +40,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const [showSubscription, setShowSubscription] = useState(false);
     const [showAvatarModal, setShowAvatarModal] = useState(false);
     const [showTwoFactor, setShowTwoFactor] = useState(false);
+    const [showLegalModal, setShowLegalModal] = useState<'terms' | 'privacy' | null>(null);
     const [strategyStats, setStrategyStats] = useState<Record<string, { wins: number, total: number }>>({});
     
     const t = (key: string) => getTranslation(settings.language, key);
@@ -630,7 +631,7 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </button>
                 </motion.div>
 
-                {/* --- ABOUT US SECTION --- */}
+                {/* --- LEGAL, RISK DISCLAIMER & SUPPORT SECTION --- */}
                 <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -640,22 +641,44 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <div className="w-12 h-12 rounded-full bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center mx-auto mb-4">
                         <StorkIcon className="w-6 h-6 text-brand-cyan" />
                     </div>
-                    <h3 className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] font-orbitron mb-4">{t('profile.about')}</h3>
-                    <p className="text-[10px] text-slate-400 text-left leading-relaxed mb-4 p-4 rounded-2xl bg-black/50 border border-white/5 font-sans">
-                        {t('disclaimer.text')}
-                    </p>
+                    <h3 className="text-[10px] text-slate-400 font-black uppercase tracking-[0.3em] font-orbitron mb-3">
+                        {t('profile.about')} & Legal
+                    </h3>
+
+                    {/* Official Risk Disclaimer Box */}
+                    <div className="text-left mb-4 p-4 rounded-2xl bg-black/60 border border-amber-500/20 text-slate-300 font-mono text-[10px] leading-relaxed">
+                        <div className="flex items-center gap-1.5 text-amber-400 font-bold uppercase mb-1.5">
+                            <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
+                            <span>Відмова від відповідальності (Risk Disclaimer)</span>
+                        </div>
+                        <p className="text-slate-400 mb-2">
+                            StorkCrypto — аналітичний та освітній термінал. Торгові сигнали, математичні моделі та оцінки штучного інтелекту не є фінансовими консультаціями, інвестиційними порадами чи закликами до дії. Минула дохідність не гарантує майбутніх результатів. Будь-які інвестиції в цифрові активи пов'язані з високим ризиком повної втрати капіталу.
+                        </p>
+                        <p className="text-[9px] text-slate-500">
+                            Партнерські матеріали та спонсоровані квести завжди маркуються міткою SPONSORED.
+                        </p>
+                    </div>
+
+                    {/* Support & Legal Links */}
                     <div className="space-y-3 text-xs font-mono text-slate-300">
                         <p className="flex justify-between items-center border-b border-white/5 pb-2">
-                            <span className="text-slate-500">{t('profile.creator')}</span> 
-                            <span className="font-bold text-white">Borys Verbovskyi</span>
+                            <span className="text-slate-500">Служба підтримки</span> 
+                            <a href="https://t.me/storkcrypto" target="_blank" rel="noopener noreferrer" className="font-bold text-brand-cyan hover:underline flex items-center gap-1">
+                                <span>@storkcrypto</span>
+                                <span className="text-[9px] bg-brand-cyan/10 text-brand-cyan px-1.5 py-0.5 rounded">24/7 Support</span>
+                            </a>
                         </p>
                         <p className="flex justify-between items-center border-b border-white/5 pb-2">
-                            <span className="text-slate-500">{t('profile.email')}</span> 
-                            <a href="mailto:contact@storkcrypto.io" className="font-bold text-brand-cyan hover:underline">contact@storkcrypto.io</a>
+                            <span className="text-slate-500">Контактний email</span> 
+                            <a href="mailto:contact@storkcrypto.io" className="font-bold text-slate-300 hover:text-white hover:underline">contact@storkcrypto.io</a>
+                        </p>
+                        <p className="flex justify-between items-center border-b border-white/5 pb-2">
+                            <span className="text-slate-500">Умови використання</span> 
+                            <span className="font-bold text-brand-purple cursor-pointer hover:underline" onClick={() => setShowLegalModal('terms')}>Terms of Service</span>
                         </p>
                         <p className="flex justify-between items-center pb-2">
-                            <span className="text-slate-500">{t('profile.telegram')}</span> 
-                            <a href="https://t.me/storkcrypto" target="_blank" rel="noopener noreferrer" className="font-bold text-brand-purple hover:underline">@storkcrypto</a>
+                            <span className="text-slate-500">Політика приватності</span> 
+                            <span className="font-bold text-brand-purple cursor-pointer hover:underline" onClick={() => setShowLegalModal('privacy')}>Privacy Policy</span>
                         </p>
                     </div>
                 </motion.div>
@@ -668,6 +691,57 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             {showAdInquiry && <AdInquiryModal onClose={() => setShowAdInquiry(false)} />}
             {showAvatarModal && <AvatarSelectionModal onClose={() => setShowAvatarModal(false)} onSelect={handleAvatarUpdate} />}
             {showTwoFactor && <TwoFactorModal onClose={() => setShowTwoFactor(false)} />}
+
+            {/* Legal Terms & Privacy Modal */}
+            {showLegalModal && (
+                <div 
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={showLegalModal === 'terms' ? 'Умови використання' : 'Політика конфіденційності'}
+                    className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md"
+                >
+                    <div className="w-full max-w-md bg-[#050b14] border border-white/20 rounded-3xl p-6 shadow-2xl relative max-h-[85vh] flex flex-col">
+                        <div className="flex items-center justify-between pb-3 border-b border-white/10 mb-4">
+                            <h3 className="font-orbitron font-bold text-sm text-white uppercase tracking-wider">
+                                {showLegalModal === 'terms' ? 'Умови використання (Terms)' : 'Політика конфіденційності (Privacy)'}
+                            </h3>
+                            <button
+                                onClick={() => setShowLegalModal(null)}
+                                className="w-8 h-8 rounded-full bg-white/5 border border-white/10 text-slate-400 hover:text-white flex items-center justify-center text-sm font-bold"
+                            >
+                                ✕
+                            </button>
+                        </div>
+                        <div className="overflow-y-auto custom-scrollbar flex-1 text-xs text-slate-300 font-mono leading-relaxed space-y-3 pr-1">
+                            {showLegalModal === 'terms' ? (
+                                <>
+                                    <p className="font-bold text-white">1. Загальні положення</p>
+                                    <p>StorkCrypto надає інформаційно-аналітичний інтерфейс для моніторингу відкритих блокчейн-даних. Сервіс не є брокером, фінансовим радником чи депозитарієм.</p>
+                                    <p className="font-bold text-white">2. Ризики та відсутність гарантій</p>
+                                    <p>Усі сигнали, теплові карти та розрахунки надаються за принципом «як є» (AS IS). Користувач несе одноосібну відповідальність за свої торгові та фінансові рішення.</p>
+                                    <p className="font-bold text-white">3. Відповідальність та ліміти</p>
+                                    <p>StorkCrypto не несе відповідальності за збитки внаслідок волатильності ринку, затримок постачальників котирувань або збоїв мереж блокчейну.</p>
+                                </>
+                            ) : (
+                                <>
+                                    <p className="font-bold text-white">1. Збір та обробка даних</p>
+                                    <p>StorkCrypto не зберігає особисті паролі, seed-фрази чи приватні ключі гаманців. Для аналітики використовуються лише публічні адреси та анонімні ідентифікатори сесій Telegram.</p>
+                                    <p className="font-bold text-white">2. Локальне збереження (Storage)</p>
+                                    <p>Налаштування інтерфейсу та мови зберігаються локально на пристрої користувача. Будь-які чутливі кеші автоматично очищуються при виході з облікового запису.</p>
+                                    <p className="font-bold text-white">3. Зв'язок із підтримкою</p>
+                                    <p>Запити щодо видалення або експорту даних приймаються за адресою contact@storkcrypto.io або через офіційного бота підтримки @storkcrypto.</p>
+                                </>
+                            )}
+                        </div>
+                        <button
+                            onClick={() => setShowLegalModal(null)}
+                            className="mt-4 w-full py-3 bg-brand-cyan text-black font-orbitron font-bold text-xs uppercase tracking-wider rounded-xl hover:bg-white transition-colors"
+                        >
+                            Зрозуміло
+                        </button>
+                    </div>
+                </div>
+            )}
         </motion.div>
     );
 };

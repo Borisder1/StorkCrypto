@@ -76,6 +76,8 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [chatHistory, isLoading]);
 
+    const [lastFailedText, setLastFailedText] = useState<string | null>(null);
+
     const handleSend = async (messageText?: string) => {
         const text = messageText || input;
         if (!text.trim() || isLoading) return;
@@ -83,6 +85,7 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         triggerHaptic('medium');
         addChatMessage({ role: 'user', text });
         setInput('');
+        setLastFailedText(null);
         setIsLoading(true);
         
         try {
@@ -95,10 +98,17 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             }
             addChatMessage({ role: 'model', text: responseText, isAudit: isAuditMode });
             triggerHaptic('light');
-        } catch (error) {
-            const errNotice = settings.language === 'ua'
-                ? "⚠️ [НЕЙРОМЕРЕЖА ТИМЧАСОВО НЕДОСТУПНА]: Запит не вдалося завершити через таймаут або обмеження шлюзу. Спробуйте ще раз."
-                : "⚠️ [AI UPLINK OFFLINE]: Request failed due to gateway timeout or rate limits. Please retry.";
+        } catch (error: any) {
+            setLastFailedText(text);
+            const errStr = String(error?.message || error || '');
+            const is503 = errStr.includes('503') || errStr.includes('AI_UNAVAILABLE');
+            const errNotice = is503
+                ? (settings.language === 'ua'
+                    ? "⚠️ [ШЛЮЗ ШІ НА КАЛІБРУВАННІ — 503]: Нейромережевий провайдер тимчасово недоступний або проходить планову синхронізацію. Спробуйте повторити запит."
+                    : "⚠️ [AI GATEWAY CALIBRATING — 503]: Neural provider is temporarily unavailable. Please retry the request.")
+                : (settings.language === 'ua'
+                    ? "⚠️ [ТАЙМАУТ ШЛЮЗУ]: Запит не вдалося завершити через затримку з'єднання. Спробуйте ще раз."
+                    : "⚠️ [GATEWAY TIMEOUT]: Request failed due to network latency. Please retry.");
             addChatMessage({ role: 'model', text: errNotice });
         } finally {
             setIsLoading(false);
@@ -177,6 +187,18 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                             <div className="w-1.5 h-1.5 bg-brand-cyan animate-pulse delay-75"></div>
                             <div className="w-1.5 h-1.5 bg-brand-cyan animate-pulse delay-150"></div>
                         </div>
+                    </div>
+                )}
+
+                {lastFailedText && !isLoading && (
+                    <div className="flex justify-center my-2">
+                        <button
+                            onClick={() => handleSend(lastFailedText)}
+                            className="px-4 py-2 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs font-mono font-bold flex items-center gap-2 hover:bg-amber-500/20 transition-all active:scale-95 shadow-lg"
+                        >
+                            <span>↻</span>
+                            <span>{settings.language === 'ua' ? 'Повторити спробу' : 'Retry Request'}</span>
+                        </button>
                     </div>
                 )}
                 <div ref={messagesEndRef} />

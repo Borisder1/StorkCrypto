@@ -11,6 +11,23 @@ export const AcademyBannerWidget: React.FC = () => {
     const { settings, openAcademy } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
 
+    const [academyLang, setAcademyLang] = React.useState<string>(() => {
+        try {
+            return localStorage.getItem('stork_academy_lang') || (settings?.language === 'en' ? 'en' : 'uk');
+        } catch {
+            return 'uk';
+        }
+    });
+
+    const handleSelectLanguage = (langId: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        triggerHaptic('selection');
+        setAcademyLang(langId);
+        try {
+            localStorage.setItem('stork_academy_lang', langId);
+        } catch (_) {}
+    };
+
     const handleOpen = (category?: AcademyCategory) => {
         triggerHaptic('medium');
         openAcademy(category);
@@ -30,7 +47,7 @@ export const AcademyBannerWidget: React.FC = () => {
                 type="button"
                 onClick={() => handleOpen()}
                 aria-label="Відкрити всю Академію трейдингу"
-                className="w-full text-left relative z-10 flex items-center justify-between gap-3 mb-4 p-3 rounded-2xl cursor-pointer bg-white/[0.02] hover:bg-white/[0.06] active:scale-[0.98] transition-all group border border-white/5 hover:border-brand-purple/30 focus-visible:ring-2 focus-visible:ring-brand-purple/50 focus:outline-none touch-manipulation select-none"
+                className="w-full text-left relative z-10 flex items-center justify-between gap-3 mb-3 p-3 rounded-2xl cursor-pointer bg-white/[0.02] hover:bg-white/[0.06] active:scale-[0.98] transition-all group border border-white/5 hover:border-brand-purple/30 focus-visible:ring-2 focus-visible:ring-brand-purple/50 focus:outline-none touch-manipulation select-none"
             >
                 <div className="flex items-center gap-3 min-w-0">
                     <div className="w-11 h-11 rounded-2xl bg-brand-purple/20 border border-brand-purple/40 flex items-center justify-center text-brand-purple shadow-lg shadow-brand-purple/10 group-hover:scale-105 group-hover:shadow-[0_0_15px_rgba(189,0,255,0.4)] transition-all shrink-0">
@@ -57,6 +74,39 @@ export const AcademyBannerWidget: React.FC = () => {
                     <ChevronRightIcon className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </div>
             </button>
+
+            {/* Direct Language Switcher Bar on Home Widget */}
+            <div className="relative z-10 flex items-center justify-between bg-black/40 border border-white/10 rounded-2xl p-2.5 mb-3.5 shadow-inner">
+                <span className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 pl-1">
+                    <span>🌐</span>
+                    <span>Мова курсу:</span>
+                </span>
+                <div className="flex items-center gap-1.5" role="group" aria-label="Мова навчання Академії">
+                    {[
+                        { id: 'uk', label: 'УКР', flag: '🇺🇦' },
+                        { id: 'en', label: 'ENG', flag: '🇬🇧' },
+                        { id: 'ru', label: 'РУС', flag: '🇷🇺' }
+                    ].map(item => {
+                        const isCurrent = academyLang === item.id;
+                        return (
+                            <button
+                                key={item.id}
+                                type="button"
+                                aria-pressed={isCurrent}
+                                onClick={(e) => handleSelectLanguage(item.id, e)}
+                                className={`px-2.5 py-1 min-h-[32px] rounded-lg text-[10px] font-mono font-bold transition-all flex items-center gap-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple ${
+                                    isCurrent
+                                        ? 'bg-brand-purple text-white shadow-md shadow-brand-purple/30 border border-brand-purple'
+                                        : 'bg-white/5 text-slate-400 hover:text-white hover:bg-white/10 border border-white/5'
+                                }`}
+                            >
+                                <span>{item.flag}</span>
+                                <span>{item.label}</span>
+                            </button>
+                        );
+                    })}
+                </div>
+            </div>
 
             {/* 2-Column Bento Cards: Beginners & Pros */}
             <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-4">
