@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { type NewsArticle } from '../types';
-import { getLatestCryptoNews, safeGenerate } from '../services/geminiService';
+import { getLatestCryptoNews, safeGenerate, playAudio, stopAudio } from '../services/geminiService';
 import { 
     LinkIcon, 
     PlayIcon, 
@@ -91,8 +91,33 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const [loadingAIQuery, setLoadingAIQuery] = useState<Record<string, boolean>>({});
     const [aiAnswers, setAiAnswers] = useState<Record<string, string>>({});
 
-    const { settings } = useStore();
+    const { settings, navigateTo } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
+
+    const [selectedCategory, setSelectedCategory] = useState<'ALL' | 'MACRO' | 'CRYPTO' | 'STOCKS'>('ALL');
+    const [playingAudioIndex, setPlayingAudioIndex] = useState<number | null>(null);
+
+    const handleToggleAudio = (index: number, textToSpeak: string) => {
+        triggerHaptic('light');
+        if (playingAudioIndex === index) {
+            stopAudio();
+            setPlayingAudioIndex(null);
+        } else {
+            setPlayingAudioIndex(index);
+            playAudio(
+                textToSpeak,
+                () => setPlayingAudioIndex(null),
+                () => setPlayingAudioIndex(null),
+                settings.language
+            );
+        }
+    };
+
+    useEffect(() => {
+        return () => {
+            stopAudio();
+        };
+    }, []);
 
     const getCalculatedBeforeAfter = (basePercentStr: string, timeframe: '1H' | '24H' | '7D') => {
         const isPositive = !basePercentStr.startsWith('-');
@@ -128,6 +153,24 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             document.body.style.overflow = 'unset'; 
         };
     }, [settings.language]);
+
+    const filteredNews = useMemo(() => {
+        if (selectedCategory === 'ALL') return news;
+        const res = news.filter(item => {
+            const text = `${item.headline} ${item.summary} ${(item.tags || []).join(' ')}`.toLowerCase();
+            if (selectedCategory === 'MACRO') {
+                return text.match(/(macro|fed|cpi|inflation|war|geopolitic|rates|bonds|dxy|президент|сша|війна|геополітика|фрс|інфляція|ставки|борг)/i);
+            }
+            if (selectedCategory === 'CRYPTO') {
+                return text.match(/(btc|eth|crypto|bitcoin|alt|defi|mining|wallet|крипт|біткоїн|ефір|майнінг|блокчейн)/i);
+            }
+            if (selectedCategory === 'STOCKS') {
+                return text.match(/(nasdaq|sp500|s&p|stocks|nvidia|gold|tech|акції|фондов|індекс|золото)/i);
+            }
+            return true;
+        });
+        return res.length > 0 ? res : news;
+    }, [news, selectedCategory]);
 
     // Handle instant AI custom query execution
     const executeAIQuery = async (articleIndex: number, articleHeadline: string, questionKey: string, questionText: string) => {
@@ -213,15 +256,74 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-4 pb-32 relative z-10">
+                {/* Macro Market Pulse Barometer */}
+                <div className="bg-gradient-to-r from-brand-card/90 via-[#0a1122]/90 to-brand-card/90 border border-brand-purple/30 rounded-3xl p-4 shadow-xl backdrop-blur-xl">
+                    <div className="flex items-center justify-between mb-3 border-b border-white/5 pb-2">
+                        <div className="flex items-center gap-2">
+                            <GlobeIcon className="w-4 h-4 text-brand-cyan animate-pulse" />
+                            <span className="font-orbitron text-xs font-black text-white uppercase tracking-wider">
+                                {settings.language === 'ua' ? 'МАКРОЕКОНОМІЧНИЙ БАРОМЕТР' : 'MACRO MARKET PULSE'}
+                            </span>
+                        </div>
+                        <span className="text-[8px] font-mono font-bold px-2 py-0.5 rounded bg-brand-cyan/10 text-brand-cyan border border-brand-cyan/30">
+                            {settings.language === 'ua' ? 'ВЕРДИКТ ШІ: ПОМІРНИЙ РІСТ' : 'AI VERDICT: ACCUMULATION'}
+                        </span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        <div className="bg-black/50 p-2.5 rounded-2xl border border-white/5">
+                            <p className="text-[8px] font-mono text-slate-500 uppercase">Ставка ФРС (FED)</p>
+                            <p className="text-xs font-mono font-bold text-white">5.25% <span className="text-[8px] text-yellow-400 font-normal">Пауза</span></p>
+                        </div>
+                        <div className="bg-black/50 p-2.5 rounded-2xl border border-white/5">
+                            <p className="text-[8px] font-mono text-slate-500 uppercase">Індекс Долара (DXY)</p>
+                            <p className="text-xs font-mono font-bold text-emerald-400">101.8 <span className="text-[8px] text-emerald-300">-0.4% ↓</span></p>
+                        </div>
+                        <div className="bg-black/50 p-2.5 rounded-2xl border border-white/5">
+                            <p className="text-[8px] font-mono text-slate-500 uppercase">Зв'язок з S&P 500</p>
+                            <p className="text-xs font-mono font-bold text-brand-cyan">+0.78 <span className="text-[8px] text-slate-400 font-normal">Сильний</span></p>
+                        </div>
+                        <div className="bg-black/50 p-2.5 rounded-2xl border border-white/5">
+                            <p className="text-[8px] font-mono text-slate-500 uppercase">Геополітика & Нафта</p>
+                            <p className="text-xs font-mono font-bold text-amber-400">Помірний <span className="text-[8px] text-slate-400">Хедж у Золото</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Quick Category Filters */}
+                <div className="flex gap-2 overflow-x-auto no-scrollbar py-1" role="tablist" aria-label="Фільтри категорій новин">
+                    {[
+                        { id: 'ALL', label: settings.language === 'ua' ? 'Всі новини' : 'All News', icon: '🌐' },
+                        { id: 'MACRO', label: settings.language === 'ua' ? 'Макро & Війна' : 'Macro & Geopolitics', icon: '🏛️' },
+                        { id: 'CRYPTO', label: settings.language === 'ua' ? 'Crypto / BTC' : 'Crypto / BTC', icon: '🪙' },
+                        { id: 'STOCKS', label: settings.language === 'ua' ? 'Фондовий ринок' : 'Stocks & TradFi', icon: '📈' },
+                    ].map(cat => (
+                        <button
+                            key={cat.id}
+                            type="button"
+                            role="tab"
+                            aria-selected={selectedCategory === cat.id}
+                            onClick={() => { triggerHaptic('selection'); setSelectedCategory(cat.id as any); }}
+                            className={`px-3.5 py-2 min-h-[38px] rounded-xl text-xs font-mono font-bold flex items-center gap-1.5 shrink-0 transition-all ${
+                                selectedCategory === cat.id
+                                    ? 'bg-brand-cyan text-black shadow-lg shadow-brand-cyan/25'
+                                    : 'bg-black/50 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
+                            }`}
+                        >
+                            <span>{cat.icon}</span>
+                            <span>{cat.label}</span>
+                        </button>
+                    ))}
+                </div>
+
                 {loading ? Array.from({length: 6}).map((_, i) => <Skeleton key={i} className="w-full h-28 rounded-[2rem]" />) : 
-                news.length === 0 ? (
+                filteredNews.length === 0 ? (
                     <div className="py-20 flex flex-col items-center justify-center opacity-70">
                         <RadarIcon className="w-12 h-12 text-slate-500 mb-4 animate-pulse" />
                         <p className="text-slate-400 font-black uppercase text-sm font-orbitron">{t('news.no_signals_title')}</p>
                         <p className="text-slate-500 text-xs font-mono mt-2">{t('news.no_signals_desc')}</p>
                     </div>
                 ) :
-                news.map((article, index) => {
+                filteredNews.map((article, index) => {
                     const isExpanded = expandedIndex === index;
                     const metrics = getAIImpactMetrics(article.headline, index);
                     const currentTab = activeTabs[index] || 'CRYPTO';
@@ -269,9 +371,46 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                     <h3 className="text-sm font-black mb-2 leading-tight uppercase transition-colors group-hover:text-brand-cyan text-white">
                                         {article.headline}
                                     </h3>
-                                    <p className="text-[10px] text-slate-400 leading-relaxed font-mono opacity-80">
+                                    <p className="text-[10px] text-slate-400 leading-relaxed font-mono opacity-80 mb-3">
                                         {article.summary}
                                     </p>
+
+                                    {/* Action Bar: Audio 30s + Correlation Badge + Signal Link */}
+                                    <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5">
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleToggleAudio(index, `${article.headline}. ${article.summary}`);
+                                            }}
+                                            className={`px-3 py-1.5 rounded-xl text-[9px] font-mono font-bold flex items-center gap-1.5 transition-all ${
+                                                playingAudioIndex === index
+                                                    ? 'bg-brand-cyan text-black animate-pulse shadow-md shadow-brand-cyan/30'
+                                                    : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
+                                            }`}
+                                        >
+                                            <span>{playingAudioIndex === index ? '⏹' : '🎧'}</span>
+                                            <span>{playingAudioIndex === index ? (settings.language === 'ua' ? 'Зупинити' : 'Stop') : (settings.language === 'ua' ? 'Аудіо 30с' : 'Listen 30s')}</span>
+                                        </button>
+
+                                        <span className="text-[8px] font-mono text-slate-500 hidden sm:inline">
+                                            BTC: <strong className="text-brand-cyan">{metrics.crypto.btc}</strong> · S&P: <strong className="text-slate-300">{metrics.stocks.sp500}</strong>
+                                        </span>
+
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                triggerHaptic('medium');
+                                                navigateTo('signals');
+                                                onClose();
+                                            }}
+                                            className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] font-mono font-bold flex items-center gap-1 hover:bg-emerald-500/20 transition-all ml-auto"
+                                        >
+                                            <span>⚡</span>
+                                            <span>{settings.language === 'ua' ? 'До сигналів' : 'Signals'}</span>
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div className="flex flex-col gap-2 shrink-0">

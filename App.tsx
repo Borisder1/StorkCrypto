@@ -87,8 +87,8 @@ const App: React.FC = () => {
     const navItems = [
         { id: 'home', label: t('nav.home'), icon: <HomeIcon /> },
         { id: 'signals', label: t('nav.signals'), icon: <ActivityIcon /> }, 
+        { id: 'news', label: t('nav.news'), icon: <NewspaperIcon /> }, 
         { id: 'portfolio', label: t('nav.assets'), icon: <PieChartIcon /> }, 
-        { id: 'scanner', label: t('nav.scanner'), icon: <RadarIcon /> },
         { id: 'more', label: 'Більше', icon: <GridIcon /> },
     ];
 
