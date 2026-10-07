@@ -78,6 +78,17 @@ export const HelpIndicator: React.FC<HelpIndicatorProps> = ({ id, className = ''
         ? 'Пояснення Quests System' 
         : `Пояснення ${item.title}`;
 
+    // Map help indicator IDs to canonical opener tokens
+    const openerToken = id === 'ai_market_summary' 
+        ? 'ai-market-insight' 
+        : id === 'quests_center' 
+        ? 'quests-help' 
+        : id === 'asset_chart' 
+        ? 'metric-fdi' 
+        : id === 'academy_hub' 
+        ? 'academy-help' 
+        : id.replace(/_/g, '-');
+
     return (
         <>
             <button
@@ -87,6 +98,7 @@ export const HelpIndicator: React.FC<HelpIndicatorProps> = ({ id, className = ''
                 aria-label={ariaLabel}
                 aria-expanded={isOpen}
                 aria-haspopup="dialog"
+                data-modal-opener={openerToken}
                 className={`inline-flex items-center justify-center min-w-[44px] min-h-[44px] w-11 h-11 p-2 cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan rounded-full transition-transform select-none shrink-0 ${className}`}
                 title={item.title || "Help"}
                 id={`help-btn-${id}`}

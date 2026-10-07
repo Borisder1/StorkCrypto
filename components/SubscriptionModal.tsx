@@ -160,22 +160,30 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
 
     return (
         <motion.div 
+            data-modal-layer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto overscroll-contain"
+            className="modal-layer modal-layer--compact"
         >
-            <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose}></div>
+            <button 
+                data-modal-backdrop 
+                className="modal-backdrop"
+                aria-label="Закрити вікно підписки"
+                onClick={onClose}
+            />
 
-            <motion.div 
+            <motion.section 
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="subscription-modal-title"
-                initial={{ y: '100%' }}
-                animate={{ y: 0 }}
-                exit={{ y: '100%' }}
+                tabIndex={-1}
+                data-modal-panel
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 20 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="relative z-10 w-full sm:max-w-md bg-brand-bg rounded-t-[2.5rem] sm:rounded-[2.5rem] border-t sm:border border-white/10 shadow-[0_-10px_60px_rgba(139,92,246,0.3)] flex flex-col max-h-[90vh] overflow-hidden sm:my-auto"
+                className="modal-panel w-full max-w-md bg-brand-bg rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 shadow-[0_0_60px_rgba(139,92,246,0.3)] flex flex-col max-h-[90dvh] overflow-hidden my-auto"
             >
                 
                 <div className="shrink-0 px-6 py-5 text-center border-b border-white/5 relative bg-brand-card/50">
@@ -337,7 +345,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                         </div>
                     )}
                 </div>
-            </motion.div>
+            </motion.section>
         </motion.div>
     );
 };

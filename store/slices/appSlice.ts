@@ -4,6 +4,47 @@ import { StoreState, AppSlice, SubscriptionRequest, WhaleTransaction } from '../
 import { getDeviceId, supabase } from '../../services/supabaseClient';
 
 export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, get) => ({
+    // Unified Modal State: exactly ONE activeModal at any time
+    activeModal: null,
+    openModal: (modal) => {
+        // Automatically closes any previous modal and opens the new one atomically
+        set({
+            activeModal: modal,
+            // Sync legacy boolean flags for backward compatibility
+            isAIChatOpen: modal?.kind === 'chat',
+            showCalendar: modal?.kind === 'calendar',
+            showReferral: modal?.kind === 'referral',
+            showAirdrop: modal?.kind === 'airdrop',
+            showLeaderboard: modal?.kind === 'leaderboard',
+            showSentinel: modal?.kind === 'sentinel',
+            showWhaleRadar: modal?.kind === 'radar',
+            showStrategyBuilder: modal?.kind === 'strategy',
+            showSentimentPulse: modal?.kind === 'sentiment',
+            showLiquidationHeatmap: modal?.kind === 'heatmap',
+            showTaxCalculator: modal?.kind === 'tax',
+            showCompetitorMatrix: modal?.kind === 'competitor',
+            isSubscriptionOpen: modal?.kind === 'subscription',
+        });
+    },
+    closeModal: () => {
+        set({
+            activeModal: null,
+            isAIChatOpen: false,
+            showCalendar: false,
+            showReferral: false,
+            showAirdrop: false,
+            showLeaderboard: false,
+            showSentinel: false,
+            showWhaleRadar: false,
+            showStrategyBuilder: false,
+            showSentimentPulse: false,
+            showLiquidationHeatmap: false,
+            showTaxCalculator: false,
+            showCompetitorMatrix: false,
+            isSubscriptionOpen: false,
+        });
+    },
+
     settings: {
         language: 'en', theme: 'cyan', themeMode: 'twilight', riskLevel: 'CONSERVATIVE',
         interfaceMode: 'PRO',
@@ -38,15 +79,35 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     }),
     setSelectedAcademyCategory: (category) => set({ selectedAcademyCategory: category }),
     isAIChatOpen: false,
-    setIsAIChatOpen: (isOpen) => set({ isAIChatOpen: isOpen }),
+    setIsAIChatOpen: (isOpen) => {
+        if (isOpen) get().openModal({ kind: 'chat' });
+        else if (get().activeModal?.kind === 'chat') get().closeModal();
+        else set({ isAIChatOpen: false });
+    },
     showCalendar: false,
-    setShowCalendar: (show) => set({ showCalendar: show }),
+    setShowCalendar: (show) => {
+        if (show) get().openModal({ kind: 'calendar' });
+        else if (get().activeModal?.kind === 'calendar') get().closeModal();
+        else set({ showCalendar: false });
+    },
     showReferral: false,
-    setShowReferral: (show) => set({ showReferral: show }),
+    setShowReferral: (show) => {
+        if (show) get().openModal({ kind: 'referral' });
+        else if (get().activeModal?.kind === 'referral') get().closeModal();
+        else set({ showReferral: false });
+    },
     showAirdrop: false,
-    setShowAirdrop: (show) => set({ showAirdrop: show }),
+    setShowAirdrop: (show) => {
+        if (show) get().openModal({ kind: 'airdrop' });
+        else if (get().activeModal?.kind === 'airdrop') get().closeModal();
+        else set({ showAirdrop: false });
+    },
     showLeaderboard: false,
-    setShowLeaderboard: (show) => set({ showLeaderboard: show }),
+    setShowLeaderboard: (show) => {
+        if (show) get().openModal({ kind: 'leaderboard' });
+        else if (get().activeModal?.kind === 'leaderboard') get().closeModal();
+        else set({ showLeaderboard: false });
+    },
     
     claimMining: async () => {
         const state = get();
@@ -120,19 +181,47 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
     removeBanner: (id) => set(state => ({ activeBanners: state.activeBanners.filter(b => b.id !== id) })),
 
     showSentinel: false,
-    setShowSentinel: (show) => set({ showSentinel: show }),
+    setShowSentinel: (show) => {
+        if (show) get().openModal({ kind: 'sentinel' });
+        else if (get().activeModal?.kind === 'sentinel') get().closeModal();
+        else set({ showSentinel: false });
+    },
     showWhaleRadar: false,
-    setShowWhaleRadar: (show) => set({ showWhaleRadar: show }),
+    setShowWhaleRadar: (show) => {
+        if (show) get().openModal({ kind: 'radar' });
+        else if (get().activeModal?.kind === 'radar') get().closeModal();
+        else set({ showWhaleRadar: false });
+    },
     showStrategyBuilder: false,
-    setShowStrategyBuilder: (show) => set({ showStrategyBuilder: show }),
+    setShowStrategyBuilder: (show) => {
+        if (show) get().openModal({ kind: 'strategy' });
+        else if (get().activeModal?.kind === 'strategy') get().closeModal();
+        else set({ showStrategyBuilder: false });
+    },
     showSentimentPulse: false,
-    setShowSentimentPulse: (show) => set({ showSentimentPulse: show }),
+    setShowSentimentPulse: (show) => {
+        if (show) get().openModal({ kind: 'sentiment' });
+        else if (get().activeModal?.kind === 'sentiment') get().closeModal();
+        else set({ showSentimentPulse: false });
+    },
     showLiquidationHeatmap: false,
-    setShowLiquidationHeatmap: (show) => set({ showLiquidationHeatmap: show }),
+    setShowLiquidationHeatmap: (show) => {
+        if (show) get().openModal({ kind: 'heatmap' });
+        else if (get().activeModal?.kind === 'heatmap') get().closeModal();
+        else set({ showLiquidationHeatmap: false });
+    },
     showTaxCalculator: false,
-    setShowTaxCalculator: (show) => set({ showTaxCalculator: show }),
+    setShowTaxCalculator: (show) => {
+        if (show) get().openModal({ kind: 'tax' });
+        else if (get().activeModal?.kind === 'tax') get().closeModal();
+        else set({ showTaxCalculator: false });
+    },
     showCompetitorMatrix: false,
-    setShowCompetitorMatrix: (show) => set({ showCompetitorMatrix: show }),
+    setShowCompetitorMatrix: (show) => {
+        if (show) get().openModal({ kind: 'competitor' });
+        else if (get().activeModal?.kind === 'competitor') get().closeModal();
+        else set({ showCompetitorMatrix: false });
+    },
     updateSentinelConfig: async (config) => {
         set(state => ({
             userStats: { ...state.userStats, sentinel: { ...state.userStats.sentinel, ...config } }
@@ -153,7 +242,11 @@ export const createAppSlice: StateCreator<StoreState, [], [], AppSlice> = (set, 
         setTimeout(() => set({ toast: { visible: false, message: '' } }), 3000);
     },
     isSubscriptionOpen: false,
-    setSubscriptionOpen: (open) => set({ isSubscriptionOpen: open }),
+    setSubscriptionOpen: (open) => {
+        if (open) get().openModal({ kind: 'subscription' });
+        else if (get().activeModal?.kind === 'subscription') get().closeModal();
+        else set({ isSubscriptionOpen: false });
+    },
 
     network: { latency: 42, status: 'OPTIMAL', lastSync: new Date().toISOString() },
     updateNetwork: (latency) => set(state => ({ network: { latency, status: 'OPTIMAL', lastSync: new Date().toISOString() } })),

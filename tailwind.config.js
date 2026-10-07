@@ -15,12 +15,18 @@ export default {
         mono: ['"JetBrains Mono"', 'monospace'],
       },
       zIndex: {
-        'base': '0',
+        'base': '1',
+        'content': '1',
         'elevated': '10',
         'dropdown': '20',
+        'header': '30',
         'sticky': '30',
-        'modal': '40',
-        'toast': '50',
+        'bottom-nav': '30',
+        'floating': '50',
+        'modal-backdrop': '900',
+        'modal-panel': '910',
+        'modal': '900',
+        'toast': '1000',
       },
       colors: {
         'surface-0': '#020617', // Deep Void

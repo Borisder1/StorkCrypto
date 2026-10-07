@@ -1,4 +1,35 @@
 
+export type ModalKind =
+  | 'asset'
+  | 'info'
+  | 'help'
+  | 'quests'
+  | 'academy'
+  | 'academyLesson'
+  | 'video'
+  | 'radar'
+  | 'sentinel'
+  | 'heatmap'
+  | 'strategy'
+  | 'sentiment'
+  | 'customize'
+  | 'settings'
+  | 'subscription'
+  | 'referral'
+  | 'calendar'
+  | 'leaderboard'
+  | 'tax'
+  | 'competitor'
+  | 'airdrop'
+  | 'chat'
+  | 'hub'
+  | 'disclaimer';
+
+export interface ActiveModal {
+  kind: ModalKind;
+  payload?: any;
+}
+
 export type Language = 'en' | 'ua' | 'pl';
 export type ThemeColor = 'cyan' | 'purple' | 'green';
 export type ThemeMode = 'midnight' | 'dark' | 'concrete' | 'solar' | 'matrix' | 'vaporwave' | 'twilight' | 'daylight';
@@ -487,6 +518,9 @@ export interface WhaleStats {
 }
 
 export interface AppSlice {
+    activeModal: ActiveModal | null;
+    openModal: (modal: ActiveModal) => void;
+    closeModal: () => void;
     whaleHistory: WhaleTransaction[];
     addWhaleTransaction: (tx: WhaleTransaction) => void;
     getWhaleStats: () => WhaleStats;

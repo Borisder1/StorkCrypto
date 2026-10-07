@@ -274,36 +274,45 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
 
     return (
         <motion.div 
+            data-modal-layer
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] flex items-end sm:items-center justify-center p-0 sm:p-4"
+            transition={{ duration: 0.18 }}
+            className="modal-layer modal-layer--fullscreen"
         >
-            <div className="absolute inset-0 bg-black/95 backdrop-blur-md" onClick={onClose}></div>
-            <motion.div 
+            <button 
+                data-modal-backdrop
+                className="modal-backdrop"
+                onClick={onClose}
+                aria-label="Закрити аналітику активу"
+            />
+            <motion.section 
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="asset-detail-title"
-                initial={{ y: '100%', opacity: 0 }}
+                tabIndex={-1}
+                data-modal-panel
+                initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                exit={{ y: '100%', opacity: 0 }}
-                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="relative z-10 w-full md:w-[650px] h-[95vh] bg-brand-bg border-t md:border border-white/10 rounded-t-[3rem] md:rounded-[3rem] flex flex-col shadow-2xl overflow-hidden"
+                exit={{ y: 20, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="modal-panel w-full h-full min-h-[100dvh] max-h-[100dvh] bg-brand-bg flex flex-col shadow-2xl overflow-hidden"
             >
-                <div className="p-6 border-b border-white/5 bg-brand-card/95 flex justify-between items-center relative">
+                <div className="p-4 sm:p-6 border-b border-white/10 bg-brand-card/95 flex justify-between items-center relative safe-area-pt">
                     <div className="flex items-center gap-4">
-                        <div className="w-14 h-14 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center p-3 shadow-inner">
+                        <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-black/60 border border-white/10 flex items-center justify-center p-2.5 sm:p-3 shadow-inner">
                             <img src={`https://assets.coincap.io/assets/icons/${asset.ticker.toLowerCase()}@2x.png`} alt={asset.name} className="w-full h-full object-contain" onError={e => (e.currentTarget.src = `https://raw.githubusercontent.com/spothq/cryptocurrency-icons/master/32/icon/${asset.ticker.toLowerCase()}.png`)} />
                         </div>
                         <div>
-                            <h2 id="asset-detail-title" className="text-xl font-black text-white font-orbitron uppercase tracking-widest">{asset.name}</h2>
-                            <p className={`text-sm font-bold font-mono ${asset.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>${asset.value.toFixed(2)} ({asset.change.toFixed(2)}%)</p>
+                            <h2 id="asset-detail-title" className="text-lg sm:text-xl font-black text-white font-orbitron uppercase tracking-widest">{asset.name}</h2>
+                            <p className={`text-xs sm:text-sm font-bold font-mono ${asset.change >= 0 ? 'text-green-400' : 'text-red-400'}`}>${asset.value.toFixed(2)} ({asset.change.toFixed(2)}%)</p>
                         </div>
                     </div>
-                    <button onClick={onClose} aria-label="Закрити вікно" className="w-8 h-8 rounded-full bg-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">✕</button>
+                    <button onClick={onClose} aria-label="Закрити вікно" className="w-9 h-9 rounded-full bg-white/5 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer">✕</button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 sm:p-6 custom-scrollbar max-w-4xl mx-auto w-full">
                     <div className="flex gap-2 bg-black/40 p-1.5 rounded-2xl border border-white/10 mb-8 shadow-inner overflow-x-auto no-scrollbar">
                         {['CHART', 'ORDERBOOK', 'WATCHDOG', 'AI_SETUP', 'BACKTEST'].map(t => (
                             <button key={t} onClick={() => setActiveTab(t as any)} className={`flex-1 min-w-[80px] py-3 rounded-xl text-[10px] font-black font-orbitron transition-all ${activeTab === t ? 'bg-brand-card text-brand-cyan shadow-lg' : 'text-slate-500'}`}>{t.replace('_', ' ')}</button>
@@ -557,7 +566,7 @@ const AssetDetailModal: React.FC<{ asset: Asset, signal?: TradingSignal | null, 
                         <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.894 8.221l-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.223-.548.223l.188-2.85 5.18-4.686c.223-.195-.054-.304-.346-.11l-6.4 4.024-2.76-.86c-.6-.185-.61-.6.125-.89l10.736-4.136c.5-.186.94.11.725.918z"/></svg>
                     </button>
                 </div>
-            </motion.div>
+            </motion.section>
         </motion.div>
     );
 };
