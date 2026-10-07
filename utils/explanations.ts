@@ -558,5 +558,63 @@ export const EXPLANATIONS: Record<string, Record<'en' | 'ua' | 'pl', HelpExplana
                 "Transparentność: Regularnie weryfikuj czas ostatniej aktualizacji i źródła notowań."
             ]
         }
+    },
+    leaderboard: {
+        en: {
+            title: "Global Leaderboard",
+            description: "Live ranking of top traders, pilot XP, and on-chain tactical achievements in StorkCrypto.",
+            features: [
+                "Podium Rankings: Highlights top pilots with highest net-worth growth and task completion.",
+                "XP Metric: Experience points accrued through real terminal usage, quests, and education.",
+                "Tier Multipliers: WHALE and PRO subscribers receive competitive boost multipliers."
+            ]
+        },
+        ua: {
+            title: "Таблиця Лідерів",
+            description: "Рейтинг найкращих трейдерів, балів досвіду пілотів (XP) та тактичних досягнень у StorkCrypto.",
+            features: [
+                "Подіум пошани: Відзначає топових пілотів з найвищим показником зростання та виконаних місій.",
+                "Метрика XP: Бали досвіду, накопичені за активність у терміналі, квести та навчання.",
+                "Бусти підписки: Рівні WHALE та PRO отримують множники змагального рейтингу."
+            ]
+        },
+        pl: {
+            title: "Globalna Tabela Liderów",
+            description: "Ranking na żywo najlepszych traderów, punktów XP i taktycznych osiągnięć on-chain w StorkCrypto.",
+            features: [
+                "Podium: Wyróżnia najlepszych pilotów z najwyższym wzrostem kapitału i ukończonymi zadaniami.",
+                "Metryka XP: Punkty doświadczenia zdobywane za korzystanie z terminala, questy i naukę.",
+                "Mnożniki rang: Posiadacze poziomów WHALE i PRO otrzymują dodatkowe bonusy punktowe."
+            ]
+        }
+    },
+    syndicate_hq: {
+        en: {
+            title: "Syndicate HQ",
+            description: "Collaborative copy-trading and tactical social synchronization protocol for terminal pilots.",
+            features: [
+                "Neural Mirror Protocol: Synchronizes tactical strategies with experienced community pilots.",
+                "Transparent Auditing: Verifiable historical performance metrics for each syndicate pool.",
+                "Risk Fencing: Automatic defensive limits and stop-loss enforcement for mirrored positions."
+            ]
+        },
+        ua: {
+            title: "Штаб Синдикату",
+            description: "Протокол спільного копітрейдингу та тактичної соціальної синхронізації пілотів терміналу.",
+            features: [
+                "Протокол Дзеркала: Синхронізація тактичних угод із досвідченими пілотами спільноти.",
+                "Прозорий Аудит: Верифіковані історичні показники ефективності для кожного пулу.",
+                "Контроль ризиків: Автоматичні стоп-лоси та захисні бар'єри депозиту при копіюванні."
+            ]
+        },
+        pl: {
+            title: "Kwatera Syndykatu",
+            description: "Protokół zespołowego copy-tradingu i taktycznej synchronizacji społecznościowej dla pilotów.",
+            features: [
+                "Protokół Lustrzany: Synchronizacja zagrań taktycznych z doświadczonymi traderami.",
+                "Przejrzysty Audyt: Weryfikowalne historyczne wyniki skuteczności dla każdego syndykatu.",
+                "Zarządzanie Ryzykiem: Automatyczne limity obronne i zlecenia Stop-Loss dla kopiowanych pozycji."
+            ]
+        }
     }
 };

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
 import { triggerHaptic } from '../utils/haptics';
+import { getTranslation } from '../utils/translations';
 import { 
     RadarIcon, ActivityIcon, PieChartIcon, NewspaperIcon, BotIcon,
     ShieldIcon, ZapIcon, GlobeIcon, WalletIcon, BellIcon, UsersIcon, SparklesIcon,
@@ -15,6 +16,7 @@ interface CategorizedHubModalProps {
 
 export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen, onClose }) => {
     const { 
+        settings,
         navigateTo, 
         setShowAirdrop, 
         setShowCalendar, 
@@ -31,6 +33,7 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
         setIsAIChatOpen
     } = useStore();
 
+    const t = (key: string) => getTranslation(settings?.language || 'en', key);
     const [searchQuery, setSearchQuery] = useState('');
 
     React.useEffect(() => {
@@ -53,38 +56,38 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
 
     const categories = [
         {
-            title: "🧠 AI & Аналітика",
+            title: t('hub.cat_ai'),
             items: [
-                { name: "AI Trading Signals", icon: <ActivityIcon className="text-brand-cyan" />, desc: "Сигнали 24/7 з генерацією AI", action: () => handleAction(() => navigateTo('signals')) },
-                { name: "Whale Radar Pro", icon: <RadarIcon className="text-purple-400" />, desc: "Трекінг гаманців китів", action: () => handleAction(() => setShowWhaleRadar(true)) },
-                { name: "Liquidation Heatmap", icon: <ZapIcon className="text-amber-400" />, desc: "Карта ліквідацій ринку", action: () => handleAction(() => setShowLiquidationHeatmap(true)) },
-                { name: "Sentiment Pulse", icon: <SparklesIcon className="text-pink-400" />, desc: "Аналіз настроїв трейдерів", action: () => handleAction(() => setShowSentimentPulse(true)) },
-                { name: "Competitor Matrix", icon: <GlobeIcon className="text-blue-400" />, desc: "Порівняння ринкових інструментів", action: () => handleAction(() => setShowCompetitorMatrix(true)) },
+                { name: "AI Trading Signals", icon: <ActivityIcon className="text-brand-cyan" />, desc: t('hub.signals_desc'), action: () => handleAction(() => navigateTo('signals')) },
+                { name: "Whale Radar Pro", icon: <RadarIcon className="text-purple-400" />, desc: t('hub.whale_radar_desc'), action: () => handleAction(() => setShowWhaleRadar(true)) },
+                { name: "Liquidation Heatmap", icon: <ZapIcon className="text-amber-400" />, desc: t('hub.heatmap_desc'), action: () => handleAction(() => setShowLiquidationHeatmap(true)) },
+                { name: "Sentiment Pulse", icon: <SparklesIcon className="text-pink-400" />, desc: t('hub.sentiment_desc'), action: () => handleAction(() => setShowSentimentPulse(true)) },
+                { name: "Competitor Matrix", icon: <GlobeIcon className="text-blue-400" />, desc: t('hub.matrix_desc'), action: () => handleAction(() => setShowCompetitorMatrix(true)) },
             ]
         },
         {
-            title: "🔍 Сканери & Інструменти",
+            title: t('hub.cat_scanners'),
             items: [
-                { name: "Market Scanner", icon: <RadarIcon className="text-brand-green" />, desc: "Пошук пампів та аномалій", action: () => handleAction(() => navigateTo('scanner')) },
-                { name: "Strategy Builder", icon: <TerminalIcon className="text-amber-300" />, desc: "Конструктор торгових алгоритмів", action: () => handleAction(() => setShowStrategyBuilder(true)) },
-                { name: "Crypto Tax Calculator", icon: <PieChartIcon className="text-emerald-400" />, desc: "Розрахунок податків та PnL", action: () => handleAction(() => setShowTaxCalculator(true)) },
-                { name: "Sentinel Security", icon: <ShieldIcon className="text-red-400" />, desc: "Система захисту депозиту", action: () => handleAction(() => setShowSentinel(true)) },
+                { name: "Market Scanner", icon: <RadarIcon className="text-brand-green" />, desc: t('hub.scanner_desc'), action: () => handleAction(() => navigateTo('scanner')) },
+                { name: "Strategy Builder", icon: <TerminalIcon className="text-amber-300" />, desc: t('hub.strategy_desc'), action: () => handleAction(() => setShowStrategyBuilder(true)) },
+                { name: "Crypto Tax Calculator", icon: <PieChartIcon className="text-emerald-400" />, desc: t('hub.tax_desc'), action: () => handleAction(() => setShowTaxCalculator(true)) },
+                { name: "Sentinel Security", icon: <ShieldIcon className="text-red-400" />, desc: t('hub.sentinel_desc'), action: () => handleAction(() => setShowSentinel(true)) },
             ]
         },
         {
-            title: "📊 Новини & Календар",
+            title: t('hub.cat_news'),
             items: [
-                { name: "Crypto News", icon: <NewspaperIcon className="text-blue-400" />, desc: "Оперативні новини крипторинку", action: () => handleAction(() => navigateTo('news')) },
-                { name: "Economic Calendar", icon: <ZapIcon className="text-amber-400" />, desc: "Макроекономічні події", action: () => handleAction(() => setShowCalendar(true)) },
+                { name: "Crypto News", icon: <NewspaperIcon className="text-blue-400" />, desc: t('hub.news_desc'), action: () => handleAction(() => navigateTo('news')) },
+                { name: "Economic Calendar", icon: <ZapIcon className="text-amber-400" />, desc: t('hub.calendar_desc'), action: () => handleAction(() => setShowCalendar(true)) },
             ]
         },
         {
-            title: "🎁 Нагороди & Реферали",
+            title: t('hub.cat_rewards'),
             items: [
-                { name: "Airdrop Station", icon: <AwardIcon className="text-amber-300" />, desc: "Квести, фарма фарм та Gram", action: () => handleAction(() => setShowAirdrop(true)) },
-                { name: "Referral Program", icon: <UsersIcon className="text-emerald-400" />, desc: "Запрошуй друзів — отримуй %", action: () => handleAction(() => setShowReferral(true)) },
-                { name: "Leaderboard", icon: <SparklesIcon className="text-yellow-400" />, desc: "Топ трейдерів StorkCrypto", action: () => handleAction(() => setShowLeaderboard(true)) },
-                { name: "PRO Membership", icon: <AwardIcon className="text-purple-400" />, desc: "Преміум доступ до AI асистентів", action: () => handleAction(() => setSubscriptionOpen(true)) },
+                { name: "Airdrop Station", icon: <AwardIcon className="text-amber-300" />, desc: t('hub.airdrop_desc'), action: () => handleAction(() => setShowAirdrop(true)) },
+                { name: "Referral Program", icon: <UsersIcon className="text-emerald-400" />, desc: t('hub.referral_desc'), action: () => handleAction(() => setShowReferral(true)) },
+                { name: "Leaderboard", icon: <SparklesIcon className="text-yellow-400" />, desc: t('hub.leaderboard_desc'), action: () => handleAction(() => setShowLeaderboard(true)) },
+                { name: "PRO Membership", icon: <AwardIcon className="text-purple-400" />, desc: t('hub.pro_desc'), action: () => handleAction(() => setSubscriptionOpen(true)) },
             ]
         }
     ];
@@ -118,16 +121,16 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
                             </div>
                             <div>
                                 <h2 id="hub-modal-title" className="font-orbitron font-bold text-sm text-white uppercase tracking-wider">
-                                    StorkCrypto Hub
+                                    {t('hub.title')}
                                 </h2>
                                 <p className="text-[9px] font-mono text-slate-400 uppercase">
-                                    Дворівнева навігація • Всі інструменти
+                                    {t('hub.subtitle')}
                                 </p>
                             </div>
                         </div>
                         <button 
                             onClick={onClose}
-                            aria-label="Закрити StorkCrypto Hub"
+                            aria-label={`Закрити ${t('hub.title')}`}
                             className="w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 flex items-center justify-center text-slate-400 hover:text-white"
                         >
                             ✕
@@ -143,7 +146,7 @@ export const CategorizedHubModal: React.FC<CategorizedHubModalProps> = ({ isOpen
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                                 aria-label="Пошук інструментів"
-                                placeholder="Швидкий пошук інструментів (напр. Аірдроп, Сигнали)..."
+                                placeholder={t('hub.search_placeholder')}
                                 className="w-full pl-9 pr-3 py-2 bg-black/60 border border-white/10 rounded-xl text-xs text-white placeholder:text-slate-500 focus:border-brand-cyan outline-none font-mono"
                             />
                         </div>

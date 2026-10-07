@@ -84,10 +84,10 @@ const InfoModal: React.FC<InfoModalProps> = ({
             
             <div 
                 ref={modalRef}
-                className="relative z-10 w-full max-w-sm bg-brand-card border border-brand-border rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_rgba(0,217,255,0.15)] flex flex-col max-h-[90vh] sm:max-h-[85vh] my-auto"
+                className="relative z-10 w-full max-w-sm bg-[#050b14] border border-brand-cyan/30 rounded-[2.5rem] overflow-hidden shadow-[0_0_50px_rgba(0,217,255,0.25)] flex flex-col max-h-[90vh] sm:max-h-[85vh] my-auto"
             >
                 {/* Header for Info Modal */}
-                <div className="p-5 border-b border-white/5 flex justify-between items-center bg-brand-card/50">
+                <div className="p-5 border-b border-white/10 flex justify-between items-center bg-black/60">
                     <button 
                         ref={closeBtnRef}
                         onClick={() => { triggerHaptic('light'); onClose(); }}

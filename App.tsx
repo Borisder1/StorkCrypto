@@ -89,7 +89,7 @@ const App: React.FC = () => {
         { id: 'signals', label: t('nav.signals'), icon: <ActivityIcon /> }, 
         { id: 'news', label: t('nav.news'), icon: <NewspaperIcon /> }, 
         { id: 'portfolio', label: t('nav.assets'), icon: <PieChartIcon /> }, 
-        { id: 'more', label: 'Більше', icon: <GridIcon /> },
+        { id: 'more', label: t('nav.more'), icon: <GridIcon /> },
     ];
 
     useEffect(() => {

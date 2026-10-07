@@ -327,6 +327,31 @@ export type AcademyLanguage = 'uk' | 'ru' | 'en';
 
 export type DataStatus = 'LIVE' | 'DELAYED' | 'STALE' | 'DEMO' | 'ERROR' | 'LOADING';
 
+export interface DataMeta {
+    status: DataStatus;
+    source: string;
+    fetchedAt: string | null;
+    ageSeconds: number | null;
+    refreshIntervalSeconds: number | null;
+}
+
+export type LessonLocale = {
+    title: string;
+    description: string;
+    bullets: string[];
+    cta: string;
+    videoUrl?: string;
+    sourceUrl: string;
+    spokenLanguage: AcademyLanguage;
+    subtitles: AcademyLanguage[];
+};
+
+export type Lesson = {
+    id: string;
+    level: 'basics' | 'pro';
+    locales: Partial<Record<AcademyLanguage, LessonLocale>>;
+};
+
 export type AcademyVariant = {
     language: AcademyLanguage;
     spokenLanguage: string;
