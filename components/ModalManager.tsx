@@ -135,22 +135,125 @@ const ModalManager: React.FC = () => {
                     </AnimatePresence>
                 </div>
                 
-                {/* Secondary Modals (Z-150+) */}
+                {/* Secondary Modals (Z-150+) - Strictly Single Modal Invariant (active modal count <= 1) */}
                 <div className="relative z-[150]">
-                    <AnimatePresence>
-                        {showReferral && <ReferralModal key="referral" onClose={() => setShowReferral(false)} />}
-                        {showCalendar && <CalendarModal key="calendar" onClose={() => setShowCalendar(false)} />}
-                        {isSubscriptionOpen && <SubscriptionModal key="subscription" onClose={() => setSubscriptionOpen(false)} />}
-                        {showAdInquiry && <AdInquiryModal key="adinquiry" onClose={() => setShowAdInquiry(false)} />}
-                        {showAirdrop && <AirdropModal key="airdrop" onClose={() => setShowAirdrop(false)} />}
-                        {showSentinel && <SentinelModal key="sentinel" onClose={() => setShowSentinel(false)} />}
-                        {showLeaderboard && <LeaderboardModal key="leaderboard" onClose={() => setShowLeaderboard(false)} />}
-                        {showWhaleRadar && <WhaleRadarProModal key="whaleradar" onClose={() => setShowWhaleRadar(false)} />}
-                        {showStrategyBuilder && <StrategyBuilderModal key="strategybuilder" onClose={() => setShowStrategyBuilder(false)} />}
-                        {showSentimentPulse && <SentimentPulseModal key="sentimentpulse" onClose={() => setShowSentimentPulse(false)} />}
-                        {showLiquidationHeatmap && <LiquidationHeatmapModal key="liqheatmap" onClose={() => setShowLiquidationHeatmap(false)} />}
-                        {showTaxCalculator && <TaxCalculatorModal key="taxcalc" onClose={() => setShowTaxCalculator(false)} />}
-                        {showCompetitorMatrix && <CompetitorComparisonModal key="competitormatrix" onClose={() => setShowCompetitorMatrix(false)} />}
+                    <AnimatePresence mode="wait">
+                        {(() => {
+                            // 1. Subscription Exception -> Compact Presentation
+                            if (isSubscriptionOpen) {
+                                return <SubscriptionModal key="subscription" onClose={() => setSubscriptionOpen(false)} />;
+                            }
+                            // 2. All other modals -> Fullscreen Presentation (100vw x 100dvh)
+                            if (showReferral) {
+                                return (
+                                    <div key="referral" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <ReferralModal onClose={() => setShowReferral(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showCalendar) {
+                                return (
+                                    <div key="calendar" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <CalendarModal onClose={() => setShowCalendar(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showAirdrop) {
+                                return (
+                                    <div key="airdrop" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <AirdropModal onClose={() => setShowAirdrop(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showSentinel) {
+                                return (
+                                    <div key="sentinel" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <SentinelModal onClose={() => setShowSentinel(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showLeaderboard) {
+                                return (
+                                    <div key="leaderboard" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <LeaderboardModal onClose={() => setShowLeaderboard(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showWhaleRadar) {
+                                return (
+                                    <div key="whaleradar" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <WhaleRadarProModal onClose={() => setShowWhaleRadar(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showStrategyBuilder) {
+                                return (
+                                    <div key="strategybuilder" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <StrategyBuilderModal onClose={() => setShowStrategyBuilder(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showSentimentPulse) {
+                                return (
+                                    <div key="sentimentpulse" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <SentimentPulseModal onClose={() => setShowSentimentPulse(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showLiquidationHeatmap) {
+                                return (
+                                    <div key="liqheatmap" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <LiquidationHeatmapModal onClose={() => setShowLiquidationHeatmap(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showTaxCalculator) {
+                                return (
+                                    <div key="taxcalc" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <TaxCalculatorModal onClose={() => setShowTaxCalculator(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showCompetitorMatrix) {
+                                return (
+                                    <div key="competitormatrix" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <CompetitorComparisonModal onClose={() => setShowCompetitorMatrix(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            if (showAdInquiry) {
+                                return (
+                                    <div key="adinquiry" className="modal-layer modal-layer--fullscreen">
+                                        <div data-modal-panel className="modal-panel">
+                                            <AdInquiryModal onClose={() => setShowAdInquiry(false)} />
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
                     </AnimatePresence>
                 </div>
 

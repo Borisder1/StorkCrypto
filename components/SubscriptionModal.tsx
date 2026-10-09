@@ -65,7 +65,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         setStep('PAY');
     };
 
-    // Stage 3: Native Telegram Stars Payment
+    // Stage 3: Native Telegram Stars Payment with mandatory server verification
     const handleStarsPayment = async () => {
         if (isProcessingPayment) return;
         setIsProcessingPayment(true);
@@ -73,46 +73,97 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         
         const planPrice = plans.find(p => p.id === selectedPlan)?.price || 0;
         const starsCost = getPriceInStars(planPrice);
-        const currentStars = userStats.telegramStars ?? 500;
 
         setStep('REDIRECT');
 
         try {
-            // Safe execution of Telegram openInvoice with robust fallback
-            let invoiceHandled = false;
             const invoiceUrl = `https://t.me/invoice/${selectedPlan}_STORK_SUB`;
 
-            const opened = safeOpenTelegramInvoice(invoiceUrl, (status: string) => {
-                invoiceHandled = true;
+            const opened = safeOpenTelegramInvoice(invoiceUrl, async (status: string) => {
                 if (!isMountedRef.current) return;
                 setIsProcessingPayment(false);
+
                 if (status === 'paid') {
-                    setStep('VERIFY');
-                    const txId = 'STARS_TG_' + Math.random().toString(36).substring(2, 10).toUpperCase();
-                    setTxHash(txId);
-                    if (selectedPlan) upgradeUserTier(selectedPlan, 30);
-                    showToast('Оплату Stars підтверджено! Активовано 30 днів PRO-доступу.');
+                    // Send to backend verification endpoint (P0-2 requirement)
+                    try {
+                        const tgPayId = 'TG_STARS_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                        const verifyRes = await fetch('/api/payment/verify', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                method: 'STARS',
+                                plan: selectedPlan,
+                                userId: userStats?.id || 'GUEST',
+                                invoicePayload: `${selectedPlan}_STORK_SUB`,
+                                telegramPaymentIdentifier: tgPayId,
+                                amount: starsCost
+                            })
+                        });
+                        const verifyData = await verifyRes.json();
+
+                        if (verifyRes.ok && verifyData.success && verifyData.status === 'CONFIRMED') {
+                            setStep('VERIFY');
+                            setTxHash(tgPayId);
+                            if (selectedPlan) upgradeUserTier(selectedPlan, 30);
+                            showToast('Оплату Stars верифіковано сервером! Активовано 30 днів PRO.');
+                            triggerHaptic('success');
+                        } else {
+                            setStep('PAY');
+                            showToast(verifyData.message || 'Помилка серверної верифікації платежу Stars');
+                            triggerHaptic('error');
+                        }
+                    } catch {
+                        setStep('PAY');
+                        showToast('Збій підтвердження платежу через сервер.');
+                        triggerHaptic('error');
+                    }
                 } else {
-                    // Fallback to in-app Stars balance payment if user cancels invoice
-                    processInAppStarsPayment(starsCost, currentStars);
+                    // User canceled invoice - NO entitlement granted
+                    setStep('PAY');
+                    showToast('Платіж скасовано або не підтверджено.');
+                    triggerHaptic('error');
                 }
             });
 
-            if (opened) {
-                // Give 2.5 seconds for invoice popup, if it fails or doesn't open -> fallback
-                if (fallbackTimerRef.current) clearTimeout(fallbackTimerRef.current);
-                fallbackTimerRef.current = setTimeout(() => {
-                    if (isMountedRef.current && !invoiceHandled && stepRef.current === 'REDIRECT') {
-                        processInAppStarsPayment(starsCost, currentStars);
-                        setIsProcessingPayment(false);
-                    }
-                }, 2500);
-                return;
-            }
+            if (!opened) {
+                // If native invoice cannot open, verify through Stars direct server charge
+                const tgPayId = 'TG_DIRECT_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                const currentStars = userStats.telegramStars ?? 0;
+                
+                if (currentStars < starsCost) {
+                    setIsProcessingPayment(false);
+                    setStep('PAY');
+                    showToast(`Недостатньо Stars: потрібно ${starsCost} ⭐, на балансі ${currentStars} ⭐`);
+                    triggerHaptic('error');
+                    return;
+                }
 
-            // In-App Stars Balance Direct Fallback when openInvoice is unsupported (e.g. Telegram WebApp v6.0)
-            processInAppStarsPayment(starsCost, currentStars);
-            if (isMountedRef.current) {
+                const verifyRes = await fetch('/api/payment/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'STARS',
+                        plan: selectedPlan,
+                        userId: userStats?.id || 'GUEST',
+                        invoicePayload: `${selectedPlan}_STORK_DIRECT`,
+                        telegramPaymentIdentifier: tgPayId,
+                        amount: starsCost
+                    })
+                });
+                const verifyData = await verifyRes.json();
+
+                if (verifyRes.ok && verifyData.success && verifyData.status === 'CONFIRMED') {
+                    updateUserStats({ telegramStars: Math.max(0, currentStars - starsCost) });
+                    if (selectedPlan) upgradeUserTier(selectedPlan, 30);
+                    setStep('VERIFY');
+                    setTxHash(tgPayId);
+                    showToast(`Оплату ${starsCost} ⭐ Stars верифіковано! Доступ активовано.`);
+                    triggerHaptic('success');
+                } else {
+                    setStep('PAY');
+                    showToast(verifyData.message || 'Сервер відхилив платіж');
+                    triggerHaptic('error');
+                }
                 setIsProcessingPayment(false);
             }
 
@@ -125,33 +176,45 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         }
     };
 
-    const processInAppStarsPayment = async (starsCost: number, currentStars: number) => {
-        // If stars balance is less than required, top it up automatically for seamless user experience
-        const finalStars = Math.max(currentStars, starsCost + 100);
-        
-        await new Promise(r => setTimeout(r, 800));
-        if (!isMountedRef.current) return;
-
-        setStep('VERIFY');
-        const mockHash = 'STARS_TX_' + Math.random().toString(36).substring(2, 10).toUpperCase();
-        setTxHash(mockHash);
-        
-        // Deduct stars and upgrade user tier for 30 days
-        updateUserStats({ telegramStars: Math.max(0, finalStars - starsCost) });
-        if (selectedPlan) upgradeUserTier(selectedPlan, 30);
-        showToast(`Успішна оплата ${starsCost} ⭐ Stars! Активовано 30 днів PRO-доступу.`);
-        triggerHaptic('success');
-    };
-
-    const handleManualPaymentNotify = () => {
-        if (!selectedPlan || !txHash) {
-            showToast(t('sub.enter_tx_id'));
+    const handleManualPaymentNotify = async () => {
+        if (!selectedPlan || !txHash || txHash.trim().length < 24) {
+            showToast('Введіть коректний хеш транзакції TON (мінімум 24 символи)');
             triggerHaptic('error');
             return;
         }
-        triggerHaptic('success');
-        requestSubscriptionAction(userStats?.id || 'GUEST', selectedPlan, selectedMethod, txHash);
-        setStep('VERIFY');
+
+        setIsProcessingPayment(true);
+        try {
+            // Server-side on-chain verification & duplicate rejection (P0-2)
+            const res = await fetch('/api/payment/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    method: 'TON',
+                    plan: selectedPlan,
+                    userId: userStats?.id || 'GUEST',
+                    txHash: txHash.trim()
+                })
+            });
+
+            const data = await res.json();
+            setIsProcessingPayment(false);
+
+            if (res.ok && data.success && data.status === 'CONFIRMED') {
+                triggerHaptic('success');
+                if (selectedPlan) upgradeUserTier(selectedPlan, 30);
+                requestSubscriptionAction(userStats?.id || 'GUEST', selectedPlan, selectedMethod, txHash.trim());
+                setStep('VERIFY');
+                showToast('Транзакцію TON успішно верифіковано! Доступ активовано.');
+            } else {
+                triggerHaptic('error');
+                showToast(data.message || 'Помилка верифікації хешу транзакції');
+            }
+        } catch {
+            setIsProcessingPayment(false);
+            triggerHaptic('error');
+            showToast('Помилка з\'єднання з сервером перевірки платежів');
+        }
     };
 
     const getPriceInStars = (usdPrice: number) => {

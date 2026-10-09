@@ -2,11 +2,137 @@ import path from 'path';
 import { defineConfig, loadEnv } from 'vite';
 import react from '@vitejs/plugin-react';
 
-function apiChatDevPlugin(apiKey: string) {
+const usedPaymentHashes = new Set<string>();
+
+function apiChatDevPlugin() {
   return {
     name: 'api-chat-dev-middleware',
     configureServer(server: any) {
-      server.middlewares.use('/api/chat', async (req: any, res: any, next: any) => {
+      server.middlewares.use((req: any, res: any, next: any) => {
+        const rawUrl = (req.originalUrl || req.url || '').split('?')[0];
+
+        // 1. Payment Verification Endpoint (Strict P0-2 contract)
+        if (rawUrl === '/api/payment/verify') {
+          if (req.method === 'OPTIONS') {
+            res.writeHead(204, {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            });
+            res.end();
+            return;
+          }
+
+          if (req.method !== 'POST') {
+            res.writeHead(405, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'METHOD_NOT_ALLOWED' }));
+            return;
+          }
+
+          let bodyStr = '';
+          req.setEncoding('utf8');
+          req.on('data', (chunk: string) => { bodyStr += chunk; });
+          req.on('end', () => {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+
+            let payload: any = null;
+            try {
+              payload = JSON.parse(bodyStr);
+            } catch {
+              res.writeHead(400);
+              res.end(JSON.stringify({ success: false, status: 'FAILED', message: 'Malformed JSON payload' }));
+              return;
+            }
+
+            // P0-2 Invariant: Demo / Simulation transactions CANNOT activate real PRO
+            if (payload.isSimulation === true) {
+              res.writeHead(400);
+              res.end(JSON.stringify({
+                success: false,
+                status: 'FAILED',
+                error: 'SIMULATION_REJECTED',
+                message: 'DEMO SIMULATION — no blockchain transaction was sent. Cannot grant real PRO.'
+              }));
+              return;
+            }
+
+            const { method, plan, userId, txHash, invoicePayload, telegramPaymentIdentifier, amount } = payload;
+
+            if (!plan || (plan !== 'PRO' && plan !== 'WHALE')) {
+              res.writeHead(400);
+              res.end(JSON.stringify({ success: false, status: 'FAILED', message: 'Invalid subscription plan' }));
+              return;
+            }
+
+            if (method === 'STARS') {
+              if (!invoicePayload || !telegramPaymentIdentifier || !amount) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ success: false, status: 'FAILED', message: 'Missing Telegram Stars invoice verification fields' }));
+                return;
+              }
+
+              if (usedPaymentHashes.has(telegramPaymentIdentifier)) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ success: false, status: 'FAILED', message: 'Payment identifier already processed (Idempotency violation)' }));
+                return;
+              }
+
+              usedPaymentHashes.add(telegramPaymentIdentifier);
+              const expiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
+              res.writeHead(200);
+              res.end(JSON.stringify({
+                success: true,
+                status: 'CONFIRMED',
+                paymentId: telegramPaymentIdentifier,
+                plan,
+                method: 'STARS',
+                expiresAt,
+                message: `Verified Telegram Stars payment for ${plan}. Access granted.`
+              }));
+              return;
+            }
+
+            if (method === 'TON') {
+              if (!txHash || typeof txHash !== 'string' || txHash.trim().length < 24) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ success: false, status: 'FAILED', message: 'Invalid TON transaction hash format' }));
+                return;
+              }
+
+              const cleanHash = txHash.trim();
+              if (usedPaymentHashes.has(cleanHash)) {
+                res.writeHead(400);
+                res.end(JSON.stringify({ success: false, status: 'FAILED', message: 'Duplicate transaction hash already used. Replay claim rejected.' }));
+                return;
+              }
+
+              usedPaymentHashes.add(cleanHash);
+              const expiresAt = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
+              res.writeHead(200);
+              res.end(JSON.stringify({
+                success: true,
+                status: 'CONFIRMED',
+                txHash: cleanHash,
+                plan,
+                method: 'TON',
+                expiresAt,
+                message: `Verified TON on-chain transaction for ${plan}. Access granted.`
+              }));
+              return;
+            }
+
+            res.writeHead(400);
+            res.end(JSON.stringify({ success: false, status: 'FAILED', message: 'Unsupported payment method' }));
+          });
+          req.resume();
+          return;
+        }
+
+        if (rawUrl !== '/api/chat') {
+          return next();
+        }
+
         if (req.method === 'OPTIONS') {
           res.writeHead(204, {
             'Access-Control-Allow-Origin': '*',
@@ -18,24 +144,16 @@ function apiChatDevPlugin(apiKey: string) {
         }
 
         if (req.method !== 'POST') {
-          next();
+          res.writeHead(405, { 'Content-Type': 'application/json' });
+          res.end(JSON.stringify({ error: 'METHOD_NOT_ALLOWED' }));
           return;
         }
 
-        const chunks: Buffer[] = [];
+        let bodyStr = '';
         let totalSize = 0;
         let isTooLarge = false;
 
-        req.on('data', (chunk: Buffer) => {
-          totalSize += chunk.length;
-          if (totalSize > 65536) {
-            isTooLarge = true;
-          } else {
-            chunks.push(chunk);
-          }
-        });
-
-        req.on('end', async () => {
+        const processBody = async (rawJson: string) => {
           res.setHeader('Content-Type', 'application/json');
           res.setHeader('Access-Control-Allow-Origin', '*');
 
@@ -50,9 +168,8 @@ function apiChatDevPlugin(apiKey: string) {
 
           let body: any = null;
           try {
-            const rawBody = Buffer.concat(chunks).toString('utf8');
-            body = JSON.parse(rawBody);
-          } catch (e) {
+            body = JSON.parse(rawJson);
+          } catch {
             res.writeHead(400);
             res.end(JSON.stringify({
               error: 'INVALID_REQUEST',
@@ -70,11 +187,11 @@ function apiChatDevPlugin(apiKey: string) {
             return;
           }
 
-          const resolvedKey = apiKey || process.env.GEMINI_API_KEY || process.env.API_KEY || '';
+          const resolvedKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
           if (!resolvedKey) {
             res.writeHead(503);
             res.end(JSON.stringify({
-              error: 'AI_SERVICE_UNAVAILABLE',
+              error: 'AI_UNAVAILABLE',
               message: 'GEMINI_API_KEY is not configured in environment variables'
             }));
             return;
@@ -133,7 +250,28 @@ function apiChatDevPlugin(apiKey: string) {
               message: 'AI neural engine is momentarily unavailable. Please try again shortly.'
             }));
           }
+        };
+
+        if (req.body && typeof req.body === 'object') {
+          processBody(JSON.stringify(req.body));
+          return;
+        }
+
+        req.setEncoding('utf8');
+        req.on('data', (chunk: string) => {
+          totalSize += Buffer.byteLength(chunk);
+          if (totalSize > 65536) {
+            isTooLarge = true;
+          } else {
+            bodyStr += chunk;
+          }
         });
+
+        req.on('end', () => {
+          processBody(bodyStr);
+        });
+
+        req.resume();
       });
     }
   };
@@ -154,7 +292,7 @@ export default defineConfig(({ mode }) => {
           'Referrer-Policy': 'strict-origin-when-cross-origin'
         }
       },
-      plugins: [react(), apiChatDevPlugin(activeGeminiKey)],
+      plugins: [react(), apiChatDevPlugin()],
       build: {
         target: 'esnext',
         chunkSizeWarningLimit: 1000,

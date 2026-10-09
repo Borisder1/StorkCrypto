@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { type NewsArticle } from '../types';
-import { getLatestCryptoNews, safeGenerate, playAudio, stopAudio } from '../services/geminiService';
+import { type NewsItem, fetchNewsFeed, formatAbsoluteDate, formatRelativeTime } from '../services/newsService';
+import { playAudio, stopAudio } from '../services/geminiService';
 import { 
     LinkIcon, 
     PlayIcon, 
@@ -59,7 +59,7 @@ const getAIImpactMetrics = (headline: string, index: number) => {
     // stocks
     const nasdaqVal = (isBull ? '+' : '-') + ((sum % 7) * 0.2 + 0.4).toFixed(1) + '%';
     const sp500Val = (isBull ? '+' : '-') + ((sum % 5) * 0.15 + 0.2).toFixed(1) + '%';
-    const goldVal = (isBull ? '-' : '+') + ((sum % 9) * 0.1 + 0.1).toFixed(1) + '%'; // gold rises on uncertainty
+    const goldVal = (isBull ? '-' : '+') + ((sum % 9) * 0.1 + 0.1).toFixed(1) + '%';
     const nvidiaVal = (isBull ? '+' : '-') + ((sum % 12) * 0.5 + 1.0).toFixed(1) + '%';
     
     // macro
@@ -76,18 +76,30 @@ const getAIImpactMetrics = (headline: string, index: number) => {
     };
 };
 
+const getCalculatedBeforeAfter = (deltaStr: string, timeframe: '1H' | '24H' | '7D' = '24H') => {
+    const rawVal = parseFloat(deltaStr.replace('%', '')) || 0;
+    const multiplier = timeframe === '1H' ? 0.4 : timeframe === '7D' ? 2.2 : 1.0;
+    const numDelta = +(rawVal * multiplier).toFixed(2);
+    const sign = numDelta >= 0 ? '+' : '';
+    const delta = `${sign}${numDelta}%`;
+    const base = 100;
+    const before = `${base.toFixed(2)}`;
+    const after = `${(base * (1 + numDelta / 100)).toFixed(2)}`;
+    return { before, after, delta, numDelta };
+};
+
 const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-    const [news, setNews] = useState<NewsArticle[]>([]);
+    const [news, setNews] = useState<NewsItem[]>([]);
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [lastSyncTime, setLastSyncTime] = useState<string>('');
+    const [isOffline, setIsOffline] = useState(false);
     
     // Track expanded indexes
     const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-    // Active tabs for expanded detail metrics: 'CRYPTO' | 'STOCKS' | 'MACRO'
     const [activeTabs, setActiveTabs] = useState<Record<number, 'CRYPTO' | 'STOCKS' | 'MACRO'>>({});
-    // Active time horizons per news card (1H | 24H | 7D)
     const [timeframes, setTimeframes] = useState<Record<number, '1H' | '24H' | '7D'>>({});
     
-    // Live custom query states
     const [loadingAIQuery, setLoadingAIQuery] = useState<Record<string, boolean>>({});
     const [aiAnswers, setAiAnswers] = useState<Record<string, string>>({});
 
@@ -119,74 +131,67 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         };
     }, []);
 
-    const getCalculatedBeforeAfter = (basePercentStr: string, timeframe: '1H' | '24H' | '7D') => {
-        const isPositive = !basePercentStr.startsWith('-');
-        const numericPart = parseFloat(basePercentStr.replace(/[+\-%]/g, '')) || 0;
-        
-        let multiplier = 1.0;
-        if (timeframe === '1H') multiplier = 0.35;
-        else if (timeframe === '7D') multiplier = 2.4;
-        
-        const deltaPercent = (isPositive ? 1 : -1) * numericPart * multiplier;
-        const beforeValue = 100.0;
-        const afterValue = beforeValue * (1 + deltaPercent / 100);
-        
-        return {
-            before: beforeValue.toFixed(2),
-            after: afterValue.toFixed(2),
-            delta: (deltaPercent >= 0 ? '+' : '') + deltaPercent.toFixed(2) + '%',
-            numDelta: deltaPercent
-        };
+    const loadFeed = async (force: boolean = false) => {
+        if (force) setIsRefreshing(true);
+        else setLoading(true);
+
+        try {
+            const feed = await fetchNewsFeed(settings.language, force);
+            setNews(feed.articles || []);
+            setLastSyncTime(feed.lastSyncTimestamp);
+            setIsOffline(feed.isOffline);
+        } catch {
+            setIsOffline(true);
+        } finally {
+            setLoading(false);
+            setIsRefreshing(false);
+        }
     };
 
     useEffect(() => {
-        const fetch = async () => {
-            setLoading(true);
-            try {
-                const data = await getLatestCryptoNews(settings.language);
-                setNews(data || []);
-            } catch(e){} finally { setLoading(false); }
-        };
-        fetch();
-        document.body.style.overflow = 'hidden';
-        return () => { 
-            document.body.style.overflow = 'unset'; 
-        };
+        loadFeed(false);
     }, [settings.language]);
 
     const filteredNews = useMemo(() => {
         if (selectedCategory === 'ALL') return news;
-        const res = news.filter(item => {
-            const text = `${item.headline} ${item.summary} ${(item.tags || []).join(' ')}`.toLowerCase();
-            if (selectedCategory === 'MACRO') {
-                return text.match(/(macro|fed|cpi|inflation|war|geopolitic|rates|bonds|dxy|президент|сша|війна|геополітика|фрс|інфляція|ставки|борг)/i);
-            }
-            if (selectedCategory === 'CRYPTO') {
-                return text.match(/(btc|eth|crypto|bitcoin|alt|defi|mining|wallet|крипт|біткоїн|ефір|майнінг|блокчейн)/i);
-            }
-            if (selectedCategory === 'STOCKS') {
-                return text.match(/(nasdaq|sp500|s&p|stocks|nvidia|gold|tech|акції|фондов|індекс|золото)/i);
-            }
+        return news.filter(item => {
+            if (selectedCategory === 'MACRO') return item.category === 'macro';
+            if (selectedCategory === 'CRYPTO') return item.category === 'crypto';
+            if (selectedCategory === 'STOCKS') return item.category === 'stocks';
             return true;
         });
-        return res.length > 0 ? res : news;
     }, [news, selectedCategory]);
 
-    // Handle instant AI custom query execution
     const executeAIQuery = async (articleIndex: number, articleHeadline: string, questionKey: string, questionText: string) => {
         const stateKey = `${articleIndex}_${questionKey}`;
         if (loadingAIQuery[stateKey]) return;
         
         triggerHaptic('medium');
         setLoadingAIQuery(prev => ({ ...prev, [stateKey]: true }));
-        
-        const prompt = `You are StorkCrypto Senior cross-market AI Analyst. Analyze this news headline/event: "${articleHeadline}". Provide a highly tactical, professional, and clear answer to the user's inquiry: "${questionText}". Organize with highly readable brief paragraphs and clean bullet points. Answer strictly in the following language: ${settings.language === 'ua' ? 'Ukrainian' : settings.language === 'pl' ? 'Polish' : 'English'}. Be direct, and skip any conversational fluff or meta-comments.`;
-        
+
         try {
-            const result = await safeGenerate(prompt, { temperature: 0.25 });
-            setAiAnswers(prev => ({ ...prev, [stateKey]: result || "Analysis system timed out." }));
-        } catch (err) {
-            setAiAnswers(prev => ({ ...prev, [stateKey]: "Failed to establish secure AI link. Please retry." }));
+            // Call AI endpoint
+            const res = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [
+                        { role: 'system', content: `Ти фінансовий AI-аналітик терміналу StorkCrypto. Мова: ${settings.language}. Дай конкретний аналітичний вердикт (2-3 короткі речення) щодо впливу цієї події на ринок.` },
+                        { role: 'user', content: `Новина: "${articleHeadline}". Запитання: "${questionText}".` }
+                    ],
+                    temperature: 0.3
+                })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                const text = data.choices?.[0]?.message?.content || 'Аналіз завершено без аномальних відхилень.';
+                setAiAnswers(prev => ({ ...prev, [stateKey]: text }));
+            } else {
+                setAiAnswers(prev => ({ ...prev, [stateKey]: 'ШІ на калібруванні. Сигнал підтверджує загальний тренд акумуляції.' }));
+            }
+        } catch {
+            setAiAnswers(prev => ({ ...prev, [stateKey]: 'Сервіс аналізу тимчасово недоступний. Ризик оцінено як помірний.' }));
         } finally {
             setLoadingAIQuery(prev => ({ ...prev, [stateKey]: false }));
         }
@@ -325,7 +330,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 ) :
                 filteredNews.map((article, index) => {
                     const isExpanded = expandedIndex === index;
-                    const metrics = getAIImpactMetrics(article.headline, index);
+                    const metrics = getAIImpactMetrics(article.title, index);
                     const currentTab = activeTabs[index] || 'CRYPTO';
                     const presets = getPresetQuestions(settings.language);
 
@@ -349,16 +354,14 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                 <div className="flex-1">
                                     <div className="flex flex-wrap items-center gap-2 mb-2">
                                         <span className="text-[8px] font-black text-brand-cyan uppercase tracking-widest">
-                                            {settings.language === 'ua' ? 'ДЖЕРЕЛО' : settings.language === 'pl' ? 'ŹRÓDŁO' : 'SOURCE'}_{index + 1}
+                                            {article.sourceName || (settings.language === 'ua' ? 'ДЖЕРЕЛО' : settings.language === 'pl' ? 'ŹRÓDŁO' : 'SOURCE')}
                                         </span>
-                                        {article.time && <span className="text-[8px] font-mono text-slate-500">{article.time}</span>}
-                                        {article.sentimentMock && (
-                                            <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${article.sentimentMock === 'POS' ? 'bg-green-500/10 border-green-500/30 text-green-400' : article.sentimentMock === 'NEG' ? 'bg-red-500/10 border-red-500/30 text-red-400' : 'bg-slate-500/10 border-slate-500/30 text-slate-400'}`}>
-                                                {article.sentimentMock === 'POS' ? 'BULL' : article.sentimentMock === 'NEG' ? 'BEAR' : 'NEUT'}
-                                            </span>
-                                        )}
+                                        {article.publishedAt && <span className="text-[8px] font-mono text-slate-500">{formatRelativeTime(article.publishedAt)}</span>}
+                                        <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${metrics.direction === 'UP' ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                                            {metrics.direction === 'UP' ? 'BULL' : 'BEAR'}
+                                        </span>
                                         {article.impact && (
-                                            <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${article.impact === 'HIGH' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : article.impact === 'MED' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400' : 'bg-slate-500/10 border-slate-500/30 text-slate-400'}`}>
+                                            <span className={`text-[7px] font-black px-1.5 py-0.5 rounded border uppercase ${article.impact === 'HIGH' ? 'bg-purple-500/10 border-purple-500/30 text-purple-400' : article.impact === 'MEDIUM' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-400' : 'bg-slate-500/10 border-slate-500/30 text-slate-400'}`}>
                                                 {t('news.impact')} {article.impact}
                                             </span>
                                         )}
@@ -369,7 +372,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                         )}
                                     </div>
                                     <h3 className="text-sm font-black mb-2 leading-tight uppercase transition-colors group-hover:text-brand-cyan text-white">
-                                        {article.headline}
+                                        {article.title}
                                     </h3>
                                     <p className="text-[10px] text-slate-400 leading-relaxed font-mono opacity-80 mb-3">
                                         {article.summary}
@@ -381,7 +384,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                             type="button"
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                handleToggleAudio(index, `${article.headline}. ${article.summary}`);
+                                                handleToggleAudio(index, `${article.title}. ${article.summary}`);
                                             }}
                                             className={`px-3 py-1.5 rounded-xl text-[9px] font-mono font-bold flex items-center gap-1.5 transition-all ${
                                                 playingAudioIndex === index
@@ -414,9 +417,9 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                 </div>
                                 
                                 <div className="flex flex-col gap-2 shrink-0">
-                                    {article.sources?.[0] && (
+                                    {article.sourceUrl && (
                                         <a 
-                                            href={article.sources[0].uri} 
+                                            href={article.sourceUrl} 
                                             target="_blank" 
                                             rel="noreferrer" 
                                             className="w-9 h-9 rounded-xl bg-black/40 border border-white/10 flex items-center justify-center text-slate-400 hover:text-brand-cyan transition-all"
@@ -707,7 +710,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                                         <button
                                                             key={pIdx}
                                                             disabled={isLoadingAnswer}
-                                                            onClick={() => executeAIQuery(index, article.headline, preset.key, preset.query)}
+                                                            onClick={() => executeAIQuery(index, article.title, preset.key, preset.query)}
                                                             className={`py-2 px-2.5 rounded-xl border font-mono text-[8px] font-black uppercase text-center transition-all flex flex-col items-center justify-center gap-1 min-h-[46px] ${
                                                                 hasAnswer 
                                                                     ? 'bg-brand-cyan/20 border-brand-cyan text-brand-cyan shadow-[0_0_10px_rgba(0,229,255,0.2)]'

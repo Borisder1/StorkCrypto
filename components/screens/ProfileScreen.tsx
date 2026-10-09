@@ -30,7 +30,7 @@ const StatItem: React.FC<{ label: string; value: string; sub: string; color: str
 );
 
 const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-    const { settings, updateSettings, userStats, updateUserStats, assets, exportData, wallet, disconnectWallet, logout, showAdInquiry, setShowAdInquiry, showToast, checkTrialStatus, hasProAccess, redeemXpForPro, setShowLeaderboard } = useStore();
+    const { settings, updateSettings, userStats, updateUserStats, assets, exportData, wallet, disconnectWallet, logout, showAdInquiry, setShowAdInquiry, showToast, checkTrialStatus, hasProAccess, redeemXpForPro, setShowLeaderboard, isSubscriptionOpen, setSubscriptionOpen } = useStore();
     const [avatarUrl, setAvatarUrl] = useState<string | null>(userStats.avatarUrl || localStorage.getItem('stork_user_avatar'));
     
     // Modals state
@@ -42,6 +42,18 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const [showTwoFactor, setShowTwoFactor] = useState(false);
     const [showLegalModal, setShowLegalModal] = useState<'terms' | 'privacy' | null>(null);
     const [strategyStats, setStrategyStats] = useState<Record<string, { wins: number, total: number }>>({});
+
+    // Invariant: Close wallet chooser & all secondary overlays when subscription opens
+    useEffect(() => {
+        if (isSubscriptionOpen || showSubscription) {
+            setShowWalletModal(false);
+            setShowTxHistory(false);
+            setShowAdminPanel(false);
+            setShowAvatarModal(false);
+            setShowTwoFactor(false);
+            setShowLegalModal(null);
+        }
+    }, [isSubscriptionOpen, showSubscription]);
     
     const t = (key: string) => getTranslation(settings.language, key);
     const deviceId = userStats.id;

@@ -1,9 +1,9 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { type AgentAnalysis, type TradingSignal, Asset } from '../../types';
+import { type AgentAnalysis, type TradingSignal, Asset, DataMeta } from '../../types';
 import { generateTradingSignals } from '../../services/geminiService';
-import { scanMarket } from '../../services/priceService';
+import { scanMarket, MASTER_ASSET_LIST, getCryptoPrices, getInitialPrices, formatCryptoPrice } from '../../services/priceService';
 import { ActivityIcon, RadarIcon, ShieldIcon, BotIcon, ChevronRightIcon, TrendingUpIcon, SearchIcon, ZapIcon, InfoIcon } from '../icons';
 import { useStore } from '../../store';
 import AssetDetailModal from '../AssetDetailModal';
@@ -204,10 +204,80 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
     
     const [analysis, setAnalysis] = useState<AgentAnalysis | null>(null);
     const [loading, setLoading] = useState(true);
-    const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
-    const [searchTerm, setSearchTerm] = useState('');
     const [isSniperMode, setIsSniperMode] = useState(false);
     
+    // Search and Filter State (P1-1 Requirement)
+    const [searchTerm, setSearchTerm] = useState('');
+    const [activeFilter, setActiveFilter] = useState<'ALL' | 'SCALP' | 'SWING' | 'FAVORITES' | 'L1' | 'MEME' | 'AI' | 'DEFI'>('ALL');
+    const [viewMode, setViewMode] = useState<'TERMINAL' | 'SIGNALS'>('TERMINAL');
+    const [prices, setPrices] = useState(getInitialPrices);
+    const [dataMeta, setDataMeta] = useState<DataMeta>({
+        status: 'LIVE',
+        source: 'Binance API v3',
+        fetchedAt: new Date().toISOString(),
+        ageSeconds: 0,
+        refreshIntervalSeconds: 20
+    });
+
+    // Favorites persistence
+    const [favorites, setFavorites] = useState<Set<string>>(() => {
+        try {
+            const raw = localStorage.getItem('stork_terminal_favs');
+            return raw ? new Set(JSON.parse(raw)) : new Set(['BTC', 'ETH', 'TON', 'SOL']);
+        } catch {
+            return new Set(['BTC', 'ETH', 'TON', 'SOL']);
+        }
+    });
+
+    const toggleFavorite = (ticker: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        triggerHaptic('light');
+        setFavorites(prev => {
+            const next = new Set(prev);
+            if (next.has(ticker)) next.delete(ticker);
+            else next.add(ticker);
+            try {
+                localStorage.setItem('stork_terminal_favs', JSON.stringify(Array.from(next)));
+            } catch {}
+            return next;
+        });
+    };
+
+    // Live Prices Polling
+    useEffect(() => {
+        let isMounted = true;
+        const loadPrices = async () => {
+            try {
+                const fresh = await getCryptoPrices();
+                if (isMounted) {
+                    setPrices(fresh);
+                    setDataMeta({
+                        status: 'LIVE',
+                        source: 'Binance API v3',
+                        fetchedAt: new Date().toISOString(),
+                        ageSeconds: 2,
+                        refreshIntervalSeconds: 20
+                    });
+                }
+            } catch {
+                if (isMounted) {
+                    setDataMeta(prev => ({
+                        ...prev,
+                        status: 'STALE',
+                        ageSeconds: (prev.ageSeconds || 0) + 20
+                    }));
+                }
+            }
+        };
+
+        loadPrices();
+        const pInterval = setInterval(loadPrices, 20000);
+        return () => {
+            isMounted = false;
+            clearInterval(pInterval);
+        };
+    }, []);
+
     const [selectedSignalAsset, setSelectedSignalAsset] = useState<Asset | null>(null);
     const [selectedSignal, setSelectedSignal] = useState<TradingSignal | null>(null);
     const [showInfo, setShowInfo] = useState(false);
@@ -242,7 +312,7 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
         } finally {
             setLoading(false);
         }
-    }, [settings, marketRegime]);
+    }, [settings, marketRegime, updateQuestProgress]);
 
     useEffect(() => {
         refreshTerminal(isSniperMode);
@@ -255,7 +325,6 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
         if (isSniperMode) {
             setIsSniperMode(false);
         } else {
-            // SNIPER MODE ЗАБЛОКОВАНО ДЛЯ ВСІХ, ОКРІМ WHALE
             if (userStats.subscriptionTier === 'WHALE') {
                 setIsSniperMode(true);
                 refreshTerminal(true);
@@ -266,15 +335,28 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
         }
     };
 
-    const filteredSignals = useMemo(() => {
-        if (!analysis?.signals) return [];
-        return analysis.signals.filter(s => {
-            if (searchTerm && !s.asset.includes(searchTerm)) return false;
-            if (isSniperMode && s.confidence < 85) return false;
-            if (activeFilters.size === 0) return true;
-            return activeFilters.has(s.asset) || activeFilters.has(s.strategy_type);
+    // Filtered Full Catalog (P1-1 Requirement: count >= 20, searchable, category/scalp/swing filters)
+    const filteredAssets = useMemo(() => {
+        const query = searchTerm.trim().toLowerCase();
+        return MASTER_ASSET_LIST.filter(item => {
+            const matchesSearch = !query || 
+                item.ticker.toLowerCase().includes(query) || 
+                item.name.toLowerCase().includes(query);
+            if (!matchesSearch) return false;
+
+            const priceData = prices[item.id];
+            const change24h = Math.abs(priceData?.usd_24h_change || 0);
+
+            if (activeFilter === 'FAVORITES') return favorites.has(item.ticker);
+            if (activeFilter === 'SCALP') return change24h >= 3.0; // Scalping on high volatility
+            if (activeFilter === 'SWING') return change24h < 3.0;  // Swing on stability
+            if (activeFilter === 'L1') return item.category === 'L1';
+            if (activeFilter === 'MEME') return item.category === 'Meme';
+            if (activeFilter === 'AI') return item.category === 'AI';
+            if (activeFilter === 'DEFI') return item.category === 'DeFi';
+            return true;
         });
-    }, [analysis, activeFilters, searchTerm, isSniperMode]);
+    }, [searchTerm, activeFilter, prices, favorites]);
 
     return (
         <motion.div 
@@ -282,7 +364,7 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className={`fixed inset-0 z-[110] flex flex-col overflow-hidden transition-all duration-700 h-[100vh] w-full ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}
+            className={`fixed inset-0 z-[110] flex flex-col overflow-hidden transition-all duration-700 h-[100dvh] w-full ${isSniperMode ? 'bg-[#1a0505]' : 'bg-brand-bg'}`}
         >
             <TacticalBackground />
             
@@ -293,81 +375,264 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
                 </div>
             )}
 
-            <div className="flex items-center justify-between px-6 pt-8 mb-6 relative z-20 shrink-0">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 pt-8 mb-4 relative z-20 shrink-0">
                 <div>
                     <h1 className={`font-orbitron text-xl sm:text-2xl font-black tracking-tighter uppercase italic flex items-center gap-2 ${isSniperMode ? 'text-red-500' : 'text-white'}`}>
                         {isSniperMode ? t('signals.sniper_mode') : t('signals.terminal')}
-                        <button onClick={() => setShowInfo(true)} aria-label="Інформація про торгові сигнали">
-                            <InfoIcon className={`w-5 h-5 ${isSniperMode ? 'text-red-500' : 'text-slate-500'}`} />
+                        <button onClick={() => setShowInfo(true)} aria-label="Інформація про торговий термінал" className="focus-visible:ring-2 focus-visible:ring-brand-cyan rounded-lg p-0.5">
+                            <InfoIcon className={`w-5 h-5 ${isSniperMode ? 'text-red-500' : 'text-slate-400'}`} />
                         </button>
                         <HelpIndicator id="arbitrage_radar" />
                     </h1>
                     <div className="flex items-center gap-2 mt-1">
-                        <div className={`w-2 h-2 rounded-full ${loading ? 'bg-yellow-500 animate-pulse' : isSniperMode ? 'bg-red-500 shadow-[0_0_10px_#ef4444]' : 'bg-brand-green shadow-[0_0_10px_#22c55e]'}`}></div>
-                        <p className={`text-[10px] font-mono uppercase tracking-[0.3em] font-black ${isSniperMode ? 'text-red-400' : 'text-slate-500'}`}>
-                            {isSniperMode ? t('signals.whale_lock') : t('signals.neural_pulse')}
+                        <div className={`w-2 h-2 rounded-full ${loading ? 'bg-yellow-500 animate-pulse' : dataMeta.status === 'LIVE' ? 'bg-brand-green shadow-[0_0_10px_#22c55e]' : 'bg-yellow-500'}`}></div>
+                        <p className={`text-[10px] font-mono uppercase tracking-[0.2em] font-black ${isSniperMode ? 'text-red-400' : 'text-slate-400'}`}>
+                            {dataMeta.status} · {dataMeta.source} · {filteredAssets.length} АКТИВІВ
                         </p>
                     </div>
                 </div>
                 
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                     <button 
                         onClick={toggleSniperMode}
                         aria-label="Перемкнути режим снайпера"
-                        className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-xl ${isSniperMode ? 'bg-red-600 text-white shadow-red-500/40 rotate-90' : 'bg-brand-card border border-white/10 text-slate-400'}`}
+                        className={`w-11 h-11 sm:w-12 sm:h-12 rounded-2xl flex items-center justify-center transition-all duration-500 shadow-xl ${isSniperMode ? 'bg-red-600 text-white shadow-red-500/40 rotate-90' : 'bg-brand-card border border-white/10 text-slate-400 hover:text-white'}`}
                     >
-                        <RadarIcon className="w-5 h-5 sm:w-6 sm:h-6" />
+                        <RadarIcon className="w-5 h-5" />
                     </button>
                     <button 
                         onClick={() => { triggerHaptic('medium'); onClose?.(); }} 
                         aria-label="Закрити термінал сигналів"
-                        className="w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-brand-card border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-xl"
+                        className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-brand-card border border-white/10 flex items-center justify-center text-slate-400 hover:text-white transition-all shadow-xl"
                     >
                         <span className="text-lg font-bold">✕</span>
                     </button>
                 </div>
             </div>
 
-            <div className="px-6 relative z-10 flex-1 overflow-y-auto no-scrollbar pb-32">
+            <div className="px-6 relative z-10 flex-1 overflow-y-auto custom-scrollbar pb-32">
                 <RadarHUD score={analysis?.market_sentiment_score || 74} phase={marketRegime !== 'UNKNOWN' ? marketRegime : (analysis?.market_phase || t('signals.scanning_short'))} loading={loading} t={t} />
-                
-                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-6 mb-2">
-                    {['ALL', 'BTC', 'ETH', 'SOL', 'SCALP', 'SWING'].map(f => (
-                        <FilterChip key={f} label={f} active={f === 'ALL' ? activeFilters.size === 0 : activeFilters.has(f)} onClick={() => {
-                            triggerHaptic('light');
-                            if (f === 'ALL') setActiveFilters(new Set());
-                            else {
-                                const n = new Set(activeFilters);
-                                if (n.has(f)) n.delete(f); else n.add(f);
-                                setActiveFilters(n);
-                            }
-                        }} color={f === 'BTC' ? 'purple' : 'cyan'} />
+
+                {/* View Switcher: Terminal Catalog (>=20) vs AI Signals */}
+                <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-2xl mb-4" role="tablist" aria-label="Режими терміналу">
+                    <button
+                        role="tab"
+                        aria-selected={viewMode === 'TERMINAL'}
+                        onClick={() => { triggerHaptic('selection'); setViewMode('TERMINAL'); }}
+                        className={`flex-1 py-2.5 rounded-xl text-[10px] font-orbitron font-black uppercase tracking-wider transition-all ${viewMode === 'TERMINAL' ? 'bg-brand-cyan text-black shadow-lg shadow-brand-cyan/20' : 'text-slate-400 hover:text-white'}`}
+                    >
+                        ⚡ Всі Активи ({filteredAssets.length})
+                    </button>
+                    <button
+                        role="tab"
+                        aria-selected={viewMode === 'SIGNALS'}
+                        onClick={() => { triggerHaptic('selection'); setViewMode('SIGNALS'); }}
+                        className={`flex-1 py-2.5 rounded-xl text-[10px] font-orbitron font-black uppercase tracking-wider transition-all ${viewMode === 'SIGNALS' ? 'bg-brand-purple text-white shadow-lg shadow-brand-purple/20' : 'text-slate-400 hover:text-white'}`}
+                    >
+                        🎯 AI Сценарії ({analysis?.signals?.length || 0})
+                    </button>
+                </div>
+
+                {/* Search Bar (P1-1 Requirement: search TON, search DOGE) */}
+                <div className="relative mb-4">
+                    <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                        type="text"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        placeholder="Пошук монети (TON, DOGE, SOL, BTC, PEPE)..."
+                        aria-label="Пошук криптовалюти в терміналі"
+                        className="w-full pl-11 pr-10 py-3 bg-black/50 border border-white/10 rounded-2xl text-xs font-mono text-white placeholder-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan transition-all"
+                    />
+                    {searchTerm && (
+                        <button 
+                            onClick={() => setSearchTerm('')} 
+                            aria-label="Очистити пошук"
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-white/10 text-slate-400 flex items-center justify-center hover:text-white text-xs"
+                        >
+                            ✕
+                        </button>
+                    )}
+                </div>
+
+                {/* Filter Chips (SCALP, SWING, FAVORITES, CATEGORIES) */}
+                <div className="flex gap-2 overflow-x-auto no-scrollbar pb-4 mb-2" role="group" aria-label="Фільтри активів">
+                    {(['ALL', 'SCALP', 'SWING', 'FAVORITES', 'L1', 'MEME', 'AI', 'DEFI'] as const).map(f => (
+                        <FilterChip 
+                            key={f} 
+                            label={f === 'FAVORITES' ? '⭐ Обрані' : f} 
+                            active={activeFilter === f} 
+                            onClick={() => {
+                                triggerHaptic('light');
+                                setActiveFilter(f);
+                            }} 
+                            color={f === 'FAVORITES' ? 'purple' : f === 'SCALP' ? 'red' : 'cyan'} 
+                        />
                     ))}
                 </div>
 
-                <div className="space-y-2">
-                    {loading && !analysis ? (
-                        Array.from({length: 3}).map((_, i) => <div key={i} className="h-44 w-full bg-brand-card/40 border border-white/5 rounded-[2rem] animate-pulse mb-4"></div>)
-                    ) : (
-                        filteredSignals.map((signal, idx) => (
-                            <HybridSignalCard 
-                                key={idx} 
-                                signal={signal} 
-                                isSniper={isSniperMode}
-                                t={t}
-                                onClick={() => {
-                                    triggerHaptic('selection');
-                                    setSelectedSignalAsset({ name: signal.asset, ticker: signal.asset, icon: signal.asset.toLowerCase(), amount: 0, value: signal.entryPrice, change: 0 });
-                                    setSelectedSignal(signal);
-                                }}
-                            />
-                        ))
-                    )}
-                </div>
+                {/* Content: Terminal Asset Catalog */}
+                {viewMode === 'TERMINAL' && (
+                    <div className="space-y-2.5">
+                        {filteredAssets.length === 0 ? (
+                            <div className="py-12 text-center bg-black/30 border border-white/5 rounded-3xl p-6">
+                                <SearchIcon className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+                                <p className="font-orbitron font-bold text-sm text-slate-400">АКТИВІВ НЕ ЗНАЙДЕНО</p>
+                                <p className="text-[10px] font-mono text-slate-600 mt-1">Спробуйте змінити фільтр або запит пошуку</p>
+                            </div>
+                        ) : (
+                            filteredAssets.map((asset) => {
+                                const pData = prices[asset.id];
+                                const priceVal = pData?.usd || 0;
+                                const change24h = pData?.usd_24h_change || 0;
+                                const isPos = change24h >= 0;
+                                const isFav = favorites.has(asset.ticker);
+                                const strategyTag = Math.abs(change24h) >= 3.0 ? 'SCALP' : 'SWING';
+
+                                return (
+                                    <div 
+                                        key={asset.ticker}
+                                        role="button"
+                                        tabIndex={0}
+                                        aria-label={`Відкрити графік ${asset.name} (${asset.ticker}): ${formatCryptoPrice(priceVal)}, 24h: ${isPos ? '+' : ''}${change24h.toFixed(2)}%`}
+                                        onClick={() => {
+                                            triggerHaptic('selection');
+                                            setSelectedSignalAsset({
+                                                ticker: asset.ticker,
+                                                name: asset.name,
+                                                icon: asset.ticker.toLowerCase(),
+                                                amount: 0,
+                                                value: priceVal,
+                                                change: change24h
+                                            });
+                                        }}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' || e.key === ' ') {
+                                                e.preventDefault();
+                                                setSelectedSignalAsset({
+                                                    ticker: asset.ticker,
+                                                    name: asset.name,
+                                                    icon: asset.ticker.toLowerCase(),
+                                                    amount: 0,
+                                                    value: priceVal,
+                                                    change: change24h
+                                                });
+                                            }
+                                        }}
+                                        className="relative bg-[#050b14]/80 backdrop-blur-md border border-white/10 hover:border-brand-cyan/40 rounded-2xl p-4 flex items-center justify-between transition-all hover:scale-[1.01] active:scale-[0.99] group cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
+                                    >
+                                        <div className="flex items-center gap-3.5">
+                                            {/* Token Avatar with fallback */}
+                                            <div className="w-11 h-11 rounded-xl bg-black/60 border border-white/10 flex items-center justify-center p-2 relative shrink-0">
+                                                <img 
+                                                    src={`https://assets.coincap.io/assets/icons/${asset.ticker.toLowerCase()}@2x.png`} 
+                                                    alt={asset.ticker} 
+                                                    className="w-full h-full object-contain"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLElement).style.display = 'none';
+                                                        if (e.currentTarget.parentElement) {
+                                                            e.currentTarget.parentElement.innerHTML = `<span class="font-orbitron font-black text-xs text-brand-cyan">${asset.ticker.slice(0, 3)}</span>`;
+                                                        }
+                                                    }}
+                                                />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-orbitron font-black text-sm text-white group-hover:text-brand-cyan transition-colors">{asset.ticker}</span>
+                                                    <span className="text-[9px] font-mono uppercase px-1.5 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5">{asset.category}</span>
+                                                    <span className={`text-[8px] font-mono font-black uppercase px-1.5 py-0.5 rounded ${strategyTag === 'SCALP' ? 'bg-red-500/20 text-red-400 border border-red-500/30' : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'}`}>
+                                                        {strategyTag}
+                                                    </span>
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 font-sans truncate max-w-[140px] sm:max-w-[200px]">{asset.name}</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-right">
+                                                <p className="font-mono font-black text-sm text-white">{formatCryptoPrice(priceVal)}</p>
+                                                <p className={`text-[10px] font-mono font-bold flex items-center justify-end gap-0.5 ${isPos ? 'text-brand-green' : 'text-brand-danger'}`}>
+                                                    {isPos ? '+' : ''}{change24h.toFixed(2)}%
+                                                </p>
+                                            </div>
+
+                                            {/* Favorite toggle */}
+                                            <button 
+                                                onClick={(e) => toggleFavorite(asset.ticker, e)}
+                                                aria-label={isFav ? `Видалити ${asset.ticker} з обраного` : `Додати ${asset.ticker} в обране`}
+                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors border ${isFav ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40' : 'bg-white/5 text-slate-500 border-white/5 hover:text-white'}`}
+                                            >
+                                                ★
+                                            </button>
+                                        </div>
+                                    </div>
+                                );
+                            })
+                        )}
+                    </div>
+                )}
+
+                {/* Content: AI Tactical Signals */}
+                {viewMode === 'SIGNALS' && (
+                    <div className="space-y-4">
+                        {loading && !analysis ? (
+                            Array.from({length: 3}).map((_, i) => <div key={i} className="h-44 w-full bg-brand-card/40 border border-white/5 rounded-[2rem] animate-pulse mb-4"></div>)
+                        ) : (
+                            (analysis?.signals || []).map((signal, idx) => (
+                                <div 
+                                    key={idx}
+                                    role="button"
+                                    tabIndex={0}
+                                    onClick={() => {
+                                        triggerHaptic('selection');
+                                        setSelectedSignalAsset({ name: signal.asset, ticker: signal.asset, icon: signal.asset.toLowerCase(), amount: 0, value: signal.entryPrice, change: 0 });
+                                        setSelectedSignal(signal);
+                                    }}
+                                    className="p-5 bg-black/60 border border-brand-purple/40 rounded-3xl relative overflow-hidden group hover:border-brand-purple active:scale-[0.99] transition-all cursor-pointer"
+                                >
+                                    <div className="flex justify-between items-start mb-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-brand-purple/20 border border-brand-purple/30 flex items-center justify-center font-orbitron font-black text-xs text-brand-purple">
+                                                {signal.asset}
+                                            </div>
+                                            <div>
+                                                <h4 className="font-orbitron font-black text-sm text-white">{signal.asset} // {signal.signal_type}</h4>
+                                                <p className="text-[10px] font-mono text-slate-400">{signal.strategy_type} · TF: {signal.timeframe}</p>
+                                            </div>
+                                        </div>
+                                        <span className={`px-2.5 py-1 rounded-full text-[9px] font-mono font-black ${signal.signal_type === 'LONG' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                                            CONF: {signal.confidence}%
+                                        </span>
+                                    </div>
+                                    <p className="text-xs text-slate-300 font-sans mb-3">{signal.technical_summary}</p>
+                                    <div className="flex justify-between text-[10px] font-mono text-slate-400 bg-white/5 p-2 rounded-xl border border-white/5">
+                                        <span>ВХІД: ${signal.entryPrice}</span>
+                                        <span className="text-brand-green">TP: ${signal.takeProfit}</span>
+                                        <span className="text-brand-danger">SL: ${signal.stopLoss}</span>
+                                    </div>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                )}
             </div>
 
-            {selectedSignalAsset && <AssetDetailModal asset={selectedSignalAsset} signal={selectedSignal} onClose={() => { setSelectedSignalAsset(null); setSelectedSignal(null); }} />}
-            {showInfo && <InfoModal title={t('signals.info_title')} description={t('signals.info_desc')} features={[t('signals.info_feat_1'), t('signals.info_feat_2'), t('signals.info_feat_3')]} onClose={() => setShowInfo(false)} />}
+            {selectedSignalAsset && (
+                <AssetDetailModal 
+                    asset={selectedSignalAsset} 
+                    signal={selectedSignal} 
+                    onClose={() => { setSelectedSignalAsset(null); setSelectedSignal(null); }} 
+                />
+            )}
+            {showInfo && (
+                <InfoModal 
+                    title={t('signals.info_title')} 
+                    description={t('signals.info_desc')} 
+                    features={[t('signals.info_feat_1'), t('signals.info_feat_2'), t('signals.info_feat_3')]} 
+                    onClose={() => setShowInfo(false)} 
+                />
+            )}
         </motion.div>
     );
 };
