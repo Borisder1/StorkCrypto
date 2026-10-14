@@ -235,21 +235,6 @@ export const resolveModelName = (name?: string): string => {
     }
     return name;
 };
-
-let aiClient: any = null;
-
-const getGenAI = () => {
-    if (!aiClient) {
-        const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
-        if (apiKey) {
-            aiClient = new GoogleGenAI({ apiKey });
-        } else {
-            console.warn("GEMINI_API_KEY is not defined in the environment.");
-        }
-    }
-    return aiClient;
-};
-
 // Simple in-memory response cache & rate limiting protection
 interface CacheEntry {
     data: any;
@@ -283,122 +268,7 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
         return result;
     };
 
-    // 1. Try official Google GenAI SDK first as per gemini-api skill instructions
-    try {
-        const ai = getGenAI();
-        if (ai) {
-            const geminiConfig: any = {};
-            if (config?.systemInstruction) {
-                geminiConfig.systemInstruction = config.systemInstruction;
-            }
-            if (config?.responseMimeType) {
-                geminiConfig.responseMimeType = config.responseMimeType;
-            }
-            if (config?.tools) {
-                geminiConfig.tools = config.tools;
-            }
-            if (config?.temperature !== undefined) {
-                geminiConfig.temperature = config.temperature;
-            }
-
-            const contents: any[] = [];
-            if (history && history.length > 0) {
-                history.forEach((h: any) => {
-                    contents.push({
-                        role: h.role === 'model' ? 'model' : 'user',
-                        parts: [{ text: h.text }]
-                    });
-                });
-            }
-            contents.push({
-                role: 'user',
-                parts: [{ text: prompt }]
-            });
-
-            // Map model names to valid Gemini models (prefer gemini-3.6-flash for maximum reliability & intelligence)
-            const resolvedModelName = resolveModelName(modelName);
-
-            const response = await ai.models.generateContent({
-                model: resolvedModelName,
-                contents,
-                config: geminiConfig,
-            });
-
-            const resultText = response.text || "NO_DATA_PACKET";
-
-            if (config.responseMimeType === 'application/json' && typeof resultText === 'string') {
-                const parsed = parseCleanJSON(resultText);
-                if (parsed !== null) return setCache(parsed);
-            }
-            return setCache(resultText);
-        }
-    } catch (sdkError) {
-        console.warn("[AI] Primary SDK call failed, attempting fallback...", sdkError);
-    }
-
-    // 2. Try direct Google Gemini REST API fallback
-    try {
-        const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY;
-        if (apiKey) {
-            const resolvedModelName = resolveModelName(modelName);
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/${resolvedModelName}:generateContent?key=${apiKey}`;
-            
-            const restContents: any[] = [];
-            if (history && history.length > 0) {
-                history.forEach((h: any) => {
-                    restContents.push({
-                        role: h.role === 'model' ? 'model' : 'user',
-                        parts: [{ text: h.text }]
-                    });
-                });
-            }
-            restContents.push({
-                role: 'user',
-                parts: [{ text: prompt }]
-            });
-
-            const reqBody: any = {
-                contents: restContents,
-                generationConfig: {}
-            };
-
-            if (config?.systemInstruction) {
-                reqBody.systemInstruction = {
-                    parts: [{ text: config.systemInstruction }]
-                };
-            }
-            if (config?.responseMimeType) {
-                reqBody.generationConfig.responseMimeType = config.responseMimeType;
-            }
-            if (config?.temperature !== undefined) {
-                reqBody.generationConfig.temperature = config.temperature;
-            }
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(reqBody)
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "NO_DATA_PACKET";
-                if (config.responseMimeType === 'application/json' && typeof resultText === 'string') {
-                    const parsed = parseCleanJSON(resultText);
-                    if (parsed !== null) return parsed;
-                }
-                return resultText;
-            } else {
-                console.warn("[AI] Gemini REST API fallback failed with status:", response.status);
-            }
-        }
-    } catch (restError) {
-        console.warn("[AI] Gemini REST API fallback failed:", restError);
-    }
-
-    // 3. Fallback to Cloudflare, NVIDIA API, or local deterministic intelligence
+    // 1. Primary path: Call secure server-side proxy route /api/chat
     try {
         let messages = [];
         if (config?.systemInstruction) {
@@ -406,10 +276,10 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
         }
 
         if (history && history.length > 0) {
-          messages.push(...history.map((h: any) => ({
-            role: h.role === 'model' ? 'assistant' : 'user',
-            content: h.text
-          })));
+            messages.push(...history.map((h: any) => ({
+                role: h.role === 'model' ? 'assistant' : 'user',
+                content: h.text
+            })));
         }
         
         messages.push({ role: 'user', content: prompt });
@@ -442,8 +312,11 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
                 if (reasoning) {
                     resultText = `<thinking>\n${reasoning}\n</thinking>\n${resultText}`;
                 }
-                if (config.responseMimeType === 'application/json' && typeof resultText === 'string') return parseCleanJSON(resultText);
-                return resultText;
+                if (config.responseMimeType === 'application/json' && typeof resultText === 'string') {
+                    const parsed = parseCleanJSON(resultText);
+                    if (parsed !== null) return setCache(parsed);
+                }
+                return setCache(resultText);
             } else {
                 console.warn(`[AI] /api/chat responded with status HTTP ${response.status}`);
             }
@@ -452,10 +325,10 @@ export const safeGenerate = async (prompt: string, config: any = {}, maxRetries 
             console.warn("[AI] /api/chat fetch aborted or network error:", fetchErr?.message || fetchErr);
         }
     } catch (e) {
-        console.warn("[AI] Cloudflare/Nvidia API call failed quietly. Engaging local deterministic AI engine.");
+        console.warn("[AI] Server-side AI call failed. Engaging local deterministic AI engine.");
     }
 
-    // Engaging local deterministic AI output as ultimate safe fallback
+    // 2. Safe fallback: Engaging local deterministic AI output
     return localDeterministicAI(prompt, config);
 };
 

@@ -17,10 +17,25 @@ const AdminDashboard: React.FC<AdminDashboardProps> = ({ onClose }) => {
         settings, updateSettings, showToast, toggleMaintenance, updateSubscriptionPrice, maintenanceMode, 
         processSubscriptionRequest, fetchPendingSubscriptions, sendBroadcast,
         partnerTasks, addPartnerTask, removePartnerTask,
-        activeBanners, addBanner, removeBanner
+        activeBanners, addBanner, removeBanner, userStats
     } = useStore();
     
     const t = (key: string) => getTranslation(settings.language, key);
+
+    if (!userStats.serverVerifiedAdmin || userStats.role !== 'ADMIN') {
+        return (
+            <div className="fixed inset-0 z-[150] bg-black/90 backdrop-blur-xl flex items-center justify-center p-6">
+                <div className="bg-brand-card/90 border border-brand-danger/40 p-6 rounded-2xl max-w-sm w-full text-center space-y-4">
+                    <ShieldIcon className="w-12 h-12 text-brand-danger mx-auto" />
+                    <h3 className="font-orbitron font-bold text-white text-base uppercase">Access Denied</h3>
+                    <p className="text-xs text-slate-400 font-mono">Server-side admin authorization required. Session unverified.</p>
+                    <button onClick={onClose} aria-label="Закрити" className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-mono">
+                        Close
+                    </button>
+                </div>
+            </div>
+        );
+    }
     
     const [activeTab, setActiveTab] = useState<'SYSTEM' | 'FINANCE' | 'APPROVALS' | 'USERS' | 'BROADCAST' | 'CAMPAIGNS' | 'ANALYTICS'>('SYSTEM');
     const [users, setUsers] = useState<any[]>([]);

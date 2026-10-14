@@ -23,8 +23,15 @@ const CopyStrategyModal: React.FC<CopyStrategyModalProps> = ({ trader, onClose }
 
     useEffect(() => {
         document.body.style.overflow = 'hidden';
-        return () => { document.body.style.overflow = 'unset'; };
-    }, []);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.key === 'Escape') onClose();
+        };
+        window.addEventListener('keydown', handleKeyDown);
+        return () => { 
+            document.body.style.overflow = 'unset'; 
+            window.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [onClose]);
 
     const handleDeploy = async () => {
         if (!collateral || !wallet.isConnected) {
@@ -40,27 +47,25 @@ const CopyStrategyModal: React.FC<CopyStrategyModalProps> = ({ trader, onClose }
             await new Promise(r => setTimeout(r, 1200));
             setStage('DEPOSIT');
             
-            // Demo Smart Contract Simulation
+            // Demo Strategy Simulation
             const result = await walletService.sendTransaction("0xSyndicateVault", collateral, wallet.chain as any);
             
-            if (result.success) {
-                setIsSimulation(!!result.isSimulation);
-                setTxHash(result.hash || null);
-                triggerHaptic('success');
-                
-                // Finalize in Store
-                copyTrader(trader, {
-                    collateral: parseFloat(collateral),
-                    stopLossPercent: parseFloat(stopLoss),
-                    takeProfitPercent: parseFloat(takeProfit),
-                    status: 'ACTIVE',
-                    currentPnL: 0
-                });
-                
-                setStage('SUCCESS');
-                setTimeout(onClose, 2500);
-                showToast(`Vault Deployed (Demo): ${trader.name}`);
-            }
+            setIsSimulation(true);
+            setTxHash(result.hash || null);
+            triggerHaptic('success');
+            
+            // Finalize in Store as demo simulation
+            copyTrader(trader, {
+                collateral: parseFloat(collateral),
+                stopLossPercent: parseFloat(stopLoss),
+                takeProfitPercent: parseFloat(takeProfit),
+                status: 'ACTIVE',
+                currentPnL: 0
+            });
+            
+            setStage('SUCCESS');
+            setTimeout(onClose, 2500);
+            showToast(`Vault Deployed (Demo): ${trader.name}`);
         } catch (e) {
             setStage('CONFIG');
             showToast('Transaction Failed');
@@ -68,16 +73,26 @@ const CopyStrategyModal: React.FC<CopyStrategyModalProps> = ({ trader, onClose }
     };
 
     return (
-        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center">
+        <div 
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="syndicate-vault-title"
+            className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center"
+        >
             <div className="absolute inset-0 bg-black/95 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
             <div className="relative z-10 w-full sm:max-w-md bg-brand-bg border-t sm:border border-white/10 rounded-t-[2.5rem] sm:rounded-[2.5rem] shadow-2xl flex flex-col max-h-[90vh] animate-slide-up-mobile">
                 
                 <div className="p-6 border-b border-white/5 bg-brand-card/50 flex justify-between items-center shrink-0">
                     <div>
-                        <h2 className="font-orbitron font-black text-lg text-white uppercase tracking-widest">Syndicate_Vault</h2>
-                        <p className="text-[9px] text-slate-500 font-mono uppercase">Smart Contract Deployment</p>
+                        <div className="flex items-center gap-2">
+                            <h2 id="syndicate-vault-title" className="font-orbitron font-black text-lg text-white uppercase tracking-widest">Syndicate_Vault</h2>
+                            <span className="px-2 py-0.5 rounded bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono text-[8px] font-black uppercase tracking-wider">
+                                DEMO SIMULATION
+                            </span>
+                        </div>
+                        <p className="text-[9px] text-amber-400/80 font-mono uppercase">Demo Trading Simulation — No Blockchain State</p>
                     </div>
-                    <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400">✕</button>
+                    <button onClick={onClose} aria-label="Закрити модальне вікно" className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-slate-400">✕</button>
                 </div>
 
                 <div className="p-6 flex-1 overflow-y-auto custom-scrollbar">
@@ -188,9 +203,10 @@ const CopyStrategyModal: React.FC<CopyStrategyModalProps> = ({ trader, onClose }
                         <button 
                             onClick={handleDeploy}
                             disabled={!wallet.isConnected}
+                            aria-label="Запустити демо-симуляцію трейдингу"
                             className="w-full py-4 bg-brand-cyan text-black font-black font-orbitron rounded-2xl shadow-xl hover:bg-white transition-all uppercase tracking-widest text-xs flex items-center justify-center gap-2 disabled:opacity-50"
                         >
-                            {wallet.isConnected ? <><LinkIcon className="w-4 h-4"/> Deploy Smart Contract</> : 'Connect Wallet First'}
+                            {wallet.isConnected ? <><LinkIcon className="w-4 h-4"/> DEMO SIMULATION — NO BLOCKCHAIN TRANSACTION</> : 'Connect Wallet First'}
                         </button>
                     </div>
                 )}

@@ -2,6 +2,7 @@ import { StateCreator } from 'zustand';
 import { StoreState, TradeSlice, Transaction } from '../../types';
 import { walletService, ChainType } from '../../services/walletService';
 import { supabase } from '../../services/supabaseClient';
+import { getTonConnectUI } from '../../services/tonConnectService';
 
 export const createTradeSlice: StateCreator<StoreState, [], [], TradeSlice> = (set, get) => ({
     assets: [],
@@ -88,6 +89,12 @@ export const createTradeSlice: StateCreator<StoreState, [], [], TradeSlice> = (s
     },
     
     disconnectWallet: () => {
+        try {
+            const tonConnect = getTonConnectUI();
+            if (tonConnect?.connected) {
+                tonConnect.disconnect().catch(() => {});
+            }
+        } catch {}
         set(state => ({ 
             wallet: { isConnected: false, address: null, totalValueUsd: 0, isSyncing: false, txHistory: [] },
             assets: state.assets.filter(a => !['TON', 'USDT'].includes(a.ticker)) 

@@ -131,6 +131,7 @@ export interface UserStats {
     demoBalance: number;
     shadowHistory: ShadowTrade[];
     role: 'USER' | 'ADMIN';
+    serverVerifiedAdmin?: boolean;
     mining: MiningStats;
     tasks: AirdropTask[];
     sentinel: SentinelConfig;

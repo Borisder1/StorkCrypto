@@ -382,11 +382,12 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                     <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-white/5">
                                         <button
                                             type="button"
+                                            aria-label={playingAudioIndex === index ? (settings.language === 'ua' ? 'Зупинити аудіо огляд' : 'Stop audio briefing') : (settings.language === 'ua' ? 'Слухати аудіо зведення 30с' : 'Listen 30s briefing')}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleToggleAudio(index, `${article.title}. ${article.summary}`);
                                             }}
-                                            className={`px-3 py-1.5 rounded-xl text-[9px] font-mono font-bold flex items-center gap-1.5 transition-all ${
+                                            className={`px-3 py-1.5 rounded-xl text-[9px] font-mono font-bold flex items-center gap-1.5 transition-all min-h-[36px] ${
                                                 playingAudioIndex === index
                                                     ? 'bg-brand-cyan text-black animate-pulse shadow-md shadow-brand-cyan/30'
                                                     : 'bg-white/5 text-slate-300 hover:bg-white/10 border border-white/10'
@@ -402,13 +403,14 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
                                         <button
                                             type="button"
+                                            aria-label={settings.language === 'ua' ? 'Перейти до розділу торгових сигналів' : 'Navigate to trading signals'}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 triggerHaptic('medium');
                                                 navigateTo('signals');
                                                 onClose();
                                             }}
-                                            className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] font-mono font-bold flex items-center gap-1 hover:bg-emerald-500/20 transition-all ml-auto"
+                                            className="px-2.5 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[9px] font-mono font-bold flex items-center gap-1 hover:bg-emerald-500/20 transition-all ml-auto min-h-[36px]"
                                         >
                                             <span>⚡</span>
                                             <span>{settings.language === 'ua' ? 'До сигналів' : 'Signals'}</span>

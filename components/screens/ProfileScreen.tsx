@@ -58,18 +58,10 @@ const ProfileScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     const t = (key: string) => getTranslation(settings.language, key);
     const deviceId = userStats.id;
 
-    // Advanced Admin access detector for mobile & Telegram environments
+    // Strict Server-verified Admin check (P1-1 / P1-2 Audit Compliance)
     const isAdmin = useMemo(() => {
-        return userStats.role === 'ADMIN' || 
-               userStats.subscriptionTier === 'WHALE' || 
-               userStats.username?.toLowerCase().includes('admin') || 
-               userStats.username?.toLowerCase() === 'storkcrypto' || 
-               userStats.username?.toLowerCase() === 'borishanter12' || 
-               userStats.username?.toLowerCase() === 'borys' || 
-               userStats.username?.toLowerCase() === 'tg_pilot' || 
-               userStats.id?.includes('admin') || 
-               localStorage.getItem('stork_admin_mode') === 'true';
-    }, [userStats.role, userStats.subscriptionTier, userStats.username, userStats.id]);
+        return !!(userStats.serverVerifiedAdmin && userStats.role === 'ADMIN');
+    }, [userStats.serverVerifiedAdmin, userStats.role]);
 
     // Ensure trial status is current
     useEffect(() => {

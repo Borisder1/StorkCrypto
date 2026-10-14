@@ -57,7 +57,7 @@ const AssetEntry = React.memo(({ asset, totalPortfolioValue, t }: { asset: Asset
 });
 
 const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-    const { assets, updateAssetPrice, wallet, addAsset, syncChainAssets, settings } = useStore();
+    const { assets, updateAssetPrice, wallet, addAsset, syncChainAssets, disconnectWallet, settings } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
     const [balanceType, setBalanceType] = useState<'NEURAL' | 'MAINNET'>('NEURAL');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -170,18 +170,33 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         </div>
                     </div>
                     {balanceType === 'MAINNET' && (
-                        <div className="mt-4 flex justify-center">
+                        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                             <button
+                                type="button"
                                 onClick={() => {
                                     triggerHaptic('medium');
                                     const tonConnectUI = getTonConnectUI();
                                     tonConnectUI?.openModal().catch(e => console.error(e));
                                 }}
-                                className="px-4 py-2 bg-brand-cyan/20 border border-brand-cyan/40 hover:bg-brand-cyan/30 text-brand-cyan rounded-xl text-xs font-orbitron font-bold transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)] flex items-center gap-2"
+                                aria-label="Connect TON Wallet"
+                                className="px-4 py-2.5 bg-brand-cyan/20 border border-brand-cyan/40 hover:bg-brand-cyan/30 text-brand-cyan rounded-xl text-xs font-orbitron font-bold transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)] flex items-center gap-2 min-h-[44px]"
                             >
                                 <ShieldIcon className="w-4 h-4 text-brand-cyan" />
                                 {wallet.isConnected ? `${wallet.address?.slice(0, 4)}...${wallet.address?.slice(-4)}` : 'Connect TON Wallet'}
                             </button>
+                            {wallet.isConnected && (
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        triggerHaptic('light');
+                                        disconnectWallet();
+                                    }}
+                                    aria-label="Disconnect TON Wallet"
+                                    className="px-3 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-mono font-bold transition-all min-h-[44px]"
+                                >
+                                    Disconnect
+                                </button>
+                            )}
                         </div>
                     )}
                 </div>
@@ -245,12 +260,40 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                 <div key={i} className="h-16 rounded-2xl bg-white/5 animate-pulse border border-white/5"></div>
                             ))
                         ) : (assets || []).length === 0 ? (
-                            <div className="py-12 text-center border border-dashed border-white/10 rounded-2xl bg-white/5 opacity-50 flex flex-col items-center">
+                            <div className="py-12 text-center border border-dashed border-white/10 rounded-2xl bg-white/5 opacity-80 flex flex-col items-center p-6">
                                 <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-3">
-                                    <PieChartIcon className="w-8 h-8 text-slate-600" />
+                                    <PieChartIcon className="w-8 h-8 text-slate-500" />
                                 </div>
-                                <p className="text-[10px] font-black font-orbitron uppercase tracking-widest text-slate-500">{t('portfolio.vault_empty')}</p>
-                                <p className="text-[9px] font-mono text-slate-600 mt-1">{t('portfolio.add_assets_connect')}</p>
+                                <p className="text-[10px] font-black font-orbitron uppercase tracking-widest text-slate-400">{t('portfolio.vault_empty')}</p>
+                                <p className="text-[9px] font-mono text-slate-500 mt-1 mb-4">{t('portfolio.add_assets_connect')}</p>
+                                {balanceType === 'MAINNET' && !wallet.isConnected ? (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            triggerHaptic('medium');
+                                            const tonConnectUI = getTonConnectUI();
+                                            tonConnectUI?.openModal().catch(e => console.error(e));
+                                        }}
+                                        aria-label="Connect TON Wallet"
+                                        className="px-5 py-2.5 bg-brand-cyan text-black font-orbitron font-black text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-brand-cyan/20 flex items-center gap-2 min-h-[44px]"
+                                    >
+                                        <ShieldIcon className="w-4 h-4" />
+                                        Connect TON Wallet
+                                    </button>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            triggerHaptic('medium');
+                                            setIsAddModalOpen(true);
+                                        }}
+                                        aria-label={t('portfolio.add_asset') || 'Додати актив'}
+                                        className="px-5 py-2.5 bg-brand-cyan/20 border border-brand-cyan/40 text-brand-cyan font-orbitron font-black text-xs uppercase tracking-wider rounded-xl flex items-center gap-2 min-h-[44px]"
+                                    >
+                                        <PlusIcon className="w-4 h-4" />
+                                        {t('portfolio.add_asset')}
+                                    </button>
+                                )}
                             </div>
                         ) : (
                             (assets || []).map((asset) => <AssetEntry key={asset.ticker} asset={asset} totalPortfolioValue={totalValue} t={t} />)

@@ -1,0 +1,6 @@
+{
+  "summary": "Комплексний план впровадження виправлень live-аудиту від 14.10.2026 для StorkCrypto:\n- P0-1: Відновлення /api/chat та Cloudflare Pages function із валідацією схеми, server-side timeout 15с, підтримкою GEMINI_MODEL/AI_MODEL та безпечною відповіддю.\n- P0-2: Реальний TonConnect транзакційний потік (Варіант B) з серверною видачею payment intent (nonce, amount, receiver, expiry) та server-side on-chain верифікацією без симуляцій.\n- P0-3: Справжня серверна оплата для Telegram Stars (create-invoice, openInvoice, webhook verifier) та TON із захистом від подвійного зарахування (idempotency) та статусами PENDING/CONFIRMED/FAILED.\n- P1-1 & P1-2: Безпека адмін-панелі: приховування Admin Central до серверної авторизації, перевірка claims/RLS, audit log.\n- P1: Єдиний ModalManager API з fullscreen/compact геометрією, z-index координатором, блокуванням скролу, доступністю (role=dialog, aria-modal, labels).\n- P1: Покращення TON Wallet UX (кнопка Connect у Mainnet, очищення при disconnect).\n- P1: Data integrity (snapshotId, timezones, чесні статуси LIVE/DELAYED/STALE) та аудіо-брифінг новин.\n- P1: CSP, CORS та аудит відсутності ключів у bundle.\n- Обов'язковий самотест із наданням доказів (evidence).",
+  "updatedAt": "2026-10-14T14:31:59.982320823Z",
+  "requestFeedback": true,
+  "userFacing": true
+}

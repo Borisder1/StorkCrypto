@@ -18,6 +18,7 @@ interface WalletState {
 export interface TransactionResult {
     success: boolean;
     isSimulation?: boolean;
+    status: 'CONFIRMED' | 'SIMULATED' | 'REJECTED';
     message?: string;
     hash?: string;
 }
@@ -104,12 +105,22 @@ export const walletService = {
     },
 
     // Demo transaction sender simulator (Variant B: explicitly labeled demo simulator)
-    async sendTransaction(to: string, amount: string, chain: ChainType): Promise<TransactionResult> {
+    async sendTransaction(to: string, amount: string, chain: ChainType, realTxHash?: string): Promise<TransactionResult> {
+        if (realTxHash) {
+            return {
+                success: true,
+                isSimulation: false,
+                status: 'CONFIRMED',
+                hash: realTxHash,
+                message: 'Verified on-chain transaction'
+            };
+        }
         console.log(`[Wallet Demo] Simulating vault allocation of ${amount} to ${to} on ${chain}`);
         await delay(1200); 
         return {
-            success: true,
+            success: false,
             isSimulation: true,
+            status: 'SIMULATED',
             hash: undefined,
             message: 'DEMO SIMULATION — no blockchain transaction was sent'
         };

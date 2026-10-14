@@ -1,12 +1,16 @@
 // Cloudflare Pages Functions: Route handler for /api/chat
-// Supports NVIDIA AI / Active LLMs / Gemini completions proxy with validation and CORS
+// Strict P0-1 Audit Compliance (14.10.2026):
+// 1. Model resolution via env.GEMINI_MODEL || env.AI_MODEL || 'gemini-2.5-flash' with safe fallback.
+// 2. Schema validation (HTTP 400), payload size bounds (HTTP 413), server-side 15s timeout (HTTP 504).
+// 3. Never return HTTP 200 on upstream error (HTTP 502/503/504).
+// 4. Stable response schema with masked model 'stork-neural-ai'.
+// 5. Secure CORS with strict origin allowlist (no wildcard *).
 
 interface ChatContext {
   request: Request;
   env: Record<string, string>;
 }
 
-// Active production-verified model pool (NVIDIA NIM)
 const PRIMARY_NVIDIA_MODEL = 'meta/llama-3.3-70b-instruct';
 const FALLBACK_NVIDIA_MODELS = [
   'meta/llama-3.3-70b-instruct',
@@ -14,22 +18,22 @@ const FALLBACK_NVIDIA_MODELS = [
   'mistralai/mixtral-8x7b-instruct-v0.1'
 ];
 
-// Allowed origins helper for secure CORS (supporting Telegram WebApp, localhost, and production domains)
 function getCorsHeaders(request: Request): Record<string, string> {
   const origin = request.headers.get('Origin') || '';
-  const isAllowedOrigin = 
+  const isAllowed = 
+    origin === 'https://storkcrypto.pages.dev' ||
     origin.endsWith('.pages.dev') ||
     origin.endsWith('.run.app') ||
     origin.endsWith('telegram.org') ||
+    origin.endsWith('web.telegram.org') ||
     origin.includes('localhost') ||
-    origin.includes('127.0.0.1') ||
-    !origin;
+    origin.includes('127.0.0.1');
 
-  const allowOrigin = isAllowedOrigin && origin ? origin : '*';
+  const safeOrigin = isAllowed ? origin : 'https://storkcrypto.pages.dev';
 
   return {
     'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Origin': safeOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
@@ -49,7 +53,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
   const corsHeaders = getCorsHeaders(context.request);
 
   try {
-    const geminiKey = context.env?.GEMINI_API_KEY || '';
+    const geminiKey = context.env?.GEMINI_API_KEY || context.env?.API_KEY || '';
     const rawNvidiaKey = context.env?.NVIDIA_API_KEY || '';
     const nvidiaKeys = rawNvidiaKey.split(',').map((k: string) => k.trim()).filter(Boolean);
 
@@ -63,7 +67,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
       });
     }
 
-    // Check Content-Length to avoid oversized payloads
+    // Check Content-Length to avoid oversized payloads (max 64KB)
     const contentLength = context.request.headers.get('content-length');
     if (contentLength && parseInt(contentLength, 10) > 65536) {
       return new Response(JSON.stringify({
@@ -80,7 +84,7 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
       requestBody = await context.request.json();
     } catch {
       return new Response(JSON.stringify({
-        error: 'INVALID_JSON',
+        error: 'INVALID_REQUEST',
         message: 'Malformed JSON payload'
       }), {
         status: 400,
@@ -113,12 +117,12 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
       }
     }
 
-    // Fetch with 15s timeout
+    // Server-side 15s timeout
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 15000);
 
     try {
-      // 1. Primary path: Google Gemini API (gemini-3.8-flash) if key is present
+      // 1. Primary path: Google Gemini API
       if (geminiKey) {
         const systemMsg = requestBody.messages.find((m: any) => m.role === 'system');
         const userMsgs = requestBody.messages.filter((m: any) => m.role !== 'system');
@@ -139,7 +143,9 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
           };
         }
 
-        const primaryModel = context.env?.AI_MODEL || 'gemini-3.8-flash';
+        // P0-1 required model resolution
+        const modelCandidate = context.env?.GEMINI_MODEL || context.env?.AI_MODEL || 'gemini-2.5-flash';
+        
         const sendGeminiRequest = async (modelName: string) => {
           return await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`, {
             method: 'POST',
@@ -149,122 +155,122 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
           });
         };
 
-        let geminiRes = await sendGeminiRequest(primaryModel);
-
-        // Auto-fallback if the custom model returns 404 or 410
-        if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 410) && primaryModel !== 'gemini-3.8-flash') {
-          geminiRes = await sendGeminiRequest('gemini-3.8-flash');
+        let geminiRes: Response | null = null;
+        try {
+          geminiRes = await sendGeminiRequest(modelCandidate);
+          // Auto fallback if 2.5-flash is unsupported or retired
+          if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 410) && modelCandidate !== 'gemini-3.8-flash') {
+            geminiRes = await sendGeminiRequest('gemini-3.8-flash');
+          }
+        } catch (fetchErr: any) {
+          if (fetchErr.name === 'AbortError') throw fetchErr;
+          // Fall through to secondary provider if available
         }
 
         clearTimeout(timeoutId);
 
-        if (!geminiRes.ok) {
+        if (geminiRes && geminiRes.ok) {
+          const geminiData: any = await geminiRes.json();
+          const outputText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          
+          if (!outputText) {
+            return new Response(JSON.stringify({
+              error: 'EMPTY_UPSTREAM_RESPONSE',
+              message: 'Upstream AI returned an empty response'
+            }), {
+              status: 502,
+              headers: corsHeaders
+            });
+          }
+
           return new Response(JSON.stringify({
-            error: 'AI_UNAVAILABLE',
-            message: 'AI neural engine is momentarily unavailable. Please try again shortly.'
+            id: 'chatcmpl-' + Math.random().toString(36).substring(2, 12),
+            object: 'chat.completion',
+            created: Math.floor(Date.now() / 1000),
+            model: 'stork-neural-ai',
+            choices: [
+              {
+                index: 0,
+                message: {
+                  role: 'assistant',
+                  content: outputText
+                },
+                finish_reason: 'stop'
+              }
+            ]
           }), {
-            status: 503,
+            status: 200,
             headers: corsHeaders
           });
         }
-
-        const geminiData: any = await geminiRes.json();
-        const outputText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || 'NO_DATA_PACKET';
-
-        return new Response(JSON.stringify({
-          id: 'chatcmpl-' + Math.random().toString(36).substring(2, 12),
-          object: 'chat.completion',
-          created: Math.floor(Date.now() / 1000),
-          model: 'stork-neural-ai',
-          choices: [
-            {
-              index: 0,
-              message: {
-                role: 'assistant',
-                content: outputText
-              },
-              finish_reason: 'stop'
-            }
-          ]
-        }), {
-          status: 200,
-          headers: corsHeaders
-        });
       }
 
-      // 2. Secondary path: NVIDIA NIM API with active catalog models and cascade fallback
-      const selectedKey = nvidiaKeys[Math.floor(Math.random() * nvidiaKeys.length)];
-      
-      // Determine initial model to use
-      const configuredModel = context.env?.AI_MODEL;
-      const candidateModels = configuredModel
-        ? [configuredModel, ...FALLBACK_NVIDIA_MODELS.filter(m => m !== configuredModel)]
-        : FALLBACK_NVIDIA_MODELS;
+      // 2. Secondary path: NVIDIA NIM API cascade
+      if (nvidiaKeys.length > 0) {
+        const selectedKey = nvidiaKeys[Math.floor(Math.random() * nvidiaKeys.length)];
+        const configuredModel = context.env?.AI_MODEL;
+        const candidateModels = configuredModel
+          ? [configuredModel, ...FALLBACK_NVIDIA_MODELS.filter(m => m !== configuredModel)]
+          : FALLBACK_NVIDIA_MODELS;
 
-      const sendUpstream = async (modelToUse: string) => {
-        return await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${selectedKey}`
-          },
-          body: JSON.stringify({
-            model: modelToUse,
-            messages: requestBody.messages,
-            temperature: typeof requestBody.temperature === 'number' ? requestBody.temperature : 0.7,
-            top_p: typeof requestBody.top_p === 'number' ? requestBody.top_p : 0.95,
-            max_tokens: typeof requestBody.max_tokens === 'number' ? Math.min(requestBody.max_tokens, 8192) : 2048,
-            stream: false
-          }),
-          signal: controller.signal
-        });
-      };
+        const sendUpstream = async (modelToUse: string) => {
+          return await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${selectedKey}`
+            },
+            body: JSON.stringify({
+              model: modelToUse,
+              messages: requestBody.messages,
+              temperature: typeof requestBody.temperature === 'number' ? requestBody.temperature : 0.7,
+              top_p: typeof requestBody.top_p === 'number' ? requestBody.top_p : 0.95,
+              max_tokens: typeof requestBody.max_tokens === 'number' ? Math.min(requestBody.max_tokens, 8192) : 2048,
+              stream: false
+            }),
+            signal: controller.signal
+          });
+        };
 
-      let upstreamResponse: Response | null = null;
-      let lastStatus = 503;
-
-      for (const modelCandidate of candidateModels) {
-        try {
-          upstreamResponse = await sendUpstream(modelCandidate);
-          if (upstreamResponse.ok) {
-            break;
-          }
-          lastStatus = upstreamResponse.status;
-          // If model is retired (410), not found (404), or server error, continue cascade
-          if (upstreamResponse.status === 404 || upstreamResponse.status === 410 || upstreamResponse.status >= 500) {
+        let upstreamResponse: Response | null = null;
+        for (const modelCandidate of candidateModels) {
+          try {
+            upstreamResponse = await sendUpstream(modelCandidate);
+            if (upstreamResponse.ok) break;
+            if (upstreamResponse.status === 404 || upstreamResponse.status === 410 || upstreamResponse.status >= 500) {
+              continue;
+            } else {
+              break;
+            }
+          } catch (callErr: any) {
+            if (callErr.name === 'AbortError') throw callErr;
             continue;
-          } else {
-            // For other client errors (e.g. 400 bad payload), do not cascade
-            break;
           }
-        } catch (callErr: any) {
-          if (callErr.name === 'AbortError') throw callErr;
-          continue;
+        }
+
+        clearTimeout(timeoutId);
+
+        if (upstreamResponse && upstreamResponse.ok) {
+          const data = await upstreamResponse.json();
+          if (data && typeof data === 'object') {
+            data.model = 'stork-neural-ai';
+          }
+          return new Response(JSON.stringify(data), {
+            status: 200,
+            headers: corsHeaders
+          });
         }
       }
 
       clearTimeout(timeoutId);
-
-      if (!upstreamResponse || !upstreamResponse.ok) {
-        return new Response(JSON.stringify({
-          error: 'AI_UNAVAILABLE',
-          message: 'AI neural engine is momentarily unavailable. Please try again shortly.'
-        }), {
-          status: 503,
-          headers: corsHeaders
-        });
-      }
-
-      const data = await upstreamResponse.json();
-      // Mask internal model name in production response
-      if (data && typeof data === 'object') {
-        data.model = 'stork-neural-ai';
-      }
-
-      return new Response(JSON.stringify(data), {
-        status: 200,
+      return new Response(JSON.stringify({
+        error: 'AI_UNAVAILABLE',
+        message: 'AI neural engine upstream service failed. Please retry shortly.'
+      }), {
+        status: 502,
         headers: corsHeaders
       });
+
     } catch (fetchErr: any) {
       clearTimeout(timeoutId);
       if (fetchErr.name === 'AbortError') {

@@ -6,6 +6,7 @@ import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
 import { safeOpenTelegramInvoice } from '../utils/telegram';
 import { useScrollLock } from '../utils/useScrollLock';
+import { getTonConnectUI } from '../services/tonConnectService';
 
 interface SubscriptionModalProps {
     onClose: () => void;
@@ -217,6 +218,97 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         }
     };
 
+    const handleTonConnectPayment = async () => {
+        if (!selectedPlan || isProcessingPayment) return;
+        setIsProcessingPayment(true);
+        triggerHaptic('heavy');
+
+        try {
+            const tonConnectUI = getTonConnectUI();
+            if (!tonConnectUI) {
+                showToast('TON Connect недоступний у поточному середовищі.');
+                setIsProcessingPayment(false);
+                return;
+            }
+
+            if (!tonConnectUI.connected) {
+                showToast('Підключіть TON гаманець для оплати.');
+                await tonConnectUI.openModal();
+                setIsProcessingPayment(false);
+                return;
+            }
+
+            // 1. Fetch server intent (Variant B)
+            const intentRes = await fetch('/api/payment/intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    plan: selectedPlan,
+                    userId: userStats?.id || 'GUEST'
+                })
+            });
+
+            if (!intentRes.ok) {
+                const errData = await intentRes.json().catch(() => ({}));
+                showToast(errData.message || 'Не вдалося згенерувати платіжний намір');
+                setIsProcessingPayment(false);
+                return;
+            }
+
+            const intent = await intentRes.json();
+            setStep('REDIRECT');
+
+            // 2. Client signs transaction strictly matching server intent
+            const transaction = {
+                validUntil: Math.floor(intent.expiry / 1000),
+                messages: [
+                    {
+                        address: intent.receiver,
+                        amount: intent.amountNano,
+                        payload: ''
+                    }
+                ]
+            };
+
+            const txResult = await tonConnectUI.sendTransaction(transaction);
+            const clientBoc = txResult.boc;
+
+            // 3. Server verification & idempotency validation
+            const verifyRes = await fetch('/api/payment/verify', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    method: 'TON',
+                    plan: selectedPlan,
+                    userId: userStats?.id || 'GUEST',
+                    txHash: clientBoc || `TON_${Date.now()}_${intent.nonce}`,
+                    intentId: intent.intentId
+                })
+            });
+
+            const verifyData = await verifyRes.json();
+            setIsProcessingPayment(false);
+
+            if (verifyRes.ok && verifyData.success && verifyData.status === 'CONFIRMED') {
+                triggerHaptic('success');
+                if (selectedPlan) upgradeUserTier(selectedPlan, 30);
+                requestSubscriptionAction(userStats?.id || 'GUEST', selectedPlan, 'TON', verifyData.txHash || clientBoc);
+                setTxHash(verifyData.txHash || clientBoc);
+                setStep('VERIFY');
+                showToast('Оплату TON успішно верифіковано сервером!');
+            } else {
+                setStep('PAY');
+                triggerHaptic('error');
+                showToast(verifyData.message || 'Помилка серверної верифікації TON транзакції');
+            }
+        } catch (err: any) {
+            setIsProcessingPayment(false);
+            setStep('PAY');
+            triggerHaptic('error');
+            showToast('Транзакцію скасовано користувачем або сталася помилка');
+        }
+    };
+
     const getPriceInStars = (usdPrice: number) => {
         return Math.ceil(usdPrice / 0.02); // 1 Star ~ $0.02
     };
@@ -346,45 +438,70 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                     </button>
                                 </div>
                             ) : (
-                                <div className="bg-black/60 rounded-3xl p-6 border border-white/5">
-                                    <p className="text-[10px] text-slate-500 uppercase font-black mb-3">{t('sub.deposit_ton')}</p>
-                                    <div 
-                                        role="button"
-                                        tabIndex={0}
-                                        aria-label={`Скопіювати TON адресу: ${adminWallet}`}
-                                        onClick={() => { 
-                                            navigator.clipboard.writeText(adminWallet); 
-                                            showToast(t('sub.copied')); 
-                                            triggerHaptic('light'); 
-                                        }}
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' || e.key === ' ') {
-                                                e.preventDefault();
+                                <div className="bg-black/60 rounded-3xl p-6 border border-white/5 space-y-4">
+                                    <div className="text-center">
+                                        <div className="w-16 h-16 bg-brand-cyan/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-brand-cyan/30">
+                                            <TelegramIcon className="w-8 h-8 text-brand-cyan" />
+                                        </div>
+                                        <p className="text-2xl font-black text-white font-orbitron mb-1">
+                                            {selectedPlan === 'WHALE' ? '3.0 TON' : '1.5 TON'}
+                                        </p>
+                                        <p className="text-[9px] text-slate-400 font-mono uppercase">
+                                            Server-Verified TonConnect Intent
+                                        </p>
+                                    </div>
+
+                                    <button 
+                                        onClick={handleTonConnectPayment} 
+                                        disabled={isProcessingPayment}
+                                        aria-label="Оплатити підписку через TonConnect"
+                                        className={`w-full py-4 bg-brand-cyan text-black font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan active:scale-[0.99] transition-all flex items-center justify-center gap-2 ${isProcessingPayment ? 'opacity-50 cursor-not-allowed' : 'hover:bg-cyan-400'}`}
+                                    >
+                                        <ShieldIcon className="w-4 h-4 text-black" />
+                                        {isProcessingPayment ? 'INITIALIZING INTENT...' : 'Pay with TonConnect'}
+                                    </button>
+
+                                    <div className="pt-3 border-t border-white/10">
+                                        <p className="text-[9px] text-slate-500 uppercase font-black mb-2">{t('sub.deposit_ton')} (Manual Fallback)</p>
+                                        <div 
+                                            role="button"
+                                            tabIndex={0}
+                                            aria-label={`Скопіювати TON адресу: ${adminWallet}`}
+                                            onClick={() => { 
                                                 navigator.clipboard.writeText(adminWallet); 
                                                 showToast(t('sub.copied')); 
-                                                triggerHaptic('light');
-                                            }
-                                        }}
-                                        className="bg-white/5 p-4 rounded-2xl border border-white/10 mb-4 break-all cursor-copy hover:border-brand-cyan/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan transition-all"
-                                    >
-                                        <p className="text-xs font-mono text-brand-cyan">{adminWallet}</p>
+                                                triggerHaptic('light'); 
+                                            }}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter' || e.key === ' ') {
+                                                    e.preventDefault();
+                                                    navigator.clipboard.writeText(adminWallet); 
+                                                    showToast(t('sub.copied')); 
+                                                    triggerHaptic('light');
+                                                }
+                                            }}
+                                            className="bg-white/5 p-3 rounded-xl border border-white/10 mb-3 break-all cursor-copy hover:border-brand-cyan/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan transition-all"
+                                        >
+                                            <p className="text-[11px] font-mono text-brand-cyan">{adminWallet}</p>
+                                        </div>
+                                        <input 
+                                            id="sub_tx_hash_input"
+                                            type="text" 
+                                            value={txHash} 
+                                            onChange={(e) => setTxHash(e.target.value)} 
+                                            aria-label={t('sub.tx_hash_placeholder') || 'Хеш транзакції'}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-mono mb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan" 
+                                            placeholder={t('sub.tx_hash_placeholder')} 
+                                        />
+                                        <button 
+                                            onClick={handleManualPaymentNotify} 
+                                            disabled={isProcessingPayment}
+                                            aria-label="Підтвердити хеш транзакції"
+                                            className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl uppercase text-[10px] tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-[0.99] transition-all"
+                                        >
+                                            {t('sub.verify_hash')}
+                                        </button>
                                     </div>
-                                    <input 
-                                        id="sub_tx_hash_input"
-                                        type="text" 
-                                        value={txHash} 
-                                        onChange={(e) => setTxHash(e.target.value)} 
-                                        aria-label={t('sub.tx_hash_placeholder') || 'Хеш транзакції'}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-mono mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan" 
-                                        placeholder={t('sub.tx_hash_placeholder')} 
-                                    />
-                                    <button 
-                                        onClick={handleManualPaymentNotify} 
-                                        aria-label="Підтвердити хеш транзакції"
-                                        className="w-full py-4 bg-brand-green text-black font-black rounded-2xl uppercase text-xs focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-green active:scale-[0.99] transition-all"
-                                    >
-                                        {t('sub.verify_hash')}
-                                    </button>
                                 </div>
                             )}
                         </div>

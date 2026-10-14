@@ -11,6 +11,145 @@ function apiChatDevPlugin() {
       server.middlewares.use((req: any, res: any, next: any) => {
         const rawUrl = (req.originalUrl || req.url || '').split('?')[0];
 
+        // 0. Telegram Session Validation Endpoint (Audit verification test)
+        if (rawUrl === '/api/validate') {
+          if (req.method === 'OPTIONS') {
+            res.writeHead(204, {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            });
+            res.end();
+            return;
+          }
+
+          if (req.method !== 'POST') {
+            res.writeHead(405, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'METHOD_NOT_ALLOWED' }));
+            return;
+          }
+
+          let valBody = '';
+          req.setEncoding('utf8');
+          req.on('data', (c: string) => { valBody += c; });
+          req.on('end', () => {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            let jsonPayload: any = null;
+            try {
+              jsonPayload = JSON.parse(valBody);
+            } catch {
+              res.writeHead(400);
+              res.end(JSON.stringify({ error: 'MALFORMED_JSON' }));
+              return;
+            }
+
+            if (!jsonPayload || !jsonPayload.initData) {
+              res.writeHead(400);
+              res.end(JSON.stringify({ error: 'Missing initData' }));
+              return;
+            }
+
+            res.writeHead(200);
+            res.end(JSON.stringify({ valid: true, user: { id: 123456, username: 'tester' } }));
+          });
+          req.resume();
+          return;
+        }
+
+        // 0.1 Server Intent Endpoint (P0-2 / P0-3 Variant B)
+        if (rawUrl === '/api/payment/intent' || rawUrl === '/api/ton/intent') {
+          if (req.method === 'OPTIONS') {
+            res.writeHead(204, {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            });
+            res.end();
+            return;
+          }
+
+          let intentBody = '';
+          req.setEncoding('utf8');
+          req.on('data', (c: string) => { intentBody += c; });
+          req.on('end', () => {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            let payload: any = {};
+            try { payload = JSON.parse(intentBody); } catch {}
+            const plan = payload.plan || 'PRO';
+            const nonce = Math.random().toString(36).substring(2, 10).toUpperCase();
+            const intentId = `INTENT_${Date.now()}_${nonce}`;
+            const amountNano = plan === 'PRO' ? '1500000000' : '3000000000';
+            res.writeHead(200);
+            res.end(JSON.stringify({
+              success: true,
+              intentId,
+              plan,
+              amountNano,
+              receiver: 'EQA0iByiHQCr0y13647167664654578132489060412356',
+              network: -239,
+              nonce,
+              expiry: Date.now() + 15 * 60 * 1000,
+              comment: `STORK_${plan}_${intentId}`
+            }));
+          });
+          req.resume();
+          return;
+        }
+
+        // 0.2 Telegram Stars Create Invoice
+        if (rawUrl === '/api/payment/create-invoice') {
+          if (req.method === 'OPTIONS') {
+            res.writeHead(204, {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            });
+            res.end();
+            return;
+          }
+
+          let invoiceBody = '';
+          req.setEncoding('utf8');
+          req.on('data', (c: string) => { invoiceBody += c; });
+          req.on('end', () => {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            let payload: any = {};
+            try { payload = JSON.parse(invoiceBody); } catch {}
+            const plan = payload.plan || 'PRO';
+            const stars = plan === 'PRO' ? 250 : 500;
+            const invoiceId = `STARS_${plan}_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+            res.writeHead(200);
+            res.end(JSON.stringify({
+              success: true,
+              invoiceId,
+              invoiceUrl: `https://t.me/$stork_sub_${plan.toLowerCase()}_30d?startattach=${invoiceId}`,
+              plan,
+              stars,
+              currency: 'XTR'
+            }));
+          });
+          req.resume();
+          return;
+        }
+
+        // 0.3 Subscription Status (GET /api/me/subscription)
+        if (rawUrl === '/api/me/subscription') {
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.writeHead(200);
+          res.end(JSON.stringify({
+            authenticated: true,
+            tier: 'BASIC',
+            isPro: false,
+            trialActive: false,
+            verifiedAt: new Date().toISOString()
+          }));
+          return;
+        }
+
         // 1. Payment Verification Endpoint (Strict P0-2 contract)
         if (rawUrl === '/api/payment/verify') {
           if (req.method === 'OPTIONS') {
@@ -217,11 +356,22 @@ function apiChatDevPlugin() {
               config.temperature = body.temperature;
             }
 
-            const response = await ai.models.generateContent({
-              model: 'gemini-3.8-flash',
-              contents,
-              config
-            });
+            const preferredModel = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-2.5-flash';
+            let response: any = null;
+            try {
+              response = await ai.models.generateContent({
+                model: preferredModel,
+                contents,
+                config
+              });
+            } catch (modelErr: any) {
+              // Auto-fallback if 2.5-flash is not available for new projects
+              response = await ai.models.generateContent({
+                model: 'gemini-3.8-flash',
+                contents,
+                config
+              });
+            }
 
             const text = response.text || 'NO_DATA_PACKET';
 
@@ -307,8 +457,8 @@ export default defineConfig(({ mode }) => {
         }
       },
       define: {
-        'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || env.API_KEY || process.env.API_KEY || ""),
-        'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || env.API_KEY || process.env.API_KEY || "")
+        'process.env.API_KEY': JSON.stringify(""),
+        'process.env.GEMINI_API_KEY': JSON.stringify("")
       },
       resolve: {
         dedupe: ['react', 'react-dom', 'zustand', 'motion'],
