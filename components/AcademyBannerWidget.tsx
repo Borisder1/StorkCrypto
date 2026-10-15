@@ -93,6 +93,8 @@ export const AcademyBannerWidget: React.FC = () => {
                                 key={item.id}
                                 type="button"
                                 aria-pressed={isCurrent}
+                                aria-label={`Обрати мову навчання: ${item.label}`}
+                                title={`Обрати мову навчання: ${item.label}`}
                                 onClick={(e) => handleSelectLanguage(item.id, e)}
                                 className={`px-2.5 py-1 min-h-[32px] rounded-lg text-[10px] font-mono font-bold transition-all flex items-center gap-1 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-purple ${
                                     isCurrent

@@ -143,8 +143,8 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
           };
         }
 
-        // P0-1 required model resolution
-        const modelCandidate = context.env?.GEMINI_MODEL || context.env?.AI_MODEL || 'gemini-2.5-flash';
+        // P0-1 required model resolution: prefer official gemini-3.8-flash
+        const modelCandidate = context.env?.GEMINI_MODEL || context.env?.AI_MODEL || 'gemini-3.8-flash';
         
         const sendGeminiRequest = async (modelName: string) => {
           return await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`, {
@@ -158,9 +158,9 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
         let geminiRes: Response | null = null;
         try {
           geminiRes = await sendGeminiRequest(modelCandidate);
-          // Auto fallback if 2.5-flash is unsupported or retired
-          if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 410) && modelCandidate !== 'gemini-3.8-flash') {
-            geminiRes = await sendGeminiRequest('gemini-3.8-flash');
+          // Auto fallback if preferred model is unavailable or rate limited
+          if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 410 || geminiRes.status === 429) && modelCandidate !== 'gemini-flash-latest') {
+            geminiRes = await sendGeminiRequest('gemini-flash-latest');
           }
         } catch (fetchErr: any) {
           if (fetchErr.name === 'AbortError') throw fetchErr;

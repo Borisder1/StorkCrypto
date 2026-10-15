@@ -234,7 +234,8 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                                     ? 'bg-amber-500/15 border-amber-500/40 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
                                     : 'bg-brand-cyan/15 border-brand-cyan/40 text-brand-cyan shadow-[0_0_10px_rgba(0,240,255,0.2)]'
                             }`}
-                            title="Toggle between Simple View & Pro Terminal"
+                            aria-label={`Перемкнути режим терміналу на ${settings.interfaceMode === 'SIMPLE' ? 'PRO' : 'SIMPLE'}`}
+                            title={`Toggle between Simple View & Pro Terminal (Current: ${settings.interfaceMode || 'PRO'})`}
                         >
                             {settings.interfaceMode === 'SIMPLE' ? '⚡ SIMPLE' : '🔬 PRO'}
                         </button>
@@ -242,6 +243,8 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                         {/* User Cabinet Button */}
                         <button 
                             onClick={() => navigateTo('profile')}
+                            aria-label={`Профіль пілота: ${userStats.username || 'PILOT'}`}
+                            title={`Профіль пілота: ${userStats.username || 'PILOT'}`}
                             className="flex items-center gap-2.5 bg-white/5 hover:bg-brand-cyan/10 border border-white/10 hover:border-brand-cyan/50 rounded-xl p-1.5 pr-3 transition-all group"
                         >
                             <div className="w-8 h-8 rounded-lg bg-black/50 flex items-center justify-center relative border border-white/10 overflow-hidden">
@@ -271,6 +274,8 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                             triggerHaptic('light');
                             useStore.getState().setIsAIChatOpen(true);
                         }}
+                        aria-label="AI Market Scan — аналіз ринку штучним інтелектом"
+                        title="AI Market Scan"
                         className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 text-brand-cyan text-[10px] font-orbitron font-black tracking-wider uppercase shrink-0 hover:bg-brand-cyan/20 transition-all shadow-[0_0_12px_rgba(0,240,255,0.15)]"
                     >
                         <BotIcon className="w-3.5 h-3.5 text-brand-cyan" />
@@ -281,6 +286,8 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                             triggerHaptic('light');
                             useStore.getState().setShowWhaleRadar(true);
                         }}
+                        aria-label="Whale Radar — моніторинг великих гаманців"
+                        title="Whale Radar"
                         className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-brand-purple/10 border border-brand-purple/30 text-brand-purple text-[10px] font-orbitron font-black tracking-wider uppercase shrink-0 hover:bg-brand-purple/20 transition-all shadow-[0_0_12px_rgba(189,0,255,0.15)]"
                     >
                         <RadarIcon className="w-3.5 h-3.5 text-brand-purple" />
@@ -291,6 +298,8 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                             triggerHaptic('light');
                             useStore.getState().setShowLiquidationHeatmap(true);
                         }}
+                        aria-label="Liq Heatmap — теплова карта ліквідацій"
+                        title="Liq Heatmap"
                         className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-orange-500/10 border border-orange-500/30 text-orange-400 text-[10px] font-orbitron font-black tracking-wider uppercase shrink-0 hover:bg-orange-500/20 transition-all"
                     >
                         <FlameIcon className="w-3.5 h-3.5 text-orange-400" />
@@ -380,7 +389,12 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                                 >
                                     <InfoIcon className="w-3 h-3" />
                                 </button>
-                                <button onClick={() => { triggerHaptic('medium'); setShowAirdrop(true); }} className="w-full h-full p-4 flex flex-col justify-between text-left relative z-10 overflow-hidden rounded-3xl">
+                                <button 
+                                    onClick={() => { triggerHaptic('medium'); setShowAirdrop(true); }} 
+                                    aria-label="MINING HUB — заробіток STORK"
+                                    title="MINING HUB — заробіток STORK"
+                                    className="w-full h-full p-4 flex flex-col justify-between text-left relative z-10 overflow-hidden rounded-3xl"
+                                >
                                     <div className="absolute inset-0 bg-brand-cyan/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     <div className="w-9 h-9 rounded-xl bg-brand-cyan/15 border border-brand-cyan/30 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                                         <PickaxeIcon className="w-4 h-4 text-brand-cyan" />
@@ -400,7 +414,12 @@ const HomeScreen: React.FC<{ onNavigate: (tab: NavItem) => void }> = ({ onNaviga
                                 >
                                     <InfoIcon className="w-3 h-3" />
                                 </button>
-                                <button onClick={() => { triggerHaptic('medium'); setShowSentinel(true); }} className="w-full h-full p-4 flex flex-col justify-between text-left relative z-10 overflow-hidden rounded-3xl">
+                                <button 
+                                    onClick={() => { triggerHaptic('medium'); setShowSentinel(true); }} 
+                                    aria-label="SENTINEL BOT — автоматичний моніторинг"
+                                    title="SENTINEL BOT — автоматичний моніторинг"
+                                    className="w-full h-full p-4 flex flex-col justify-between text-left relative z-10 overflow-hidden rounded-3xl"
+                                >
                                     <div className="absolute inset-0 bg-brand-purple/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                     <div className="w-9 h-9 rounded-xl bg-brand-purple/15 border border-brand-purple/30 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform">
                                         <ShieldIcon className="w-4 h-4 text-brand-purple" />

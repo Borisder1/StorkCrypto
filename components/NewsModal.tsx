@@ -383,6 +383,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                         <button
                                             type="button"
                                             aria-label={playingAudioIndex === index ? (settings.language === 'ua' ? 'Зупинити аудіо огляд' : 'Stop audio briefing') : (settings.language === 'ua' ? 'Слухати аудіо зведення 30с' : 'Listen 30s briefing')}
+                                            title={playingAudioIndex === index ? (settings.language === 'ua' ? 'Зупинити аудіо' : 'Stop audio') : (settings.language === 'ua' ? 'Слухати аудіо зведення (30с)' : 'Listen 30s audio briefing')}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 handleToggleAudio(index, `${article.title}. ${article.summary}`);
@@ -404,6 +405,7 @@ const NewsModal: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                                         <button
                                             type="button"
                                             aria-label={settings.language === 'ua' ? 'Перейти до розділу торгових сигналів' : 'Navigate to trading signals'}
+                                            title={settings.language === 'ua' ? 'Перейти до сигналів' : 'Open trading signals'}
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 triggerHaptic('medium');

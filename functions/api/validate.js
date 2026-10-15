@@ -1,11 +1,42 @@
+function getCorsHeaders(request) {
+  const origin = request.headers.get('Origin') || '';
+  const isAllowed = 
+    origin === 'https://storkcrypto.pages.dev' ||
+    origin.endsWith('.pages.dev') ||
+    origin.endsWith('.run.app') ||
+    origin.endsWith('telegram.org') ||
+    origin.endsWith('web.telegram.org') ||
+    origin.includes('localhost') ||
+    origin.includes('127.0.0.1');
+
+  return {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': isAllowed ? origin : 'https://storkcrypto.pages.dev',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Vary': 'Origin'
+  };
+}
+
+export async function onRequestOptions(context) {
+  return new Response(null, {
+    status: 204,
+    headers: getCorsHeaders(context.request),
+  });
+}
+
 export async function onRequestPost(context) {
   const { request, env } = context;
+  const corsHeaders = getCorsHeaders(request);
   
   try {
     const { initData } = await request.json();
     
     if (!initData) {
-      return new Response(JSON.stringify({ error: 'Missing initData' }), { status: 400 });
+      return new Response(JSON.stringify({ error: 'Missing initData' }), { 
+        status: 400,
+        headers: corsHeaders 
+      });
     }
     
     const params = new URLSearchParams(initData);
@@ -51,16 +82,19 @@ export async function onRequestPost(context) {
       .join('');
     
     if (calculatedHash !== hash) {
-      return new Response(JSON.stringify({ error: 'Invalid initData' }), { status: 403 });
+      return new Response(JSON.stringify({ error: 'Invalid initData' }), { 
+        status: 403,
+        headers: corsHeaders
+      });
     }
     
     return new Response(JSON.stringify({ valid: true, user: JSON.parse(params.get('user') || '{}') }), {
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      headers: corsHeaders
     });
   } catch (err) {
     return new Response(JSON.stringify({ error: err.message }), {
       status: 500,
-      headers: { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" }
+      headers: corsHeaders
     });
   }
 }

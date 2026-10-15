@@ -105,7 +105,9 @@ const UpgradeBanner: React.FC = () => {
 
                 <button 
                     onClick={(e) => { e.stopPropagation(); handleUpgrade(); }}
-                    className={`font-bold text-[9px] px-3 py-1.5 rounded-lg shadow-lg hover:scale-105 transition-transform flex items-center gap-1 ${btnColor}`}
+                    aria-label={isExpiredNotice ? 'Upgrade to Pro' : (isPaidExpiring ? 'Renew Pro subscription' : 'Extend Pro subscription')}
+                    title={isExpiredNotice ? 'Upgrade to Pro' : (isPaidExpiring ? 'Renew Pro subscription' : 'Extend Pro subscription')}
+                    className={`font-bold text-[9px] px-3 py-1.5 rounded-lg shadow-lg hover:scale-105 transition-transform flex items-center gap-1 min-h-[36px] ${btnColor}`}
                 >
                     <ShieldIcon className="w-3 h-3" />
                     {isExpiredNotice ? t('upgrade.upgrade_pro') : (isPaidExpiring ? t('upgrade.renew') : t('upgrade.extend'))}

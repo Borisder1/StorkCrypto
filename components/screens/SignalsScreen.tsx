@@ -561,7 +561,8 @@ export const SignalsScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) =
                                             <button 
                                                 onClick={(e) => toggleFavorite(asset.ticker, e)}
                                                 aria-label={isFav ? `Видалити ${asset.ticker} з обраного` : `Додати ${asset.ticker} в обране`}
-                                                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-colors border ${isFav ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40' : 'bg-white/5 text-slate-500 border-white/5 hover:text-white'}`}
+                                                title={isFav ? `Видалити ${asset.ticker} з обраного` : `Додати ${asset.ticker} в обране`}
+                                                className={`w-9 h-9 rounded-lg flex items-center justify-center transition-colors border text-base ${isFav ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40' : 'bg-white/5 text-slate-500 border-white/5 hover:text-white'}`}
                                             >
                                                 ★
                                             </button>

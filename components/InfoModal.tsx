@@ -1,5 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { InfoIcon, ChevronRightIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -59,13 +60,28 @@ const InfoModal: React.FC<InfoModalProps> = ({
         };
 
         window.addEventListener('keydown', handleKeyDown);
+
+        // Telegram WebApp BackButton support
+        const tg = (window as any)?.Telegram?.WebApp;
+        let tgBackHandler: (() => void) | null = null;
+        if (tg?.BackButton) {
+            tgBackHandler = () => {
+                onClose();
+            };
+            tg.BackButton.show();
+            tg.BackButton.onClick(tgBackHandler);
+        }
+
         return () => { 
             document.body.style.overflow = 'unset'; 
             window.removeEventListener('keydown', handleKeyDown);
+            if (tg?.BackButton && tgBackHandler) {
+                tg.BackButton.offClick(tgBackHandler);
+            }
         };
     }, [onClose]);
 
-    return (
+    const modalContent = (
         <motion.div 
             data-modal-layer
             initial={{ opacity: 0 }}
@@ -73,6 +89,18 @@ const InfoModal: React.FC<InfoModalProps> = ({
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             className="modal-layer modal-layer--fullscreen"
+            style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                width: '100vw',
+                height: '100dvh',
+                margin: 0,
+                transform: 'none',
+                zIndex: 9999
+            }}
         >
             <button 
                 data-modal-backdrop
@@ -168,6 +196,9 @@ const InfoModal: React.FC<InfoModalProps> = ({
             </motion.section>
         </motion.div>
     );
+
+    const target = typeof document !== 'undefined' ? (document.getElementById('modal-root') || document.body) : null;
+    return target ? createPortal(modalContent, target) : modalContent;
 };
 
 export default InfoModal;

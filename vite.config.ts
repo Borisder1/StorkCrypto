@@ -4,20 +4,35 @@ import react from '@vitejs/plugin-react';
 
 const usedPaymentHashes = new Set<string>();
 
+function getSafeCorsOrigin(req: any): string {
+  const origin = (req.headers.origin as string) || '';
+  const isAllowed = 
+    origin === 'https://storkcrypto.pages.dev' ||
+    origin.endsWith('.pages.dev') ||
+    origin.endsWith('.run.app') ||
+    origin.endsWith('telegram.org') ||
+    origin.endsWith('web.telegram.org') ||
+    origin.includes('localhost') ||
+    origin.includes('127.0.0.1');
+  return isAllowed ? origin : 'https://storkcrypto.pages.dev';
+}
+
 function apiChatDevPlugin() {
   return {
     name: 'api-chat-dev-middleware',
     configureServer(server: any) {
       server.middlewares.use((req: any, res: any, next: any) => {
         const rawUrl = (req.originalUrl || req.url || '').split('?')[0];
+        const safeOrigin = getSafeCorsOrigin(req);
 
         // 0. Telegram Session Validation Endpoint (Audit verification test)
         if (rawUrl === '/api/validate') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
-              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Origin': safeOrigin,
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
               'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+              'Vary': 'Origin',
             });
             res.end();
             return;
@@ -34,7 +49,8 @@ function apiChatDevPlugin() {
           req.on('data', (c: string) => { valBody += c; });
           req.on('end', () => {
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Origin', safeOrigin);
+            res.setHeader('Vary', 'Origin');
             let jsonPayload: any = null;
             try {
               jsonPayload = JSON.parse(valBody);
@@ -61,9 +77,10 @@ function apiChatDevPlugin() {
         if (rawUrl === '/api/payment/intent' || rawUrl === '/api/ton/intent') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
-              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Origin': safeOrigin,
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
               'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+              'Vary': 'Origin',
             });
             res.end();
             return;
@@ -74,7 +91,8 @@ function apiChatDevPlugin() {
           req.on('data', (c: string) => { intentBody += c; });
           req.on('end', () => {
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Origin', safeOrigin);
+            res.setHeader('Vary', 'Origin');
             let payload: any = {};
             try { payload = JSON.parse(intentBody); } catch {}
             const plan = payload.plan || 'PRO';
@@ -102,9 +120,10 @@ function apiChatDevPlugin() {
         if (rawUrl === '/api/payment/create-invoice') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
-              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Origin': safeOrigin,
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
               'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+              'Vary': 'Origin',
             });
             res.end();
             return;
@@ -115,7 +134,8 @@ function apiChatDevPlugin() {
           req.on('data', (c: string) => { invoiceBody += c; });
           req.on('end', () => {
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Origin', safeOrigin);
+            res.setHeader('Vary', 'Origin');
             let payload: any = {};
             try { payload = JSON.parse(invoiceBody); } catch {}
             const plan = payload.plan || 'PRO';
@@ -138,7 +158,8 @@ function apiChatDevPlugin() {
         // 0.3 Subscription Status (GET /api/me/subscription)
         if (rawUrl === '/api/me/subscription') {
           res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Origin', safeOrigin);
+          res.setHeader('Vary', 'Origin');
           res.writeHead(200);
           res.end(JSON.stringify({
             authenticated: true,
@@ -154,9 +175,10 @@ function apiChatDevPlugin() {
         if (rawUrl === '/api/payment/verify') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
-              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Origin': safeOrigin,
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
               'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+              'Vary': 'Origin',
             });
             res.end();
             return;
@@ -173,7 +195,8 @@ function apiChatDevPlugin() {
           req.on('data', (chunk: string) => { bodyStr += chunk; });
           req.on('end', () => {
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', '*');
+            res.setHeader('Access-Control-Allow-Origin', safeOrigin);
+            res.setHeader('Vary', 'Origin');
 
             let payload: any = null;
             try {
@@ -274,9 +297,10 @@ function apiChatDevPlugin() {
 
         if (req.method === 'OPTIONS') {
           res.writeHead(204, {
-            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Origin': safeOrigin,
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            'Vary': 'Origin',
           });
           res.end();
           return;
@@ -294,7 +318,8 @@ function apiChatDevPlugin() {
 
         const processBody = async (rawJson: string) => {
           res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Access-Control-Allow-Origin', '*');
+          res.setHeader('Access-Control-Allow-Origin', safeOrigin);
+          res.setHeader('Vary', 'Origin');
 
           if (isTooLarge) {
             res.writeHead(413);
@@ -356,7 +381,7 @@ function apiChatDevPlugin() {
               config.temperature = body.temperature;
             }
 
-            const preferredModel = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-2.5-flash';
+            const preferredModel = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.8-flash';
             let response: any = null;
             try {
               response = await ai.models.generateContent({
@@ -365,9 +390,9 @@ function apiChatDevPlugin() {
                 config
               });
             } catch (modelErr: any) {
-              // Auto-fallback if 2.5-flash is not available for new projects
+              // Auto-fallback if preferred model is unavailable
               response = await ai.models.generateContent({
-                model: 'gemini-3.8-flash',
+                model: 'gemini-flash-latest',
                 contents,
                 config
               });

@@ -7,10 +7,13 @@ export interface NewsItem {
     summary: string;
     sourceName: string;
     sourceUrl: string;
+    canonicalUrl: string;
     publishedAt: string; // ISO 8601
+    fetchedAt: string; // ISO 8601
     language: 'uk' | 'en' | 'ru';
     category: 'macro' | 'crypto' | 'stocks' | 'all';
     impact: 'LOW' | 'MEDIUM' | 'HIGH';
+    isFallback: boolean;
 }
 
 export const ALLOWED_NEWS_SOURCES = [
@@ -183,13 +186,16 @@ export async function fetchNewsFeed(language: string = 'ua', forceRefresh: boole
 
     // Dynamic dates refresh
     const dates = getDates();
-    const updatedBase = BASE_ARTICLES[langKey].map((art, idx) => ({
+    const nowIso = new Date().toISOString();
+    const updatedBase: NewsItem[] = BASE_ARTICLES[langKey].map((art, idx) => ({
         ...art,
+        canonicalUrl: art.canonicalUrl || art.sourceUrl,
+        fetchedAt: art.fetchedAt || nowIso,
+        isFallback: art.isFallback ?? false,
         publishedAt: idx < 2 ? dates.d0_recent : idx < 4 ? dates.d1_yesterday : dates.d2_prev
     }));
 
     if (forceRefresh) {
-        const nowIso = new Date().toISOString();
         if (typeof window !== 'undefined') {
             try {
                 localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -215,7 +221,6 @@ export async function fetchNewsFeed(language: string = 'ua', forceRefresh: boole
         };
     }
 
-    const nowIso = new Date().toISOString();
     if (typeof window !== 'undefined') {
         try {
             localStorage.setItem(CACHE_KEY, JSON.stringify({
