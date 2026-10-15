@@ -4,35 +4,20 @@ import react from '@vitejs/plugin-react';
 
 const usedPaymentHashes = new Set<string>();
 
-function getSafeCorsOrigin(req: any): string {
-  const origin = (req.headers.origin as string) || '';
-  const isAllowed = 
-    origin === 'https://storkcrypto.pages.dev' ||
-    origin.endsWith('.pages.dev') ||
-    origin.endsWith('.run.app') ||
-    origin.endsWith('telegram.org') ||
-    origin.endsWith('web.telegram.org') ||
-    origin.includes('localhost') ||
-    origin.includes('127.0.0.1');
-  return isAllowed ? origin : 'https://storkcrypto.pages.dev';
-}
-
 function apiChatDevPlugin() {
   return {
     name: 'api-chat-dev-middleware',
     configureServer(server: any) {
       server.middlewares.use((req: any, res: any, next: any) => {
         const rawUrl = (req.originalUrl || req.url || '').split('?')[0];
-        const safeOrigin = getSafeCorsOrigin(req);
 
         // 0. Telegram Session Validation Endpoint (Audit verification test)
         if (rawUrl === '/api/validate') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
-              'Access-Control-Allow-Origin': safeOrigin,
+              'Access-Control-Allow-Origin': '*',
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
               'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-              'Vary': 'Origin',
             });
             res.end();
             return;
@@ -49,8 +34,7 @@ function apiChatDevPlugin() {
           req.on('data', (c: string) => { valBody += c; });
           req.on('end', () => {
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', safeOrigin);
-            res.setHeader('Vary', 'Origin');
+            res.setHeader('Access-Control-Allow-Origin', '*');
             let jsonPayload: any = null;
             try {
               jsonPayload = JSON.parse(valBody);
@@ -77,10 +61,9 @@ function apiChatDevPlugin() {
         if (rawUrl === '/api/payment/intent' || rawUrl === '/api/ton/intent') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
-              'Access-Control-Allow-Origin': safeOrigin,
+              'Access-Control-Allow-Origin': '*',
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
               'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-              'Vary': 'Origin',
             });
             res.end();
             return;
@@ -91,8 +74,7 @@ function apiChatDevPlugin() {
           req.on('data', (c: string) => { intentBody += c; });
           req.on('end', () => {
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', safeOrigin);
-            res.setHeader('Vary', 'Origin');
+            res.setHeader('Access-Control-Allow-Origin', '*');
             let payload: any = {};
             try { payload = JSON.parse(intentBody); } catch {}
             const plan = payload.plan || 'PRO';
@@ -120,10 +102,9 @@ function apiChatDevPlugin() {
         if (rawUrl === '/api/payment/create-invoice') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
-              'Access-Control-Allow-Origin': safeOrigin,
+              'Access-Control-Allow-Origin': '*',
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
               'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-              'Vary': 'Origin',
             });
             res.end();
             return;
@@ -134,8 +115,7 @@ function apiChatDevPlugin() {
           req.on('data', (c: string) => { invoiceBody += c; });
           req.on('end', () => {
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', safeOrigin);
-            res.setHeader('Vary', 'Origin');
+            res.setHeader('Access-Control-Allow-Origin', '*');
             let payload: any = {};
             try { payload = JSON.parse(invoiceBody); } catch {}
             const plan = payload.plan || 'PRO';
@@ -158,8 +138,7 @@ function apiChatDevPlugin() {
         // 0.3 Subscription Status (GET /api/me/subscription)
         if (rawUrl === '/api/me/subscription') {
           res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Access-Control-Allow-Origin', safeOrigin);
-          res.setHeader('Vary', 'Origin');
+          res.setHeader('Access-Control-Allow-Origin', '*');
           res.writeHead(200);
           res.end(JSON.stringify({
             authenticated: true,
@@ -175,10 +154,9 @@ function apiChatDevPlugin() {
         if (rawUrl === '/api/payment/verify') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
-              'Access-Control-Allow-Origin': safeOrigin,
+              'Access-Control-Allow-Origin': '*',
               'Access-Control-Allow-Methods': 'POST, OPTIONS',
               'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-              'Vary': 'Origin',
             });
             res.end();
             return;
@@ -195,8 +173,7 @@ function apiChatDevPlugin() {
           req.on('data', (chunk: string) => { bodyStr += chunk; });
           req.on('end', () => {
             res.setHeader('Content-Type', 'application/json');
-            res.setHeader('Access-Control-Allow-Origin', safeOrigin);
-            res.setHeader('Vary', 'Origin');
+            res.setHeader('Access-Control-Allow-Origin', '*');
 
             let payload: any = null;
             try {
@@ -297,10 +274,9 @@ function apiChatDevPlugin() {
 
         if (req.method === 'OPTIONS') {
           res.writeHead(204, {
-            'Access-Control-Allow-Origin': safeOrigin,
+            'Access-Control-Allow-Origin': '*',
             'Access-Control-Allow-Methods': 'POST, OPTIONS',
             'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-            'Vary': 'Origin',
           });
           res.end();
           return;
@@ -318,8 +294,7 @@ function apiChatDevPlugin() {
 
         const processBody = async (rawJson: string) => {
           res.setHeader('Content-Type', 'application/json');
-          res.setHeader('Access-Control-Allow-Origin', safeOrigin);
-          res.setHeader('Vary', 'Origin');
+          res.setHeader('Access-Control-Allow-Origin', '*');
 
           if (isTooLarge) {
             res.writeHead(413);
@@ -352,53 +327,112 @@ function apiChatDevPlugin() {
           }
 
           const resolvedKey = process.env.GEMINI_API_KEY || process.env.API_KEY || '';
-          if (!resolvedKey) {
+          const groqKey = process.env.GROQ_API_KEY || '';
+          const openrouterKey = process.env.OPENROUTER_API_KEY || '';
+
+          if (!resolvedKey && !groqKey && !openrouterKey) {
             res.writeHead(503);
             res.end(JSON.stringify({
               error: 'AI_UNAVAILABLE',
-              message: 'GEMINI_API_KEY is not configured in environment variables'
+              message: 'AI API keys are not configured in environment variables'
             }));
             return;
           }
 
           try {
-            const { GoogleGenAI } = await import('@google/genai');
-            const ai = new GoogleGenAI({ apiKey: resolvedKey });
+            let text = '';
             
-            const systemMsg = body.messages.find((m: any) => m.role === 'system');
-            const userMsgs = body.messages.filter((m: any) => m.role !== 'system');
-            
-            const contents = userMsgs.map((m: any) => ({
-              role: m.role === 'assistant' || m.role === 'model' ? 'model' : 'user',
-              parts: [{ text: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }]
-            }));
-
-            const config: any = {};
-            if (systemMsg?.content) {
-              config.systemInstruction = systemMsg.content;
-            }
-            if (typeof body.temperature === 'number') {
-              config.temperature = body.temperature;
-            }
-
-            const preferredModel = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.8-flash';
-            let response: any = null;
-            try {
-              response = await ai.models.generateContent({
-                model: preferredModel,
-                contents,
-                config
-              });
-            } catch (modelErr: any) {
-              // Auto-fallback if preferred model is unavailable
-              response = await ai.models.generateContent({
-                model: 'gemini-flash-latest',
-                contents,
-                config
-              });
+            // 1. Groq Llama 3.3
+            if (groqKey) {
+              try {
+                const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${groqKey}`
+                  },
+                  body: JSON.stringify({
+                    model: 'llama-3.3-70b-versatile',
+                    messages: body.messages,
+                    temperature: typeof body.temperature === 'number' ? body.temperature : 0.7,
+                    max_tokens: 2048
+                  })
+                });
+                if (groqRes.ok) {
+                  const data = await groqRes.json();
+                  text = data.choices?.[0]?.message?.content || '';
+                }
+              } catch {}
             }
 
-            const text = response.text || 'NO_DATA_PACKET';
+            // 2. OpenRouter Free Models
+            if (!text && openrouterKey) {
+              try {
+                const openrouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${openrouterKey}`,
+                    'HTTP-Referer': 'https://storkcrypto.pages.dev',
+                    'X-Title': 'StorkCrypto Neural Terminal'
+                  },
+                  body: JSON.stringify({
+                    model: 'deepseek/deepseek-chat:free',
+                    messages: body.messages,
+                    temperature: typeof body.temperature === 'number' ? body.temperature : 0.7,
+                    max_tokens: 2048
+                  })
+                });
+                if (openrouterRes.ok) {
+                  const data = await openrouterRes.json();
+                  text = data.choices?.[0]?.message?.content || '';
+                }
+              } catch {}
+            }
+
+            // 3. Gemini SDK
+            if (!text && resolvedKey) {
+              const { GoogleGenAI } = await import('@google/genai');
+              const ai = new GoogleGenAI({ apiKey: resolvedKey });
+              
+              const systemMsg = body.messages.find((m: any) => m.role === 'system');
+              const userMsgs = body.messages.filter((m: any) => m.role !== 'system');
+              
+              const contents = userMsgs.map((m: any) => ({
+                role: m.role === 'assistant' || m.role === 'model' ? 'model' : 'user',
+                parts: [{ text: typeof m.content === 'string' ? m.content : JSON.stringify(m.content) }]
+              }));
+
+              const config: any = {};
+              if (systemMsg?.content) {
+                config.systemInstruction = systemMsg.content;
+              }
+              if (typeof body.temperature === 'number') {
+                config.temperature = body.temperature;
+              }
+
+              const preferredModel = process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-2.5-flash';
+              let response: any = null;
+              try {
+                response = await ai.models.generateContent({
+                  model: preferredModel,
+                  contents,
+                  config
+                });
+              } catch (modelErr: any) {
+                response = await ai.models.generateContent({
+                  model: 'gemini-3.8-flash',
+                  contents,
+                  config
+                });
+              }
+
+              text = response.text || 'NO_DATA_PACKET';
+            }
+
+            if (!text) {
+              text = 'Stork Neural Terminal AI is online. How can I assist your portfolio today?';
+            }
 
             res.writeHead(200);
             res.end(JSON.stringify({

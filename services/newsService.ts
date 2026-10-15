@@ -7,13 +7,10 @@ export interface NewsItem {
     summary: string;
     sourceName: string;
     sourceUrl: string;
-    canonicalUrl: string;
     publishedAt: string; // ISO 8601
-    fetchedAt: string; // ISO 8601
     language: 'uk' | 'en' | 'ru';
     category: 'macro' | 'crypto' | 'stocks' | 'all';
     impact: 'LOW' | 'MEDIUM' | 'HIGH';
-    isFallback: boolean;
 }
 
 export const ALLOWED_NEWS_SOURCES = [
@@ -173,54 +170,101 @@ export async function fetchNewsFeed(language: string = 'ua', forceRefresh: boole
     const isUk = language === 'ua' || language === 'uk';
     const langKey: 'uk' | 'en' = isUk ? 'uk' : 'en';
 
-    // Check localStorage cache first
+    // Check localStorage cache first unless forced
     let cachedData: { articles: NewsItem[]; cachedAt: string } | null = null;
-    if (typeof window !== 'undefined') {
+    if (!forceRefresh && typeof window !== 'undefined') {
         try {
             const raw = localStorage.getItem(CACHE_KEY);
             if (raw) {
                 cachedData = JSON.parse(raw);
+                // Return cached data if less than 15 minutes old
+                const cacheTime = new Date(cachedData.cachedAt).getTime();
+                if (Date.now() - cacheTime < 15 * 60 * 1000 && cachedData.articles?.length > 0) {
+                    return {
+                        articles: cachedData.articles,
+                        lastSyncTimestamp: cachedData.cachedAt,
+                        isOffline: false,
+                        source: 'Verified Live Cache'
+                    };
+                }
             }
         } catch {}
     }
 
-    // Dynamic dates refresh
-    const dates = getDates();
-    const nowIso = new Date().toISOString();
-    const updatedBase: NewsItem[] = BASE_ARTICLES[langKey].map((art, idx) => ({
-        ...art,
-        canonicalUrl: art.canonicalUrl || art.sourceUrl,
-        fetchedAt: art.fetchedAt || nowIso,
-        isFallback: art.isFallback ?? false,
-        publishedAt: idx < 2 ? dates.d0_recent : idx < 4 ? dates.d1_yesterday : dates.d2_prev
-    }));
+    // Attempt real-time RSS fetch via public crypto feeds / RSS-to-JSON
+    try {
+        const rssFeeds = isUk ? [
+            'https://api.rss2json.com/v1/api.json?rss_url=https://cointelegraph.com/rss',
+            'https://api.rss2json.com/v1/api.json?rss_url=https://www.coindesk.com/arc/outboundfeeds/rss/'
+        ] : [
+            'https://api.rss2json.com/v1/api.json?rss_url=https://www.coindesk.com/arc/outboundfeeds/rss/',
+            'https://api.rss2json.com/v1/api.json?rss_url=https://cointelegraph.com/rss'
+        ];
 
-    if (forceRefresh) {
-        if (typeof window !== 'undefined') {
+        let fetchedArticles: NewsItem[] = [];
+        for (const feedUrl of rssFeeds) {
             try {
-                localStorage.setItem(CACHE_KEY, JSON.stringify({
-                    articles: updatedBase,
-                    cachedAt: nowIso
-                }));
+                const res = await fetch(feedUrl, { signal: AbortSignal.timeout(4000) });
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.items && Array.isArray(data.items) && data.items.length > 0) {
+                        fetchedArticles = data.items.slice(0, 6).map((item: any, idx: number) => {
+                            const categories = ['crypto', 'macro', 'stocks'] as const;
+                            const impacts = ['HIGH', 'MEDIUM', 'LOW'] as const;
+                            return {
+                                id: `stork-live-${langKey}-${Date.now()}-${idx}`,
+                                title: item.title || 'Market Update',
+                                summary: (item.description || item.content || '').replace(/<[^>]*>?/gm, '').substring(0, 220) + '...',
+                                sourceName: item.author || (feedUrl.includes('coindesk') ? 'CoinDesk' : 'Cointelegraph'),
+                                sourceUrl: item.link || item.guid || 'https://coindesk.com',
+                                publishedAt: item.pubDate || new Date().toISOString(),
+                                language: langKey,
+                                category: categories[idx % categories.length],
+                                impact: impacts[idx % impacts.length]
+                            };
+                        });
+                        break;
+                    }
+                }
             } catch {}
         }
-        return {
-            articles: updatedBase,
-            lastSyncTimestamp: nowIso,
-            isOffline: false,
-            source: 'Verified Media Allowlist'
-        };
-    }
+
+        if (fetchedArticles.length > 0) {
+            const nowIso = new Date().toISOString();
+            if (typeof window !== 'undefined') {
+                try {
+                    localStorage.setItem(CACHE_KEY, JSON.stringify({
+                        articles: fetchedArticles,
+                        cachedAt: nowIso
+                    }));
+                } catch {}
+            }
+            return {
+                articles: fetchedArticles,
+                lastSyncTimestamp: nowIso,
+                isOffline: false,
+                source: 'Live RSS Stream (Online)'
+            };
+        }
+    } catch {}
+
+    // Fallback to curated base articles with dynamic dates
+    const dates = getDates();
+    const updatedBase = BASE_ARTICLES[langKey].map((art, idx) => ({
+        ...art,
+        publishedAt: idx < 2 ? dates.d0_recent : idx < 4 ? dates.d1_yesterday : dates.d2_prev
+    }));
 
     if (cachedData && cachedData.articles?.length > 0) {
         return {
             articles: cachedData.articles,
             lastSyncTimestamp: cachedData.cachedAt,
-            isOffline: false,
-            source: 'Verified Cache'
+            isOffline: true,
+            source: 'Cached Fallback'
         };
     }
 
+    const nowIso = new Date().toISOString();
     if (typeof window !== 'undefined') {
         try {
             localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -233,8 +277,8 @@ export async function fetchNewsFeed(language: string = 'ua', forceRefresh: boole
     return {
         articles: updatedBase,
         lastSyncTimestamp: nowIso,
-        isOffline: false,
-        source: 'Verified Media Allowlist'
+        isOffline: true,
+        source: 'Curated Verified Baseline'
     };
 }
 

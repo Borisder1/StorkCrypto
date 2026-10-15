@@ -54,10 +54,12 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
 
   try {
     const geminiKey = context.env?.GEMINI_API_KEY || context.env?.API_KEY || '';
+    const groqKey = context.env?.GROQ_API_KEY || '';
+    const openrouterKey = context.env?.OPENROUTER_API_KEY || '';
     const rawNvidiaKey = context.env?.NVIDIA_API_KEY || '';
     const nvidiaKeys = rawNvidiaKey.split(',').map((k: string) => k.trim()).filter(Boolean);
 
-    if (!geminiKey && nvidiaKeys.length === 0) {
+    if (!geminiKey && !groqKey && !openrouterKey && nvidiaKeys.length === 0) {
       return new Response(JSON.stringify({
         error: 'AI_UNAVAILABLE',
         message: 'AI neural engine service is currently not configured.'
@@ -143,8 +145,8 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
           };
         }
 
-        // P0-1 required model resolution: prefer official gemini-3.8-flash
-        const modelCandidate = context.env?.GEMINI_MODEL || context.env?.AI_MODEL || 'gemini-3.8-flash';
+        // P0-1 required model resolution
+        const modelCandidate = context.env?.GEMINI_MODEL || context.env?.AI_MODEL || 'gemini-2.5-flash';
         
         const sendGeminiRequest = async (modelName: string) => {
           return await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${geminiKey}`, {
@@ -158,9 +160,9 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
         let geminiRes: Response | null = null;
         try {
           geminiRes = await sendGeminiRequest(modelCandidate);
-          // Auto fallback if preferred model is unavailable or rate limited
-          if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 410 || geminiRes.status === 429) && modelCandidate !== 'gemini-flash-latest') {
-            geminiRes = await sendGeminiRequest('gemini-flash-latest');
+          // Auto fallback if 2.5-flash is unsupported or retired
+          if (!geminiRes.ok && (geminiRes.status === 404 || geminiRes.status === 410) && modelCandidate !== 'gemini-3.8-flash') {
+            geminiRes = await sendGeminiRequest('gemini-3.8-flash');
           }
         } catch (fetchErr: any) {
           if (fetchErr.name === 'AbortError') throw fetchErr;
@@ -205,7 +207,71 @@ export async function onRequestPost(context: ChatContext): Promise<Response> {
         }
       }
 
-      // 2. Secondary path: NVIDIA NIM API cascade
+      // 2. Groq Llama 3.3 API
+      if (groqKey) {
+        try {
+          const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${groqKey}`
+            },
+            body: JSON.stringify({
+              model: 'llama-3.3-70b-versatile',
+              messages: requestBody.messages,
+              temperature: typeof requestBody.temperature === 'number' ? requestBody.temperature : 0.7,
+              max_tokens: 2048
+            }),
+            signal: controller.signal
+          });
+          if (groqRes.ok) {
+            const data = await groqRes.json();
+            if (data && typeof data === 'object') {
+              data.model = 'stork-neural-ai';
+            }
+            clearTimeout(timeoutId);
+            return new Response(JSON.stringify(data), {
+              status: 200,
+              headers: corsHeaders
+            });
+          }
+        } catch {}
+      }
+
+      // 3. OpenRouter Free Models API
+      if (openrouterKey) {
+        try {
+          const openrouterRes = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${openrouterKey}`,
+              'HTTP-Referer': 'https://storkcrypto.pages.dev',
+              'X-Title': 'StorkCrypto Neural Terminal'
+            },
+            body: JSON.stringify({
+              model: 'deepseek/deepseek-chat:free',
+              messages: requestBody.messages,
+              temperature: typeof requestBody.temperature === 'number' ? requestBody.temperature : 0.7,
+              max_tokens: 2048
+            }),
+            signal: controller.signal
+          });
+          if (openrouterRes.ok) {
+            const data = await openrouterRes.json();
+            if (data && typeof data === 'object') {
+              data.model = 'stork-neural-ai';
+            }
+            clearTimeout(timeoutId);
+            return new Response(JSON.stringify(data), {
+              status: 200,
+              headers: corsHeaders
+            });
+          }
+        } catch {}
+      }
+
+      // 4. Secondary path: NVIDIA NIM API cascade
       if (nvidiaKeys.length > 0) {
         const selectedKey = nvidiaKeys[Math.floor(Math.random() * nvidiaKeys.length)];
         const configuredModel = context.env?.AI_MODEL;
