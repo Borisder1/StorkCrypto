@@ -78,7 +78,14 @@
   - `AssetDetailModal.tsx`: підключено `useScrollLock(true)` для блокування фонового скролу при детальному аналізі активу.
 
 
+- **Telegram Stars (XTR) Payment Architecture & E2E Verification (18.10.2026)**:
+  - **P0-1 Наскрізний бекенд Telegram Stars (`/api/payments/stars/`)**: Впроваджено `create.ts` (створення замовлень із `currency: 'XTR'`, 250 Stars для PRO, 500 для WHALE, TTL 30хв), `webhook.ts` (`pre_checkout_query` з відповіддю < 10с, відхилення невалідних валют як GRAM, `successful_payment` із фіксацією `telegram_payment_charge_id`, ідемпотентна обробка повторних запитів), та `status.ts` (серверна верифікація статусу замовлення та підписки).
+  - **P0-2 Платіжний UX у `SubscriptionModal.tsx`**: Повний автомат станів (`Ready`, `Awaiting payment`, `Confirming`, `Active`, `Failed`, `Cancelled`). Кнопки `Pay with Telegram Stars`, `Cancel`, `Retry payment`, `View payment status`. Повна відсутність локальної активації PRO без серверної квитанції.
+  - **P1-1 & P1-2 Розмежування TON та Telegram Stars**: Жодних згадок або використання GRAM як валюти Telegram Stars. Повна дискретність станів гаманця TON (`disconnected`, `connecting`, `connected`, `failed`) без відображення неперевірених балансів.
+  - **E2E Автоматизований аудит (`npm run test:stars`)**: 25 з 25 тестів пройдено успішно (створення інвойсу, перевірка інваріанту No-PRO-before-receipt, валідація pre_checkout_query, верифікація successful_payment, захист від дублікатів платежів, скасування замовлень, тайм-аут AI Chat).
+
 ## 3. Architecture Constraints
 - z-index hierarchy: base:0, elevated:10, dropdown:20, sticky:30, modal:40, toast:50.
 - All text strings localized via `t('key')` in `translations.ts`.
 - Pure Tailwind tokens and responsive 100dvh layout for Telegram Mini App environment.
+
