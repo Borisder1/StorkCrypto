@@ -4,6 +4,24 @@ import react from '@vitejs/plugin-react';
 
 const usedPaymentHashes = new Set<string>();
 
+interface DevStarsOrder {
+  orderId: string;
+  userId: string;
+  planId: 'PRO' | 'WHALE';
+  amount: number;
+  currency: 'XTR';
+  uniquePayload: string;
+  expiry: string;
+  status: 'PENDING' | 'PAID' | 'CANCELLED' | 'FAILED';
+  createdAt: string;
+  telegramPaymentChargeId?: string;
+  paidAt?: string;
+}
+
+const devOrders = new Map<string, DevStarsOrder>();
+const devSubscriptions = new Map<string, { tier: 'BASIC' | 'PRO' | 'WHALE'; isPro: boolean; activeUntil: string }>();
+const devProcessedCharges = new Set<string>();
+
 function apiChatDevPlugin() {
   return {
     name: 'api-chat-dev-middleware',
@@ -98,8 +116,8 @@ function apiChatDevPlugin() {
           return;
         }
 
-        // 0.2 Telegram Stars Create Invoice
-        if (rawUrl === '/api/payment/create-invoice') {
+        // 0.2 Telegram Stars Create Order (POST /api/payments/stars/create & /api/payment/create-invoice)
+        if (rawUrl === '/api/payments/stars/create' || rawUrl === '/api/payment/create-invoice') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
               'Access-Control-Allow-Origin': '*',
@@ -118,33 +136,212 @@ function apiChatDevPlugin() {
             res.setHeader('Access-Control-Allow-Origin', '*');
             let payload: any = {};
             try { payload = JSON.parse(invoiceBody); } catch {}
-            const plan = payload.plan || 'PRO';
+            const plan = (payload.planId || payload.plan || 'PRO').toUpperCase();
             const stars = plan === 'PRO' ? 250 : 500;
-            const invoiceId = `STARS_${plan}_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+            const userId = payload.userId || 'tg_dev_user';
+            const orderId = `STARS_ORD_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+            const uniquePayload = `PAYLOAD_${orderId}_${userId}`;
+            const expiry = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+            const order: DevStarsOrder = {
+              orderId,
+              userId,
+              planId: plan as 'PRO' | 'WHALE',
+              amount: stars,
+              currency: 'XTR',
+              uniquePayload,
+              expiry,
+              status: 'PENDING',
+              createdAt: new Date().toISOString()
+            };
+            devOrders.set(orderId, order);
+
+            const invoiceUrl = `https://t.me/$stork_sub_${plan.toLowerCase()}_30d?startattach=${orderId}`;
+
             res.writeHead(200);
             res.end(JSON.stringify({
               success: true,
-              invoiceId,
-              invoiceUrl: `https://t.me/$stork_sub_${plan.toLowerCase()}_30d?startattach=${invoiceId}`,
+              orderId,
+              order,
+              invoiceId: orderId,
+              invoiceUrl,
+              invoiceLink: invoiceUrl,
               plan,
               stars,
-              currency: 'XTR'
+              amount: stars,
+              currency: 'XTR',
+              title: `StorkCrypto ${plan} Subscription`,
+              description: `Neural Terminal ${plan} tier for 30 days`
             }));
           });
           req.resume();
           return;
         }
 
-        // 0.3 Subscription Status (GET /api/me/subscription)
-        if (rawUrl === '/api/me/subscription') {
+        // 0.3 Telegram Stars Webhook & Verification (POST /api/payments/stars/webhook)
+        if (rawUrl === '/api/payments/stars/webhook') {
+          if (req.method === 'OPTIONS') {
+            res.writeHead(204, {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            });
+            res.end();
+            return;
+          }
+
+          let whBody = '';
+          req.setEncoding('utf8');
+          req.on('data', (c: string) => { whBody += c; });
+          req.on('end', () => {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            let update: any = {};
+            try { update = JSON.parse(whBody); } catch {}
+
+            // pre_checkout_query
+            if (update.pre_checkout_query) {
+              const pcq = update.pre_checkout_query;
+              let matchedOrder: DevStarsOrder | undefined;
+              for (const o of devOrders.values()) {
+                if (o.uniquePayload === pcq.invoice_payload) {
+                  matchedOrder = o;
+                  break;
+                }
+              }
+              const ok = !!matchedOrder && pcq.currency === 'XTR' && matchedOrder.amount === pcq.total_amount;
+              res.writeHead(200);
+              res.end(JSON.stringify({ ok, pre_checkout_query_id: pcq.id, verified: ok }));
+              return;
+            }
+
+            // successful_payment or simulation
+            const sp = update.message?.successful_payment;
+            const isSim = update.action === 'simulate_payment';
+            const orderId = isSim ? update.orderId : null;
+            let targetOrder: DevStarsOrder | undefined;
+
+            if (orderId) {
+              targetOrder = devOrders.get(orderId);
+            } else if (sp) {
+              for (const o of devOrders.values()) {
+                if (o.uniquePayload === sp.invoice_payload) {
+                  targetOrder = o;
+                  break;
+                }
+              }
+            }
+
+            if (!targetOrder && (sp || isSim)) {
+              res.writeHead(404);
+              res.end(JSON.stringify({ error: 'ORDER_NOT_FOUND' }));
+              return;
+            }
+
+            if (targetOrder) {
+              const chargeId = (sp ? sp.telegram_payment_charge_id : update.chargeId) || `tg_charge_${Date.now()}`;
+              if (devProcessedCharges.has(chargeId)) {
+                res.writeHead(200);
+                res.end(JSON.stringify({ ok: true, orderId: targetOrder.orderId, idempotent: true, note: 'ALREADY_PROCESSED' }));
+                return;
+              }
+
+              devProcessedCharges.add(chargeId);
+              targetOrder.status = 'PAID';
+              targetOrder.telegramPaymentChargeId = chargeId;
+              targetOrder.paidAt = new Date().toISOString();
+
+              const activeUntil = new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString();
+              devSubscriptions.set(targetOrder.userId, {
+                tier: targetOrder.planId,
+                isPro: true,
+                activeUntil
+              });
+
+              res.writeHead(200);
+              res.end(JSON.stringify({
+                ok: true,
+                orderId: targetOrder.orderId,
+                userId: targetOrder.userId,
+                status: 'PAID',
+                telegram_payment_charge_id: chargeId,
+                activatedTier: targetOrder.planId
+              }));
+              return;
+            }
+
+            if (update.action === 'cancel_order' && update.orderId) {
+              const o = devOrders.get(update.orderId);
+              if (o && o.status === 'PENDING') {
+                o.status = 'CANCELLED';
+              }
+              res.writeHead(200);
+              res.end(JSON.stringify({ ok: true, orderId: update.orderId, status: o?.status || 'CANCELLED' }));
+              return;
+            }
+
+            res.writeHead(200);
+            res.end(JSON.stringify({ ok: true }));
+          });
+          req.resume();
+          return;
+        }
+
+        // 0.4 Subscription Status (GET /api/subscription/status & /api/me/subscription)
+        if (rawUrl === '/api/subscription/status' || rawUrl === '/api/me/subscription') {
           res.setHeader('Content-Type', 'application/json');
           res.setHeader('Access-Control-Allow-Origin', '*');
+
+          const parsedUrl = new URL(req.url, 'http://localhost:3000');
+          const orderId = parsedUrl.searchParams.get('orderId');
+          const query = parsedUrl.searchParams.get('query');
+          let userId = parsedUrl.searchParams.get('userId') || 'tg_dev_user';
+
+          if (query) {
+            let foundOrder: DevStarsOrder | undefined;
+            for (const o of devOrders.values()) {
+              if (o.orderId === query || o.telegramPaymentChargeId === query || o.uniquePayload === query) {
+                foundOrder = o;
+                break;
+              }
+            }
+            res.writeHead(200);
+            res.end(JSON.stringify({ success: true, found: !!foundOrder, order: foundOrder || null }));
+            return;
+          }
+
+          let orderData: any = null;
+          if (orderId && devOrders.has(orderId)) {
+            const o = devOrders.get(orderId)!;
+            userId = o.userId;
+            orderData = {
+              orderId: o.orderId,
+              userId: o.userId,
+              planId: o.planId,
+              amount: o.amount,
+              currency: o.currency,
+              status: o.status,
+              telegramPaymentChargeId: o.telegramPaymentChargeId || null,
+              paidAt: o.paidAt || null,
+              expiry: o.expiry
+            };
+          }
+
+          const sub = devSubscriptions.get(userId) || {
+            tier: 'BASIC' as const,
+            isPro: false,
+            activeUntil: new Date().toISOString()
+          };
+
           res.writeHead(200);
           res.end(JSON.stringify({
+            success: true,
             authenticated: true,
-            tier: 'BASIC',
-            isPro: false,
-            trialActive: false,
+            userId,
+            tier: sub.tier,
+            isPro: sub.isPro,
+            activeUntil: sub.activeUntil,
+            order: orderData,
             verifiedAt: new Date().toISOString()
           }));
           return;

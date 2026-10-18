@@ -65,6 +65,16 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     
     const isSyncing = wallet.isSyncing && balanceType === 'MAINNET';
 
+    const [walletConnectState, setWalletConnectState] = useState<'disconnected' | 'opening chooser' | 'connecting' | 'connected' | 'cancelled' | 'failed' | 'disconnected again'>('disconnected');
+
+    useEffect(() => {
+        if (wallet.isConnected) {
+            setWalletConnectState('connected');
+        } else if (walletConnectState === 'connected') {
+            setWalletConnectState('disconnected again');
+        }
+    }, [wallet.isConnected]);
+
     useEffect(() => {
         const unsubscribe = binanceWS.subscribe((data) => {
             assets.forEach(asset => {
@@ -78,9 +88,9 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
     const totalValue = useMemo(() => {
         // If Mainnet, recalculate based on current prices * amounts in store
-        // (The wallet.totalValueUsd might be stale)
         if (balanceType === 'MAINNET') {
-             return assets.reduce((sum, a) => sum + a.value, 0);
+            if (!wallet.isConnected) return 0;
+            return assets.reduce((sum, a) => sum + a.value, 0);
         }
         // Neural (Demo) Balance
         return assets.reduce((sum, a) => sum + a.value, 0);
@@ -173,16 +183,40 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
                             <button
                                 type="button"
-                                onClick={() => {
+                                onClick={async () => {
                                     triggerHaptic('medium');
-                                    const tonConnectUI = getTonConnectUI();
-                                    tonConnectUI?.openModal().catch(e => console.error(e));
+                                    setWalletConnectState('opening chooser');
+                                    try {
+                                        const tonConnectUI = getTonConnectUI();
+                                        if (!tonConnectUI) {
+                                            setWalletConnectState('failed');
+                                            return;
+                                        }
+                                        setWalletConnectState('connecting');
+                                        await tonConnectUI.openModal();
+                                    } catch (e: any) {
+                                        if (e?.message?.toLowerCase().includes('cancel') || e?.name === 'UserRejectsError') {
+                                            setWalletConnectState('cancelled');
+                                        } else {
+                                            setWalletConnectState('failed');
+                                        }
+                                    }
                                 }}
                                 aria-label="Connect TON Wallet"
                                 className="px-4 py-2.5 bg-brand-cyan/20 border border-brand-cyan/40 hover:bg-brand-cyan/30 text-brand-cyan rounded-xl text-xs font-orbitron font-bold transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)] flex items-center gap-2 min-h-[44px]"
                             >
                                 <ShieldIcon className="w-4 h-4 text-brand-cyan" />
-                                {wallet.isConnected ? `${wallet.address?.slice(0, 4)}...${wallet.address?.slice(-4)}` : 'Connect TON Wallet'}
+                                {wallet.isConnected
+                                    ? `${wallet.address?.slice(0, 4)}...${wallet.address?.slice(-4)}`
+                                    : walletConnectState === 'opening chooser'
+                                    ? 'Opening chooser...'
+                                    : walletConnectState === 'connecting'
+                                    ? 'Connecting...'
+                                    : walletConnectState === 'cancelled'
+                                    ? 'Connect TON Wallet (Retry)'
+                                    : walletConnectState === 'failed'
+                                    ? 'Connect TON Wallet (Retry)'
+                                    : 'Connect TON Wallet'}
                             </button>
                             {wallet.isConnected && (
                                 <button
@@ -190,6 +224,7 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                     onClick={() => {
                                         triggerHaptic('light');
                                         disconnectWallet();
+                                        setWalletConnectState('disconnected again');
                                     }}
                                     aria-label="Disconnect TON Wallet"
                                     className="px-3 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-mono font-bold transition-all min-h-[44px]"

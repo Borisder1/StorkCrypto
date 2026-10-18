@@ -77,6 +77,7 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     }, [chatHistory, isLoading]);
 
     const [lastFailedText, setLastFailedText] = useState<string | null>(null);
+    const [isOffline, setIsOffline] = useState(false);
 
     const handleSend = async (messageText?: string) => {
         const text = messageText || input;
@@ -97,18 +98,20 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 responseText = result.text || "NO_DATA_PACKET";
             }
             addChatMessage({ role: 'model', text: responseText, isAudit: isAuditMode });
+            setIsOffline(false);
             triggerHaptic('light');
         } catch (error: any) {
+            setIsOffline(true);
             setLastFailedText(text);
             const errStr = String(error?.message || error || '');
-            const is503 = errStr.includes('503') || errStr.includes('AI_UNAVAILABLE');
+            const is503 = errStr.includes('503') || errStr.includes('AI_UNAVAILABLE') || errStr.includes('502');
             const errNotice = is503
                 ? (settings.language === 'ua'
-                    ? "⚠️ [ШЛЮЗ ШІ НА КАЛІБРУВАННІ — 503]: Нейромережевий провайдер тимчасово недоступний або проходить планову синхронізацію. Спробуйте повторити запит."
-                    : "⚠️ [AI GATEWAY CALIBRATING — 503]: Neural provider is temporarily unavailable. Please retry the request.")
+                    ? "⚠️ [ШЛЮЗ ШІ OFFLINE — 502/503]: Нейромережевий провайдер тимчасово недоступний або проходить калібрування. Спробуйте повторити запит."
+                    : "⚠️ [AI GATEWAY OFFLINE — 502/503]: Neural upstream provider is currently unavailable. Please retry shortly.")
                 : (settings.language === 'ua'
-                    ? "⚠️ [ТАЙМАУТ ШЛЮЗУ]: Запит не вдалося завершити через затримку з'єднання. Спробуйте ще раз."
-                    : "⚠️ [GATEWAY TIMEOUT]: Request failed due to network latency. Please retry.");
+                    ? "⚠️ [ТАЙМАУТ ШЛЮЗУ — 504]: Запит перервано через затримку з'єднання. Спробуйте ще раз."
+                    : "⚠️ [GATEWAY TIMEOUT — 504]: Request timed out. Please retry.");
             addChatMessage({ role: 'model', text: errNotice });
         } finally {
             setIsLoading(false);
@@ -125,12 +128,14 @@ const ChatScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-brand-cyan/20 bg-[#050b14]">
                  <div className="flex items-center gap-3">
-                     <div className={`w-8 h-8 rounded border flex items-center justify-center ${isAuditMode ? 'bg-brand-purple/20 border-brand-purple text-brand-purple' : 'bg-brand-cyan/20 border-brand-cyan text-brand-cyan'}`}>
+                     <div className={`w-8 h-8 rounded border flex items-center justify-center ${isOffline ? 'bg-red-500/20 border-red-500/50 text-red-400' : isAuditMode ? 'bg-brand-purple/20 border-brand-purple text-brand-purple' : 'bg-brand-cyan/20 border-brand-cyan text-brand-cyan'}`}>
                         <BotIcon className="w-5 h-5" />
                      </div>
                      <div>
                         <h1 className="text-xs font-bold text-white tracking-widest uppercase">Stork_AI_Core</h1>
-                        <p className="text-[8px] text-slate-500">UPLINK_ESTABLISHED</p>
+                        <p className={`text-[8px] font-bold tracking-wider ${isOffline ? 'text-red-400' : 'text-slate-500'}`}>
+                            {isOffline ? 'STATUS: OFFLINE' : 'UPLINK_ESTABLISHED'}
+                        </p>
                      </div>
                  </div>
                  <div className="flex gap-2">

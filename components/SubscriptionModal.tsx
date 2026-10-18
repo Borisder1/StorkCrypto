@@ -1,18 +1,17 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useStore } from '../store';
-import { StorkIcon, TelegramIcon, LinkIcon, ActivityIcon, ShieldIcon, BotIcon } from './icons';
+import { StorkIcon, ShieldIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
 import { getTranslation } from '../utils/translations';
 import { safeOpenTelegramInvoice } from '../utils/telegram';
 import { useScrollLock } from '../utils/useScrollLock';
-import { getTonConnectUI } from '../services/tonConnectService';
 
 interface SubscriptionModalProps {
     onClose: () => void;
 }
 
-type PaymentMethod = 'TON' | 'STRIPE' | 'CRYPTO' | 'STARS';
+export type PaymentStatus = 'Ready' | 'Awaiting payment' | 'Confirming' | 'Active' | 'Failed' | 'Cancelled';
 
 const StarIcon: React.FC<{className?: string}> = ({className}) => (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className} aria-hidden="true">
@@ -21,27 +20,35 @@ const StarIcon: React.FC<{className?: string}> = ({className}) => (
 );
 
 const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
-    const { settings, showToast, requestSubscriptionAction, userStats, upgradeUserTier, updateUserStats } = useStore();
+    const { settings, showToast, userStats, upgradeUserTier } = useStore();
     const t = (key: string) => getTranslation(settings?.language || 'en', key);
     
     useScrollLock(true);
 
-    const [step, setStep] = useState<'SELECT' | 'PAY' | 'REDIRECT' | 'VERIFY'>('SELECT');
-    const [selectedPlan, setSelectedPlan] = useState<'PRO' | 'WHALE' | null>(null);
-    const [selectedMethod, setSelectedMethod] = useState<PaymentMethod>('STARS');
-    const [txHash, setTxHash] = useState('');
-    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState<'PRO' | 'WHALE'>('PRO');
+    const [status, setStatus] = useState<PaymentStatus>('Ready');
+    const [orderId, setOrderId] = useState<string>('');
+    const [chargeId, setChargeId] = useState<string>('');
+    const [isProcessing, setIsProcessing] = useState(false);
+    const [statusMessage, setStatusMessage] = useState<string>('');
+    const [invoiceLink, setInvoiceLink] = useState<string>('');
 
     const isMountedRef = useRef(true);
-    const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const stepRef = useRef(step);
-    
-    useEffect(() => {
-        stepRef.current = step;
-    }, [step]);
+    const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-    const adminWallet = settings?.adminTreasuryWallet || "NOT_SET";
-    const plans = settings?.subscriptionPlans || [];
+    const plans = settings?.subscriptionPlans || [
+        { id: 'PRO', name: 'PRO Neural Tier', price: 5, features: ['Live Neural Signals', 'Priority AI Processing', 'Whale Radar Pro'] },
+        { id: 'WHALE', name: 'WHALE Tier', price: 10, features: ['Unlimited AI Copilot', 'Sub-second Order Blocks', 'Alpha VIP Group'] }
+    ];
+
+    const getStarsAmount = (plan: 'PRO' | 'WHALE') => (plan === 'PRO' ? 250 : 500);
+
+    const clearPolling = () => {
+        if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+        }
+    };
 
     useEffect(() => {
         isMountedRef.current = true;
@@ -53,264 +60,207 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         window.addEventListener('keydown', handleKeyDown);
         return () => {
             isMountedRef.current = false;
-            if (fallbackTimerRef.current) {
-                clearTimeout(fallbackTimerRef.current);
-            }
+            clearPolling();
             window.removeEventListener('keydown', handleKeyDown);
         };
     }, [onClose]);
 
-    const handleSelectPlan = (planId: 'PRO' | 'WHALE') => {
-        triggerHaptic('medium');
-        setSelectedPlan(planId);
-        setStep('PAY');
+    // Backend order status check: strictly server-authoritative
+    const checkBackendStatus = async (targetOrderId: string, silent: boolean = false) => {
+        if (!targetOrderId) return;
+        try {
+            const res = await fetch(`/api/subscription/status?orderId=${encodeURIComponent(targetOrderId)}`);
+            if (!res.ok) throw new Error('Status fetch failed');
+            const data = await res.json();
+
+            if (!isMountedRef.current) return;
+
+            if (data?.order?.status === 'PAID') {
+                clearPolling();
+                setStatus('Active');
+                setChargeId(data.order.telegramPaymentChargeId || 'VERIFIED_ON_SERVER');
+                setIsProcessing(false);
+                // Activate on frontend strictly after backend verification
+                upgradeUserTier(data.order.planId || selectedPlan, 30);
+                triggerHaptic('success');
+                showToast('Оплату успішно підтверджено сервером! Доступ активовано.');
+            } else if (data?.order?.status === 'CANCELLED') {
+                clearPolling();
+                setStatus('Cancelled');
+                setIsProcessing(false);
+                setStatusMessage('Платіж скасовано');
+            } else if (data?.order?.status === 'FAILED') {
+                clearPolling();
+                setStatus('Failed');
+                setIsProcessing(false);
+                setStatusMessage('Помилка обробки замовлення сервером');
+            } else {
+                if (!silent) {
+                    showToast('Статус замовлення: Очікує оплату');
+                }
+            }
+        } catch {
+            if (!silent && isMountedRef.current) {
+                showToast('Не вдалося зв\'язатися з сервером перевірки');
+            }
+        }
     };
 
-    // Stage 3: Native Telegram Stars Payment with mandatory server verification
-    const handleStarsPayment = async () => {
-        if (isProcessingPayment) return;
-        setIsProcessingPayment(true);
+    // P0-1: Create Order & Open Invoice link
+    const handlePayWithStars = async () => {
+        if (isProcessing) return;
+        setIsProcessing(true);
+        setStatus('Awaiting payment');
+        setStatusMessage('Створення замовлення...');
         triggerHaptic('heavy');
-        
-        const planPrice = plans.find(p => p.id === selectedPlan)?.price || 0;
-        const starsCost = getPriceInStars(planPrice);
-
-        setStep('REDIRECT');
+        clearPolling();
 
         try {
-            const invoiceUrl = `https://t.me/invoice/${selectedPlan}_STORK_SUB`;
+            const tgInitData = window.Telegram?.WebApp?.initData || '';
+            const res = await fetch('/api/payments/stars/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    planId: selectedPlan,
+                    initData: tgInitData,
+                    userId: userStats?.id || 'tg_user'
+                })
+            });
 
-            const opened = safeOpenTelegramInvoice(invoiceUrl, async (status: string) => {
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || 'Failed to create order');
+            }
+
+            const data = await res.json();
+            const createdOrder = data.order;
+            const link = data.invoiceLink || data.invoiceUrl;
+
+            setOrderId(createdOrder.orderId);
+            setInvoiceLink(link);
+            setStatusMessage('Очікуємо оплату через Telegram Stars...');
+
+            // Open invoice in Telegram WebApp
+            const opened = safeOpenTelegramInvoice(link, async (invoiceStatus: string) => {
                 if (!isMountedRef.current) return;
-                setIsProcessingPayment(false);
+                
+                setStatus('Confirming');
+                setStatusMessage('Підтвердження оплати на сервері...');
 
-                if (status === 'paid') {
-                    // Send to backend verification endpoint (P0-2 requirement)
-                    try {
-                        const tgPayId = 'TG_STARS_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                        const verifyRes = await fetch('/api/payment/verify', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({
-                                method: 'STARS',
-                                plan: selectedPlan,
-                                userId: userStats?.id || 'GUEST',
-                                invoicePayload: `${selectedPlan}_STORK_SUB`,
-                                telegramPaymentIdentifier: tgPayId,
-                                amount: starsCost
-                            })
-                        });
-                        const verifyData = await verifyRes.json();
-
-                        if (verifyRes.ok && verifyData.success && verifyData.status === 'CONFIRMED') {
-                            setStep('VERIFY');
-                            setTxHash(tgPayId);
-                            if (selectedPlan) upgradeUserTier(selectedPlan, 30);
-                            showToast('Оплату Stars верифіковано сервером! Активовано 30 днів PRO.');
-                            triggerHaptic('success');
-                        } else {
-                            setStep('PAY');
-                            showToast(verifyData.message || 'Помилка серверної верифікації платежу Stars');
-                            triggerHaptic('error');
-                        }
-                    } catch {
-                        setStep('PAY');
-                        showToast('Збій підтвердження платежу через сервер.');
-                        triggerHaptic('error');
-                    }
-                } else {
-                    // User canceled invoice - NO entitlement granted
-                    setStep('PAY');
-                    showToast('Платіж скасовано або не підтверджено.');
+                if (invoiceStatus === 'paid') {
+                    // Poll backend to confirm successful_payment receipt
+                    checkBackendStatus(createdOrder.orderId);
+                    pollIntervalRef.current = setInterval(() => {
+                        checkBackendStatus(createdOrder.orderId, true);
+                    }, 2000);
+                } else if (invoiceStatus === 'cancelled') {
+                    setStatus('Cancelled');
+                    setIsProcessing(false);
+                    setStatusMessage('Платіж було скасовано у вікні рахунку.');
                     triggerHaptic('error');
+                } else {
+                    setStatus('Failed');
+                    setIsProcessing(false);
+                    setStatusMessage(`Статус рахунку: ${invoiceStatus}`);
                 }
             });
 
             if (!opened) {
-                // If native invoice cannot open, verify through Stars direct server charge
-                const tgPayId = 'TG_DIRECT_' + Date.now() + '_' + Math.random().toString(36).substring(2, 8).toUpperCase();
-                const currentStars = userStats.telegramStars ?? 0;
-                
-                if (currentStars < starsCost) {
-                    setIsProcessingPayment(false);
-                    setStep('PAY');
-                    showToast(`Недостатньо Stars: потрібно ${starsCost} ⭐, на балансі ${currentStars} ⭐`);
-                    triggerHaptic('error');
-                    return;
-                }
+                // In standalone browser / preview where openInvoice is not natively injected
+                setStatus('Awaiting payment');
+                setIsProcessing(false);
+                setStatusMessage('Рахунок створено. Скористайтеся посиланням або симуляцією для тестування.');
+            }
+        } catch (err: any) {
+            if (isMountedRef.current) {
+                setStatus('Failed');
+                setIsProcessing(false);
+                setStatusMessage(err?.message || 'Помилка створення рахунку');
+                triggerHaptic('error');
+            }
+        }
+    };
 
-                const verifyRes = await fetch('/api/payment/verify', {
+    // Dev Simulator trigger for end-to-end verification without real stars
+    const handleSimulatePayment = async () => {
+        if (!orderId) {
+            showToast('Спершу створіть замовлення');
+            return;
+        }
+        setIsProcessing(true);
+        setStatus('Confirming');
+        setStatusMessage('Симуляція webhook successful_payment...');
+        try {
+            const res = await fetch('/api/payments/stars/webhook', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'simulate_payment',
+                    orderId,
+                    chargeId: `tg_test_charge_${Date.now()}`
+                })
+            });
+            const data = await res.json();
+            if (res.ok && data.ok) {
+                await checkBackendStatus(orderId);
+            } else {
+                setStatus('Failed');
+                setIsProcessing(false);
+                showToast(data.error || 'Помилка симуляції');
+            }
+        } catch {
+            setStatus('Failed');
+            setIsProcessing(false);
+            showToast('Збій запиту до сервера');
+        }
+    };
+
+    const handleCancelPayment = async () => {
+        triggerHaptic('light');
+        clearPolling();
+        setIsProcessing(false);
+        if (orderId && (status === 'Awaiting payment' || status === 'Confirming')) {
+            try {
+                await fetch('/api/payments/stars/webhook', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        method: 'STARS',
-                        plan: selectedPlan,
-                        userId: userStats?.id || 'GUEST',
-                        invoicePayload: `${selectedPlan}_STORK_DIRECT`,
-                        telegramPaymentIdentifier: tgPayId,
-                        amount: starsCost
+                        action: 'cancel_order',
+                        orderId
                     })
                 });
-                const verifyData = await verifyRes.json();
-
-                if (verifyRes.ok && verifyData.success && verifyData.status === 'CONFIRMED') {
-                    updateUserStats({ telegramStars: Math.max(0, currentStars - starsCost) });
-                    if (selectedPlan) upgradeUserTier(selectedPlan, 30);
-                    setStep('VERIFY');
-                    setTxHash(tgPayId);
-                    showToast(`Оплату ${starsCost} ⭐ Stars верифіковано! Доступ активовано.`);
-                    triggerHaptic('success');
-                } else {
-                    setStep('PAY');
-                    showToast(verifyData.message || 'Сервер відхилив платіж');
-                    triggerHaptic('error');
-                }
-                setIsProcessingPayment(false);
-            }
-
-        } catch (e) {
-            if (isMountedRef.current) {
-                setIsProcessingPayment(false);
-                setStep('PAY');
-                showToast(t('sub.payment_failed'));
-            }
+            } catch {}
+            setStatus('Cancelled');
+            setStatusMessage('Замовлення скасовано.');
+        } else {
+            onClose();
         }
     };
 
-    const handleManualPaymentNotify = async () => {
-        if (!selectedPlan || !txHash || txHash.trim().length < 24) {
-            showToast('Введіть коректний хеш транзакції TON (мінімум 24 символи)');
-            triggerHaptic('error');
-            return;
-        }
-
-        setIsProcessingPayment(true);
-        try {
-            // Server-side on-chain verification & duplicate rejection (P0-2)
-            const res = await fetch('/api/payment/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    method: 'TON',
-                    plan: selectedPlan,
-                    userId: userStats?.id || 'GUEST',
-                    txHash: txHash.trim()
-                })
-            });
-
-            const data = await res.json();
-            setIsProcessingPayment(false);
-
-            if (res.ok && data.success && data.status === 'CONFIRMED') {
-                triggerHaptic('success');
-                if (selectedPlan) upgradeUserTier(selectedPlan, 30);
-                requestSubscriptionAction(userStats?.id || 'GUEST', selectedPlan, selectedMethod, txHash.trim());
-                setStep('VERIFY');
-                showToast('Транзакцію TON успішно верифіковано! Доступ активовано.');
-            } else {
-                triggerHaptic('error');
-                showToast(data.message || 'Помилка верифікації хешу транзакції');
-            }
-        } catch {
-            setIsProcessingPayment(false);
-            triggerHaptic('error');
-            showToast('Помилка з\'єднання з сервером перевірки платежів');
-        }
+    const handleRetryPayment = () => {
+        triggerHaptic('medium');
+        clearPolling();
+        setStatus('Ready');
+        setStatusMessage('');
+        setOrderId('');
+        setChargeId('');
+        setIsProcessing(false);
     };
 
-    const handleTonConnectPayment = async () => {
-        if (!selectedPlan || isProcessingPayment) return;
-        setIsProcessingPayment(true);
-        triggerHaptic('heavy');
-
-        try {
-            const tonConnectUI = getTonConnectUI();
-            if (!tonConnectUI) {
-                showToast('TON Connect недоступний у поточному середовищі.');
-                setIsProcessingPayment(false);
-                return;
-            }
-
-            if (!tonConnectUI.connected) {
-                showToast('Підключіть TON гаманець для оплати.');
-                await tonConnectUI.openModal();
-                setIsProcessingPayment(false);
-                return;
-            }
-
-            // 1. Fetch server intent (Variant B)
-            const intentRes = await fetch('/api/payment/intent', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    plan: selectedPlan,
-                    userId: userStats?.id || 'GUEST'
-                })
-            });
-
-            if (!intentRes.ok) {
-                const errData = await intentRes.json().catch(() => ({}));
-                showToast(errData.message || 'Не вдалося згенерувати платіжний намір');
-                setIsProcessingPayment(false);
-                return;
-            }
-
-            const intent = await intentRes.json();
-            setStep('REDIRECT');
-
-            // 2. Client signs transaction strictly matching server intent
-            const transaction = {
-                validUntil: Math.floor(intent.expiry / 1000),
-                messages: [
-                    {
-                        address: intent.receiver,
-                        amount: intent.amountNano,
-                        payload: ''
-                    }
-                ]
-            };
-
-            const txResult = await tonConnectUI.sendTransaction(transaction);
-            const clientBoc = txResult.boc;
-
-            // 3. Server verification & idempotency validation
-            const verifyRes = await fetch('/api/payment/verify', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    method: 'TON',
-                    plan: selectedPlan,
-                    userId: userStats?.id || 'GUEST',
-                    txHash: clientBoc || `TON_${Date.now()}_${intent.nonce}`,
-                    intentId: intent.intentId
-                })
-            });
-
-            const verifyData = await verifyRes.json();
-            setIsProcessingPayment(false);
-
-            if (verifyRes.ok && verifyData.success && verifyData.status === 'CONFIRMED') {
-                triggerHaptic('success');
-                if (selectedPlan) upgradeUserTier(selectedPlan, 30);
-                requestSubscriptionAction(userStats?.id || 'GUEST', selectedPlan, 'TON', verifyData.txHash || clientBoc);
-                setTxHash(verifyData.txHash || clientBoc);
-                setStep('VERIFY');
-                showToast('Оплату TON успішно верифіковано сервером!');
-            } else {
-                setStep('PAY');
-                triggerHaptic('error');
-                showToast(verifyData.message || 'Помилка серверної верифікації TON транзакції');
-            }
-        } catch (err: any) {
-            setIsProcessingPayment(false);
-            setStep('PAY');
-            triggerHaptic('error');
-            showToast('Транзакцію скасовано користувачем або сталася помилка');
+    const getStatusBadgeClass = () => {
+        switch (status) {
+            case 'Active':
+                return 'text-emerald-400 bg-emerald-500/10 border-emerald-500/30';
+            case 'Awaiting payment':
+            case 'Confirming':
+                return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30 animate-pulse';
+            case 'Failed':
+                return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
+            case 'Cancelled':
+                return 'text-slate-400 bg-slate-500/10 border-slate-500/30';
+            default:
+                return 'text-brand-cyan bg-brand-cyan/10 border-brand-cyan/30';
         }
-    };
-
-    const getPriceInStars = (usdPrice: number) => {
-        return Math.ceil(usdPrice / 0.02); // 1 Star ~ $0.02
     };
 
     return (
@@ -340,7 +290,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
                 className="modal-panel w-full max-w-md bg-brand-bg rounded-[1.5rem] sm:rounded-[2rem] border border-white/10 shadow-[0_0_60px_rgba(139,92,246,0.3)] flex flex-col max-h-[90dvh] overflow-hidden my-auto"
             >
-                
+                {/* Header */}
                 <div className="shrink-0 px-6 py-5 text-center border-b border-white/5 relative bg-brand-card/50">
                     <button 
                         onClick={onClose} 
@@ -353,177 +303,194 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                         <div className="w-10 h-10 bg-brand-purple/20 rounded-xl flex items-center justify-center border border-brand-purple/30">
                             <StorkIcon className="w-6 h-6 text-brand-purple" />
                         </div>
-                        <h2 id="subscription-modal-title" className="text-xl font-black text-white font-orbitron uppercase tracking-widest">{t('sub.title')}</h2>
+                        <h2 id="subscription-modal-title" className="text-xl font-black text-white font-orbitron uppercase tracking-widest">
+                            {t('sub.title') || 'PRO MEMBERSHIP'}
+                        </h2>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar overscroll-contain pb-12">
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar overscroll-contain pb-8 space-y-5">
                     
-                    {step === 'SELECT' && (
-                        <div className="space-y-4">
-                            {plans.map((p) => (
-                                <div key={p.id} className={`border ${p.id === 'WHALE' ? 'border-brand-purple/40 bg-brand-purple/5' : 'border-brand-cyan/40 bg-brand-cyan/5'} rounded-3xl p-6 relative active:scale-[0.98] transition-transform group overflow-hidden`}>
-                                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_3s_infinite] bg-gradient-to-r from-transparent via-white/5 to-transparent pointer-events-none"></div>
-                                    
-                                    <div className="flex justify-between items-start mb-4 relative z-10">
-                                        <div>
-                                            <h3 className={`font-black text-white text-lg font-orbitron uppercase ${p.id === 'WHALE' ? 'text-brand-purple' : ''}`}>{p.name}</h3>
-                                            <p className="text-[10px] text-slate-500 font-mono uppercase">{t('sub.full_access')}</p>
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="flex items-center gap-1 justify-end">
-                                                <StarIcon className="w-4 h-4 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.6)]" />
-                                                <p className="text-xl font-black text-white font-orbitron tracking-tighter">{getPriceInStars(p.price)}</p>
-                                            </div>
-                                            <span className="text-[8px] text-slate-500 font-mono uppercase">(${p.price}) / MONTH</span>
-                                        </div>
-                                    </div>
-                                    <ul className="space-y-2 mb-6 relative z-10">
-                                        {(p.features || []).map((feat: string, i: number) => (
-                                            <li key={i} className="text-xs text-slate-300 flex items-center gap-3"><div className={`w-1.5 h-1.5 rounded-full ${p.id === 'WHALE' ? 'bg-brand-purple' : 'bg-brand-cyan'}`}></div>{feat}</li>
-                                        ))}
-                                    </ul>
-                                    <button 
-                                        onClick={() => handleSelectPlan(p.id as any)} 
-                                        aria-label={`${t('sub.initialize')} ${p.name}`}
-                                        className={`relative z-10 w-full py-4 font-black font-orbitron text-[10px] rounded-2xl transition-all uppercase tracking-[0.2em] shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white ${p.id === 'WHALE' ? 'bg-brand-purple text-white hover:shadow-[0_0_20px_#8b5cf6]' : 'bg-brand-cyan text-black hover:shadow-[0_0_20px_#00d9ff]'}`}
-                                    >
-                                        {t('sub.initialize')} {p.name}
-                                    </button>
+                    {/* Plan Selector (when not yet active) */}
+                    {status !== 'Active' && (
+                        <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="План підписки">
+                            <button
+                                type="button"
+                                role="radio"
+                                aria-checked={selectedPlan === 'PRO'}
+                                onClick={() => { setSelectedPlan('PRO'); triggerHaptic('selection'); }}
+                                disabled={isProcessing}
+                                className={`p-4 rounded-2xl border text-left transition-all ${selectedPlan === 'PRO' ? 'border-brand-cyan bg-brand-cyan/10 ring-1 ring-brand-cyan' : 'border-white/10 bg-white/5 opacity-70'}`}
+                            >
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="font-bold text-white text-xs font-orbitron">PRO TIER</span>
+                                    <StarIcon className="w-4 h-4 text-yellow-400" />
                                 </div>
-                            ))}
+                                <div className="text-lg font-black text-white font-orbitron">250 XTR</div>
+                                <div className="text-[10px] text-slate-400 font-mono">30 днів доступу</div>
+                            </button>
+
+                            <button
+                                type="button"
+                                role="radio"
+                                aria-checked={selectedPlan === 'WHALE'}
+                                onClick={() => { setSelectedPlan('WHALE'); triggerHaptic('selection'); }}
+                                disabled={isProcessing}
+                                className={`p-4 rounded-2xl border text-left transition-all ${selectedPlan === 'WHALE' ? 'border-brand-purple bg-brand-purple/10 ring-1 ring-brand-purple' : 'border-white/10 bg-white/5 opacity-70'}`}
+                            >
+                                <div className="flex items-center justify-between mb-1">
+                                    <span className="font-bold text-brand-purple text-xs font-orbitron">WHALE TIER</span>
+                                    <StarIcon className="w-4 h-4 text-yellow-400" />
+                                </div>
+                                <div className="text-lg font-black text-white font-orbitron">500 XTR</div>
+                                <div className="text-[10px] text-slate-400 font-mono">30 днів VIP доступу</div>
+                            </button>
                         </div>
                     )}
 
-                    {step === 'PAY' && (
-                        <div className="space-y-5 animate-fade-in">
-                            <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Метод оплати підписки">
-                                <button 
-                                    role="radio"
-                                    aria-checked={selectedMethod === 'STARS'}
-                                    aria-label="Оплата через Telegram Stars"
-                                    onClick={() => { triggerHaptic('selection'); setSelectedMethod('STARS'); }} 
-                                    className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-500 ${selectedMethod === 'STARS' ? 'bg-yellow-500/20 border-yellow-500' : 'bg-white/5 border-transparent opacity-60'}`}
-                                >
-                                    <StarIcon className="w-8 h-8 text-yellow-400" />
-                                    <span className="font-black text-[10px] text-white uppercase">{t('sub.tg_stars')}</span>
-                                </button>
-                                <button 
-                                    role="radio"
-                                    aria-checked={selectedMethod === 'TON'}
-                                    aria-label="Оплата через TON Wallet"
-                                    onClick={() => { triggerHaptic('selection'); setSelectedMethod('TON'); }} 
-                                    className={`p-4 rounded-2xl border flex flex-col items-center gap-2 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${selectedMethod === 'TON' ? 'bg-brand-cyan/20 border-brand-cyan' : 'bg-white/5 border-transparent opacity-60'}`}
-                                >
-                                    <TelegramIcon className="w-8 h-8 text-brand-cyan" />
-                                    <span className="font-black text-[10px] text-white uppercase">{t('sub.ton_wallet')}</span>
-                                </button>
+                    {/* Strict P0-2 UX Specification Box */}
+                    <div className="bg-black/60 rounded-2xl p-5 border border-white/10 space-y-3 font-mono text-xs">
+                        <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span className="text-slate-400 uppercase tracking-wider">Payment method:</span>
+                            <span className="text-white font-bold">Telegram Stars</span>
+                        </div>
+                        <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span className="text-slate-400 uppercase tracking-wider">Currency:</span>
+                            <span className="text-yellow-400 font-bold">XTR</span>
+                        </div>
+                        <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span className="text-slate-400 uppercase tracking-wider">Amount:</span>
+                            <span className="text-white font-bold">{getStarsAmount(selectedPlan)} XTR</span>
+                        </div>
+                        <div className="flex justify-between items-center">
+                            <span className="text-slate-400 uppercase tracking-wider">Status:</span>
+                            <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold ${getStatusBadgeClass()}`}>
+                                {status}
+                            </span>
+                        </div>
+                        {orderId && (
+                            <div className="pt-2 border-t border-white/5 flex justify-between items-center text-[10px] text-slate-500">
+                                <span>Order ID:</span>
+                                <span className="text-slate-300 font-mono">{orderId}</span>
                             </div>
-
-                            {selectedMethod === 'STARS' ? (
-                                <div className="bg-black/60 rounded-3xl p-6 border border-white/5 text-center">
-                                    <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-4 border border-yellow-500/30">
-                                        <StarIcon className="w-8 h-8 text-yellow-400" />
-                                    </div>
-                                    <p className="text-4xl font-black text-white font-orbitron mb-6">
-                                        {getPriceInStars(plans.find(p => p.id === selectedPlan)?.price || 0)}
-                                    </p>
-                                    <button 
-                                        onClick={handleStarsPayment} 
-                                        disabled={isProcessingPayment}
-                                        aria-label={t('sub.pay_stars')}
-                                        className={`w-full py-4 bg-[#0088cc] text-white font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan ${isProcessingPayment ? 'opacity-50 cursor-not-allowed' : 'hover:bg-[#0077b3]'}`}
-                                    >
-                                        {isProcessingPayment ? 'PROCESSING...' : t('sub.pay_stars')}
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="bg-black/60 rounded-3xl p-6 border border-white/5 space-y-4">
-                                    <div className="text-center">
-                                        <div className="w-16 h-16 bg-brand-cyan/10 rounded-full flex items-center justify-center mx-auto mb-3 border border-brand-cyan/30">
-                                            <TelegramIcon className="w-8 h-8 text-brand-cyan" />
-                                        </div>
-                                        <p className="text-2xl font-black text-white font-orbitron mb-1">
-                                            {selectedPlan === 'WHALE' ? '3.0 TON' : '1.5 TON'}
-                                        </p>
-                                        <p className="text-[9px] text-slate-400 font-mono uppercase">
-                                            Server-Verified TonConnect Intent
-                                        </p>
-                                    </div>
-
-                                    <button 
-                                        onClick={handleTonConnectPayment} 
-                                        disabled={isProcessingPayment}
-                                        aria-label="Оплатити підписку через TonConnect"
-                                        className={`w-full py-4 bg-brand-cyan text-black font-black rounded-2xl uppercase text-xs tracking-widest shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan active:scale-[0.99] transition-all flex items-center justify-center gap-2 ${isProcessingPayment ? 'opacity-50 cursor-not-allowed' : 'hover:bg-cyan-400'}`}
-                                    >
-                                        <ShieldIcon className="w-4 h-4 text-black" />
-                                        {isProcessingPayment ? 'INITIALIZING INTENT...' : 'Pay with TonConnect'}
-                                    </button>
-
-                                    <div className="pt-3 border-t border-white/10">
-                                        <p className="text-[9px] text-slate-500 uppercase font-black mb-2">{t('sub.deposit_ton')} (Manual Fallback)</p>
-                                        <div 
-                                            role="button"
-                                            tabIndex={0}
-                                            aria-label={`Скопіювати TON адресу: ${adminWallet}`}
-                                            onClick={() => { 
-                                                navigator.clipboard.writeText(adminWallet); 
-                                                showToast(t('sub.copied')); 
-                                                triggerHaptic('light'); 
-                                            }}
-                                            onKeyDown={(e) => {
-                                                if (e.key === 'Enter' || e.key === ' ') {
-                                                    e.preventDefault();
-                                                    navigator.clipboard.writeText(adminWallet); 
-                                                    showToast(t('sub.copied')); 
-                                                    triggerHaptic('light');
-                                                }
-                                            }}
-                                            className="bg-white/5 p-3 rounded-xl border border-white/10 mb-3 break-all cursor-copy hover:border-brand-cyan/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan transition-all"
-                                        >
-                                            <p className="text-[11px] font-mono text-brand-cyan">{adminWallet}</p>
-                                        </div>
-                                        <input 
-                                            id="sub_tx_hash_input"
-                                            type="text" 
-                                            value={txHash} 
-                                            onChange={(e) => setTxHash(e.target.value)} 
-                                            aria-label={t('sub.tx_hash_placeholder') || 'Хеш транзакції'}
-                                            className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-mono mb-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan" 
-                                            placeholder={t('sub.tx_hash_placeholder')} 
-                                        />
-                                        <button 
-                                            onClick={handleManualPaymentNotify} 
-                                            disabled={isProcessingPayment}
-                                            aria-label="Підтвердити хеш транзакції"
-                                            className="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl uppercase text-[10px] tracking-wider focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white active:scale-[0.99] transition-all"
-                                        >
-                                            {t('sub.verify_hash')}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-                    )}
-
-                    {step === 'REDIRECT' && (
-                        <div className="py-20 text-center animate-pulse">
-                            <div className="w-20 h-20 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
-                            <h3 className="text-white font-black font-orbitron uppercase tracking-widest">{t('sub.awaiting_ui')}</h3>
-                        </div>
-                    )}
-
-                    {step === 'VERIFY' && (
-                        <div className="py-16 text-center animate-zoom-in">
-                            <div className="w-20 h-20 bg-brand-green/20 rounded-full flex items-center justify-center mx-auto mb-6 border-2 border-brand-green shadow-[0_0_30px_rgba(34,197,94,0.4)]">
-                                <ShieldIcon className="w-10 h-10 text-brand-green" />
+                        )}
+                        {chargeId && (
+                            <div className="flex justify-between items-center text-[10px] text-emerald-400">
+                                <span>Charge ID:</span>
+                                <span className="font-mono">{chargeId}</span>
                             </div>
-                            <h3 className="text-xl font-black text-white font-orbitron uppercase">{t('sub.link_established')}</h3>
-                            <p className="text-slate-500 text-xs mt-2 font-mono uppercase">{txHash}</p>
-                            <button onClick={onClose} className="mt-8 px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase text-white">{t('sub.back_terminal')}</button>
+                        )}
+                    </div>
+
+                    {statusMessage && (
+                        <p className="text-center text-xs text-slate-300 font-mono animate-fade-in bg-white/5 py-2 px-3 rounded-xl border border-white/5">
+                            {statusMessage}
+                        </p>
+                    )}
+
+                    {/* Features list */}
+                    {status === 'Ready' && (
+                        <div className="bg-white/[0.02] rounded-2xl p-4 border border-white/5">
+                            <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2">Включено в підписку:</div>
+                            <ul className="space-y-1.5 text-xs text-slate-300">
+                                {(plans.find(p => p.id === selectedPlan)?.features || []).map((f: string, idx: number) => (
+                                    <li key={idx} className="flex items-center gap-2">
+                                        <span className="w-1.5 h-1.5 rounded-full bg-brand-cyan shrink-0" />
+                                        <span>{f}</span>
+                                    </li>
+                                ))}
+                            </ul>
                         </div>
                     )}
+
+                    {/* Success Screen when Active */}
+                    {status === 'Active' && (
+                        <div className="py-6 text-center space-y-4">
+                            <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto border-2 border-emerald-500 shadow-[0_0_30px_rgba(16,185,129,0.3)]">
+                                <ShieldIcon className="w-8 h-8 text-emerald-400" />
+                            </div>
+                            <h3 className="text-lg font-black text-white font-orbitron uppercase">
+                                PRO АКТИВОВАНО
+                            </h3>
+                            <p className="text-xs text-slate-400 font-mono">
+                                Сервер підтвердив платіж. Доступ активовано на 30 днів.
+                            </p>
+                        </div>
+                    )}
+
+                    {/* P0-2 Action Buttons */}
+                    <div className="space-y-2 pt-2">
+                        {status === 'Ready' && (
+                            <button
+                                onClick={handlePayWithStars}
+                                disabled={isProcessing}
+                                aria-label="Pay with Telegram Stars"
+                                className="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-black font-orbitron text-xs rounded-2xl uppercase tracking-widest shadow-[0_0_25px_rgba(234,179,8,0.3)] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                            >
+                                <StarIcon className="w-4 h-4 text-black" />
+                                Pay with Telegram Stars ({getStarsAmount(selectedPlan)} XTR)
+                            </button>
+                        )}
+
+                        {(status === 'Awaiting payment' || status === 'Confirming') && (
+                            <>
+                                <button
+                                    onClick={() => checkBackendStatus(orderId)}
+                                    aria-label="View payment status"
+                                    className="w-full py-3.5 bg-brand-cyan text-black font-bold font-orbitron text-xs rounded-2xl uppercase tracking-widest hover:bg-cyan-300 transition-all shadow-md"
+                                >
+                                    View payment status
+                                </button>
+                                
+                                {/* Dev test simulation helper */}
+                                <button
+                                    onClick={handleSimulatePayment}
+                                    aria-label="Simulate payment confirmation"
+                                    className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-slate-300 font-mono text-[10px] rounded-xl uppercase tracking-wider transition-colors border border-white/10"
+                                >
+                                    ⚡ Simulate Test Confirmation (Dev)
+                                </button>
+
+                                <button
+                                    onClick={handleCancelPayment}
+                                    aria-label="Cancel"
+                                    className="w-full py-3 bg-white/5 hover:bg-white/10 text-slate-400 font-semibold text-xs rounded-xl uppercase transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </>
+                        )}
+
+                        {(status === 'Failed' || status === 'Cancelled') && (
+                            <>
+                                <button
+                                    onClick={handleRetryPayment}
+                                    aria-label="Retry payment"
+                                    className="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black font-orbitron text-xs rounded-2xl uppercase tracking-widest transition-all"
+                                >
+                                    Retry payment
+                                </button>
+                                <button
+                                    onClick={onClose}
+                                    aria-label="Cancel"
+                                    className="w-full py-3 bg-white/5 text-slate-400 font-semibold text-xs rounded-xl uppercase transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                            </>
+                        )}
+
+                        {status === 'Active' && (
+                            <button
+                                onClick={onClose}
+                                aria-label="Закрити"
+                                className="w-full py-4 bg-emerald-500 hover:bg-emerald-400 text-black font-black font-orbitron text-xs rounded-2xl uppercase tracking-widest transition-all"
+                            >
+                                Повернутися до терміналу
+                            </button>
+                        )}
+                    </div>
+
                 </div>
             </motion.section>
         </motion.div>

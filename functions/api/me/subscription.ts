@@ -1,5 +1,4 @@
-// Cloudflare Pages Functions: Route handler for /api/me/subscription
-// Returns server-verified subscription status
+import { OrdersStore } from '../payments/stars/ordersStore';
 
 interface Context {
   request: Request;
@@ -36,12 +35,28 @@ export async function onRequestOptions(context: Context): Promise<Response> {
 export async function onRequestGet(context: Context): Promise<Response> {
   const headers = getCorsHeaders(context.request);
   const authHeader = context.request.headers.get('Authorization') || '';
+  let userId = 'tg_guest_user';
 
-  // Return server status
+  if (authHeader.startsWith('tma ')) {
+    try {
+      const rawInitData = authHeader.slice(4);
+      const params = new URLSearchParams(rawInitData);
+      const userStr = params.get('user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if (u?.id) userId = String(u.id);
+      }
+    } catch {}
+  }
+
+  const sub = OrdersStore.getUserSubscription(userId);
+
   return new Response(JSON.stringify({
     authenticated: !!authHeader,
-    tier: 'BASIC',
-    isPro: false,
+    userId: sub.userId,
+    tier: sub.tier,
+    isPro: sub.isPro,
+    activeUntil: sub.activeUntil,
     trialActive: false,
     verifiedAt: new Date().toISOString()
   }), {

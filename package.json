@@ -11,7 +11,8 @@
     "start:bot": "node bot.js",
     "test:academy": "node scripts/validate-academy-links.mjs",
     "test:ai": "npx tsx scripts/test-ai-chat.mjs",
-    "test:security": "node scripts/verify-security-audit.mjs"
+    "test:security": "node scripts/verify-security-audit.mjs",
+    "test:stars": "node scripts/test-stars-payment-e2e.mjs"
   },
   "dependencies": {
     "@google/genai": "1.38.0",

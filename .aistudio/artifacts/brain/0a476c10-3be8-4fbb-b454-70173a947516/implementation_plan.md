@@ -1,149 +1,135 @@
-# План реалізації: Повторний аудит StorkCrypto (15.10.2026)
+# Implementation Plan: Telegram Stars (XTR) End-to-End Payment, Architecture & Global StorkCrypto Stabilization
 
-## 1. Розуміння проблеми та результати повторного аудиту
-
-За результатами live regression-аудиту від 15.10.2026:
-- Реліз має статус **NO-GO**.
-- **P0-1 `/api/chat`**: Production ендпоінт повернув HTTP 502 `AI_UNAVAILABLE`. Необхідно налагодити Cloudflare Pages Function `/functions/api/chat.ts` та dev middleware `vite.config.ts`, задіяти актуальну доступну модель `gemini-3.8-flash` із надійним каскадом, забезпечити повернення HTTP 200 на валідний ping, HTTP 400 на порожнє тіло, HTTP 413 на овердоз (>64KB), та HTTP 502/504 без витоку ключів. При використанні локального резерву обов'язково відображати статус `OFFLINE/LOCAL`, а не `LIVE AI`.
-- **P0-2 Заборона двозначних demo transactions**: За рішенням користувача (Варіант B) впроваджується повноцінний TonConnect потік (`tonConnectUI.sendTransaction` на основі server intent + server verification з ідемпотентністю). Будь-які псевдотранзакційні дії без реального хешу вилучаються з public production UI.
-- **P0-3 Payments & Subscriptions**: Жодної активації підписки на клієнті. Створення Stars інвойсу через бекенд, перевірка callback бекендом, унікальний `telegram_payment_charge_id`, серверний payment intent для TON з nonce, expiry та allowlist отримувача. Стани: `PENDING`, `CONFIRMED`, `FAILED`, `CANCELLED`.
-- **P1-1 Quests / Info Modal Geometry**: Виявлено критичний дефект `viewport 1280x1100, x=960, width=1280, height=1100`. Причина: інлайн-модалки всередині трансформованих карток. Виправлення: винесення модальних вікон через React Portal у `#modal-root` на рівні `document.body` зі строгою геометрією `position: fixed; inset: 0; width: 100vw; height: 100dvh; margin: 0; transform: none;`, `role="dialog"`, `aria-modal="true"`, focus trap, Escape та Telegram BackButton. Збереження компактного exception для підписки.
-- **P1-2 TON Wallet Entry Point**: Додати окрему кнопку «Connect TON Wallet» у Portfolio, чіткі стани loading/empty/error, очищення верифікованих даних при disconnect, приховування балансу як verified до завершення запиту.
-- **P1-3 CORS & Security Headers**: Позбутися `access-control-allow-origin: *` для `/api/validate` та auth-чутливих маршрутів (заміна на строгий allowlist доменів). Звузити CSP `connect-src`.
-- **P1-4 Admin**: Захист мутацій сервером (`requireAdmin`), повний deny-by-default, відсутність довіри до локальної ролі в localStorage.
-- **P1-5 Terminal Data Integrity**: Зберегти 35 активів, запровадити єдиний `snapshotId`, `lastUpdatedAt`, чесні статуси `LIVE/DELAYED/STALE/ERROR`.
-- **P1-6 News**: Канонічні URL, джерела, ISO дати (publishedAt, fetchedAt), унікальні ID, категорії, чесний маркер fallback, робоче аудіо «Listen 30s» або пояснення disabled.
-- **P1-7 Accessibility**: Семантичні `aria-label`/`title` для всіх елементів інтерфейсу: SIMPLE, PILOT, AI MARKET SCAN, WHALE RADAR, LIQ HEATMAP, MINING_HUB, SENTINEL_BOT, УКР/ENG/РУС, UPGRADE TO PRO, Listen 30s, Signals, зірочки обраного, кнопки закриття.
+This plan outlines the end-to-end implementation of the Telegram Stars (`XTR`) payment architecture, server-authoritative subscription verification, clean decoupling from TON/crypto assets, modal geometry stability, and complete regression compliance for StorkCrypto.
 
 ---
 
-## 2. Покроковий план впровадження
+## 1. Requirements Analysis & Scope Alignment
 
-### Крок 1: P0-1 Відновлення AI Chat (`functions/api/chat.ts`, `vite.config.ts`, `services/geminiService.ts`)
-1. **`functions/api/chat.ts`**:
-   - Перевірити доступність `context.env?.GEMINI_API_KEY || context.env?.API_KEY`.
-   - Встановити модель за замовчуванням `gemini-3.8-flash` (офіційна сучасна модель для базових текстових завдань) з fallback на `gemini-flash-latest` або `gemini-3.1-flash-lite`.
-   - Забезпечити контракт acceptance:
-     - `POST /api/chat` з `{"messages":[{"role":"user","content":"ping"}]}` -> HTTP 200 + валідний JSON `choices[0].message.content`.
-     - Невалідне або порожнє тіло -> HTTP 400 `INVALID_REQUEST`.
-     - Тіло >64 КБ -> HTTP 413 `PAYLOAD_TOO_LARGE`.
-     - Відсутність ключів або збій upstream -> HTTP 502/504 із безпечним повідомленням без витоку ключів.
-2. **`services/geminiService.ts`**:
-   - Якщо сервер повертає 502/503/504 або мережа офлайн, і вмикається локальне детерміноване ядро, виставляти статус `OFFLINE/LOCAL` замість оманливого `LIVE AI`.
-3. **`vite.config.ts`**:
-   - Синхронізувати поведінку dev middleware з Cloudflare Function за всіма статус-кодами.
-
-### Крок 2: P0-2 & P0-3 Транзакції та серверні платежі
-1. **`services/walletService.ts` & `components/CopyStrategyModal.tsx`**:
-   - Видалити повернення псевдосимуляцій із публічного UI або перевести демо-трейдинг у суворо ізольований режим без імітації відправки транзакцій.
-   - Забезпечити, що реальні транзакції здійснюються виключно через TonConnect.
-2. **`components/SubscriptionModal.tsx`**:
-   - Заборонити клієнтську активацію через `upgradeUserTier()` без отримання `status === 'CONFIRMED'` від сервера.
-   - Для Stars: генерувати `invoiceId` та лінк через сервер `/api/payment/create-invoice`, верифікувати списання за унікальним `telegram_payment_charge_id`.
-   - Для TON: сервер видає intent (`intentId`, `amountNano`, `receiver`, `nonce`, `expiry`), клієнт викликає `tonConnectUI.sendTransaction()`, сервер перевіряє хеш на ідемпотентність.
-   - Відображати чесні статуси: `PENDING`, `CONFIRMED`, `FAILED`, `CANCELLED`.
-
-### Крок 3: P1-1 Виправлення геометрії Quests / Info Modal через React Portal
-1. **Створення `#modal-root`**:
-   - Додати `<div id="modal-root"></div>` безпосередньо в `index.html` як прямий нащадок `<body>`.
-2. **`components/InfoModal.tsx`**:
-   - Рендерити модальне вікно через `createPortal(..., document.getElementById('modal-root') || document.body)`.
-   - Гарантувати стилі безпосередньо на контейнері:
-     ```css
-     position: fixed;
-     inset: 0;
-     width: 100vw;
-     height: 100dvh;
-     margin: 0;
-     transform: none;
-     ```
-   - Забезпечити `x=0, y=0, width=100vw, height=100dvh` у тестах `getBoundingClientRect()`.
-   - Реалізувати focus trap, focus return, обробку Escape, Telegram BackButton, `role="dialog"`, `aria-modal="true"`, `aria-labelledby`.
-3. **`components/ModalManager.tsx`**:
-   - Перевірити всі повноекранні шари, щоб вони монтувалися поза трансформованими блоками карток/грідів.
-
-### Крок 4: P1-2 TON Wallet Entry Point (`components/screens/PortfolioScreen.tsx`)
-1. У режимі `MAINNET (TON)` додати помітну кнопку з точним текстом `Connect TON Wallet` з `aria-label="Connect TON Wallet"`.
-2. Реалізувати повний життєвий цикл:
-   - Клік -> відкриття селектора TonConnect (`tonConnectUI.openModal()`).
-   - Стан `loading` під час з'єднання.
-   - `connected` -> відображення валідного скороченого формату адреси (`EQ...` або `UQ...`).
-   - `cancelled` -> чистий стабільний empty state без помилок.
-   - `error` -> зрозуміле повідомлення користувачу.
-   - `disconnect` -> повне очищення верифікованих даних портфеля.
-   - Не відображати баланс як `verified` до завершення завантаження даних із мережі.
-
-### Крок 5: P1-3 CORS & Security Headers (`functions/api/`, `vite.config.ts`, `public/_headers`)
-1. Видалити `access-control-allow-origin: *` з `/api/validate`, `/api/payment/*`, `/api/chat`.
-2. Впровадити строгий allowlist:
-   - `https://storkcrypto.pages.dev`
-   - `*.pages.dev`
-   - `*.run.app`
-   - `https://web.telegram.org`
-   - `https://telegram.org`
-   - `localhost` / `127.0.0.1`
-3. У `public/_headers` зберегти HSTS, nosniff, Referrer-Policy, Permissions-Policy та звузити CSP.
-
-### Крок 6: P1-4 Безпека адмін-панелі (`components/AdminDashboard.tsx`, серверні API)
-1. Реалізувати відхилення будь-яких неавторизованих запитів на серверному рівні (HTTP 401/403).
-2. Заборонити клієнтські мутації без підтвердженої серверної сесії (deny-by-default).
-3. Додати валідацію вхідних схем та аудит-лог для всіх адміністративних дій.
-
-### Крок 7: P1-5 & P1-6 Цілісність даних терміналу та Новини
-1. **Термінал (`services/priceService.ts`)**:
-   - Гарантувати наявність рівно 35 унікальних активів у `MASTER_ASSET_LIST`.
-   - Генерувати спільний `snapshotId` та `lastUpdatedAt` (ISO) для узгодженості між тікером, картками та графіком.
-   - Чесні статуси свіжості (`LIVE`, `DELAYED`, `STALE`, `ERROR`).
-2. **Новини (`services/newsService.ts`, `components/NewsModal.tsx`)**:
-   - Кожна новина повинна мати: `canonicalUrl`, `source`, `publishedAt` (ISO), `fetchedAt` (ISO), `id`, `category`, `isFallback`.
-   - Кнопка «Listen 30s» повинна коректно відтворювати аудіо або мати стан `disabled` із чітким поясненням причини недоступності синтезу мови.
-
-### Крок 8: P1-7 Accessibility
-1. Додати атрибути `aria-label` та `title` для контролів:
-   - `SIMPLE`, `PILOT`
-   - `AI MARKET SCAN`, `WHALE RADAR`, `LIQ HEATMAP`, `MINING_HUB`, `SENTINEL_BOT`
-   - Селектор мов (`УКР`, `ENG`, `РУС`)
-   - `UPGRADE TO PRO`, `Listen 30s`, `Signals`
-   - Зірочки додавання активів до обраного (`asset stars`)
-   - Кнопки закриття (`close/back controls`)
+### Clarifications & User Decisions
+- **Payment Method**: Strictly **Telegram Stars (`currency: XTR`)** for all in-app digital upgrades (`PRO` / `WHALE`). No GRAM as a Telegram currency. No mixing of Stars with TON or jettons in the invoice flow.
+- **Development Environment**: Server endpoints supporting Telegram bot token configuration alongside an automated test simulator for verifying `pre_checkout_query` and `successful_payment` without real financial transactions during testing.
+- **Zero Client-Side Trust**: PRO tier is never activated via button click handlers, client state modifications, or `localStorage`. Activation occurs solely through server-side verification of `successful_payment` with unique `telegram_payment_charge_id`.
 
 ---
 
-## 3. Верифікація та Acceptance Criteria
+## 2. Architecture & Technical Design
 
-1. **Self-Test API `/api/chat`**:
-   - `curl -i -X POST /api/chat -d '{"messages":[{"role":"user","content":"ping"}]}'` -> **HTTP 200**.
-   - `curl -i -X POST /api/chat -d '{}'` -> **HTTP 400**.
-   - Тест переповнення (>64 КБ) -> **HTTP 413**.
-2. **Modal Geometry**:
-   - Для Quests modal (InfoModal) та інших повноекранних вікон:
-     ```js
-     const r = dialog.getBoundingClientRect();
-     console.assert(r.x === 0 && r.y === 0);
-     console.assert(r.right <= innerWidth + 1);
-     console.assert(r.bottom <= innerHeight + 1);
-     ```
-3. **Wallet**:
-   - Наявність кнопки «Connect TON Wallet» та коректна обробка станів.
-4. **Payment**:
-   - Жодного підвищення статусу без валідного server receipt.
-   - Відхилення симуляцій та дублікатів транзакцій.
-5. **Stress Test**:
-   - 30 циклів відкриття/закриття модальних вікон: кількість видимих оверлеїв у DOM після закриття = 0.
-   - Тести viewports: 360×800, 390×844, 412×915.
-6. **Security Test Suite**:
-   - `npm run test:security` -> 100% PASS.
-   - `npm run test:academy` -> 100% PASS.
-   - Скан `dist/` на відсутність ключів (0 витоків).
-7. **Незмінний актив**:
-   - `LoadingScreen.tsx` (суворо 6.5с, стиль Midnight `#020617`).
+### A. End-to-End Telegram Stars (`XTR`) Payment Flow
+1. **Frontend Initiation**:
+   - User opens `SubscriptionModal` and clicks **"Pay with Telegram Stars"**.
+   - Modal enters `Awaiting payment` status and issues `POST /api/payments/stars/create` with verified Telegram `initData` and `planId` (`PRO` / `WHALE`).
+2. **Backend Order Creation (`/api/payments/stars/create`)**:
+   - Validates Telegram `initData` HMAC signature and extracts `userId`.
+   - Generates an immutable internal order:
+     - `orderId`: Unique prefixed string (`STARS_ORD_...`)
+     - `userId`: Telegram user ID
+     - `planId`: `PRO` (250 Stars) or `WHALE` (500 Stars)
+     - `amount`: Integer Stars amount
+     - `currency`: strictly `'XTR'`
+     - `uniquePayload`: cryptographically signed or randomized nonce tied to `orderId` and `userId`
+     - `expiry`: ISO timestamp (30 minutes TTL)
+     - `status`: `'PENDING'`
+   - Generates Telegram invoice link using Telegram Bot API `createInvoiceLink` (or simulated test invoice link when bot token is running in mock/dev mode).
+   - Returns `{ success: true, orderId, invoiceLink, amount, currency: 'XTR' }`.
+3. **Mini App Invoice Display**:
+   - Modal checks WebApp API support (`Telegram.WebApp.openInvoice`).
+   - If supported, calls `Telegram.WebApp.openInvoice(invoiceLink, (status) => ...)`.
+   - On invoice close/callback, transitions UI state to `Confirming` and polls `GET /api/subscription/status?orderId=...`.
+4. **Backend Webhook & Query Validation (`/api/payments/stars/webhook`)**:
+   - **`pre_checkout_query`**: Backend validates `orderId`, `payload`, user ID, currency (`XTR`), and amount. Responds with `answerPreCheckoutQuery(ok: true)` within 10 seconds.
+   - **`successful_payment`**: Backend verifies matching `payload`, `currency: 'XTR'`, `total_amount`, and stores `telegram_payment_charge_id`.
+   - **Idempotency**: Duplicate calls with the same `telegram_payment_charge_id` or `orderId` return HTTP 200 without duplicate credit or double activation.
+   - Updates order status to `'PAID'` and activates the subscription record for `userId`.
+5. **Subscription Status Endpoint (`/api/subscription/status`)**:
+   - `GET /api/subscription/status` accepts `orderId` or Telegram `initData` / bearer header.
+   - Returns verified tier (`BASIC` | `PRO` | `WHALE`), `isPro: boolean`, `status` (`pending` | `paid` | `cancelled` | `failed`), and `expiresAt`.
+
+### B. Payment UX Modal (`SubscriptionModal.tsx`)
+- Displays exact plain-text descriptors:
+  - **Payment method**: Telegram Stars
+  - **Currency**: XTR
+  - **Status**: `Ready` / `Awaiting payment` / `Confirming` / `Active` / `Failed` / `Cancelled`
+- Buttons:
+  - `Pay with Telegram Stars`
+  - `Cancel`
+  - `Retry payment`
+  - `View payment status`
+- Compact centered modal format (restricted specifically to Pro/Whale subscription modal as allowed in P1-4; other informational windows remain full-screen bottom-sheet / modal overlays).
+- No simulated `Stars Purchased`, `demoBalance`, or local increments of Telegram Stars.
+
+### C. TON Wallet & Asset Decoupling (P1-1 & P1-2)
+- Explicit prohibition of GRAM as a Telegram currency.
+- `Connect TON Wallet` button in `PortfolioScreen` handles discrete connection states:
+  - `disconnected`, `opening chooser`, `connecting`, `connected`, `cancelled`, `failed`, `disconnected again`.
+- Does not display verified balance until fetch completes. No payment action without connected wallet and server-issued intent.
+
+### D. AI Chat Resilience (P1-3)
+- Endpoint `/api/chat` returns:
+  - HTTP 200 with non-empty answer when upstream is healthy.
+  - HTTP 502/504 with safe message and status `OFFLINE` when upstream is unavailable.
+  - Zero fake `LIVE AI` indicators when offline.
+
+### E. Modal Stability & Geometry (P1-4)
+- Portals to `#modal-root` with strict viewport geometry (`fixed inset-0`, `w-screen`, `h-[100dvh]`).
+- Reference-counted `useScrollLock` to ensure `lockCount` matches visible dialogs.
+- `max visible dialogs = 1` (unless deliberate nested flow). `final visible dialogs = 0` on close.
+- Support for `X` button, `Escape` key, Telegram `BackButton`, and proper focus return.
 
 ---
 
-## 4. Залишкові ризики та план їх усунення
+## 3. Implementation Steps
 
-| Ризик | Ймовірність | Вплив | Запобіжні заходи |
-|---|---|---|---|
-| Нестабільність квот або мережева затримка upstream AI | Середня | Середній | Автоматичний каскадний перехід між моделями Gemini та безпечний HTTP 504 при таймауті 15с |
-| Обмеження мобільних WebKit браузерів щодо Web Speech API | Середня | Низький | Делікатна перевірка `window.speechSynthesis` та стан `disabled` із підказкою |
-| Зависання відкритих підключень WebSocket | Низька | Низький | Автоматичний реконект із лімітом спроб та перехід на HTTP polling |
+### Step 1: Backend Telegram Stars Flow (`functions/api/payments/stars/`)
+- Create `/functions/api/payments/stars/create.ts`:
+  - Validates input and Telegram `initData`.
+  - Creates order in memory / KV / server store with status `PENDING`, currency `XTR`.
+  - Calls Telegram Bot `createInvoiceLink` (or simulator if `TELEGRAM_BOT_TOKEN` is unset).
+- Create `/functions/api/payments/stars/webhook.ts`:
+  - Handles `pre_checkout_query` and answers within 10s.
+  - Handles `successful_payment`, verifies charge ID, enforces idempotency, updates order to `PAID`.
+- Create/Update `/functions/api/subscription/status.ts`:
+  - Returns server-authoritative subscription status and order state.
+- Update `vite.config.ts` dev middleware to support `/api/payments/stars/create`, `/api/payments/stars/webhook`, and `/api/subscription/status` locally.
+
+### Step 2: Payment Modal UX (`SubscriptionModal.tsx`)
+- Implement required status machine (`Ready`, `Awaiting payment`, `Confirming`, `Active`, `Failed`, `Cancelled`).
+- Display clear Telegram Stars (`XTR`) information.
+- Implement buttons: `Pay with Telegram Stars`, `Cancel`, `Retry payment`, `View payment status`.
+- Eliminate any client-side PRO activation from click handlers.
+- Query backend `/api/subscription/status` after invoice closes.
+
+### Step 3: TON Wallet Decoupling & UI Guardrails
+- Verify no references to GRAM as a Telegram currency.
+- Ensure `Connect TON Wallet` button in `PortfolioScreen` implements all required connection states without unverified balance displays.
+
+### Step 4: AI Chat Resilience & Upstream Offline Handling
+- Audit `/functions/api/chat.ts` and dev proxy in `vite.config.ts` to ensure HTTP 502/504 responses are returned gracefully when upstream models fail, with honest `OFFLINE` indicators.
+
+### Step 5: Modal Stability Verification (30-Cycle Test)
+- Test open/close cycles across `Subscription`, `AI Insight`, `Quests`, `Mining`, `Sentinel`, `Terminal details`, `News details`, `Academy video`, and `Wallet chooser`.
+- Verify scroll lock cleanup, Telegram `BackButton` binding, and focus restoration.
+
+### Step 6: Full Regression & Automated Validation
+- Run `npm run test:security` and `npm run test:academy`.
+- Verify loading screen (6.5s immutable), Day/Night persistence, Terminal 35 assets, CSP/HSTS/CORS headers, and mobile viewport adaptability (360x800, 390x844, 412x915).
+- Run `compile_applet` and `lint_applet`.
+
+---
+
+## 4. Verification & Final Deliverables
+- Detailed report with all 14 required sections:
+  1. Changed files
+  2. Stars invoice evidence
+  3. `pre_checkout_query` evidence
+  4. `successful_payment` evidence without revealing secrets
+  5. Duplicate payment test
+  6. Cancelled payment test
+  7. No-PRO-before-receipt evidence
+  8. TON/jetton contract and network evidence
+  9. `/api/chat` status
+  10. Modal geometry and 30-cycle result
+  11. Mobile results (360x800, 390x844, 412x915)
+  12. Security headers (CSP, HSTS, CORS)
+  13. Residual risks
+  14. Final release verdict
