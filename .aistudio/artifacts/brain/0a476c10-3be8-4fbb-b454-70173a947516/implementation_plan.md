@@ -1,135 +1,157 @@
-# Implementation Plan: Telegram Stars (XTR) End-to-End Payment, Architecture & Global StorkCrypto Stabilization
+# Implementation Plan: Telegram Stars (XTR), Web Invoice & TON Wallet Architecture Fix
 
-This plan outlines the end-to-end implementation of the Telegram Stars (`XTR`) payment architecture, server-authoritative subscription verification, clean decoupling from TON/crypto assets, modal geometry stability, and complete regression compliance for StorkCrypto.
-
----
-
-## 1. Requirements Analysis & Scope Alignment
-
-### Clarifications & User Decisions
-- **Payment Method**: Strictly **Telegram Stars (`currency: XTR`)** for all in-app digital upgrades (`PRO` / `WHALE`). No GRAM as a Telegram currency. No mixing of Stars with TON or jettons in the invoice flow.
-- **Development Environment**: Server endpoints supporting Telegram bot token configuration alongside an automated test simulator for verifying `pre_checkout_query` and `successful_payment` without real financial transactions during testing.
-- **Zero Client-Side Trust**: PRO tier is never activated via button click handlers, client state modifications, or `localStorage`. Activation occurs solely through server-side verification of `successful_payment` with unique `telegram_payment_charge_id`.
+Based on the Technical Specification: "ВИПРАВЛЕННЯ ОПЛАТИ TELEGRAM STARS, WEB INVOICE І TON WALLET" (21.10.2026) and user clarifying choices:
+- **TON Connect integration**: Custom StorkCrypto themed modal synced directly with `TonConnectUI.onStatusChange` with auto-closing overlay upon connection.
+- **Web external checkout**: Direct invoice link with "Open in Telegram" fallback and backend polling.
+- **Strict Telegram Rules**: PRO subscription sold exclusively via Telegram Stars (`currency: XTR`). TON Wallet reserved for blockchain integrations and wallet connection, never substituting Stars for in-app digital subscriptions.
 
 ---
 
-## 2. Architecture & Technical Design
+## 1. Requirements Analysis & Core Invariants
 
-### A. End-to-End Telegram Stars (`XTR`) Payment Flow
-1. **Frontend Initiation**:
-   - User opens `SubscriptionModal` and clicks **"Pay with Telegram Stars"**.
-   - Modal enters `Awaiting payment` status and issues `POST /api/payments/stars/create` with verified Telegram `initData` and `planId` (`PRO` / `WHALE`).
-2. **Backend Order Creation (`/api/payments/stars/create`)**:
-   - Validates Telegram `initData` HMAC signature and extracts `userId`.
-   - Generates an immutable internal order:
-     - `orderId`: Unique prefixed string (`STARS_ORD_...`)
-     - `userId`: Telegram user ID
-     - `planId`: `PRO` (250 Stars) or `WHALE` (500 Stars)
-     - `amount`: Integer Stars amount
-     - `currency`: strictly `'XTR'`
-     - `uniquePayload`: cryptographically signed or randomized nonce tied to `orderId` and `userId`
-     - `expiry`: ISO timestamp (30 minutes TTL)
-     - `status`: `'PENDING'`
-   - Generates Telegram invoice link using Telegram Bot API `createInvoiceLink` (or simulated test invoice link when bot token is running in mock/dev mode).
-   - Returns `{ success: true, orderId, invoiceLink, amount, currency: 'XTR' }`.
-3. **Mini App Invoice Display**:
-   - Modal checks WebApp API support (`Telegram.WebApp.openInvoice`).
-   - If supported, calls `Telegram.WebApp.openInvoice(invoiceLink, (status) => ...)`.
-   - On invoice close/callback, transitions UI state to `Confirming` and polls `GET /api/subscription/status?orderId=...`.
-4. **Backend Webhook & Query Validation (`/api/payments/stars/webhook`)**:
-   - **`pre_checkout_query`**: Backend validates `orderId`, `payload`, user ID, currency (`XTR`), and amount. Responds with `answerPreCheckoutQuery(ok: true)` within 10 seconds.
-   - **`successful_payment`**: Backend verifies matching `payload`, `currency: 'XTR'`, `total_amount`, and stores `telegram_payment_charge_id`.
-   - **Idempotency**: Duplicate calls with the same `telegram_payment_charge_id` or `orderId` return HTTP 200 without duplicate credit or double activation.
-   - Updates order status to `'PAID'` and activates the subscription record for `userId`.
-5. **Subscription Status Endpoint (`/api/subscription/status`)**:
-   - `GET /api/subscription/status` accepts `orderId` or Telegram `initData` / bearer header.
-   - Returns verified tier (`BASIC` | `PRO` | `WHALE`), `isPro: boolean`, `status` (`pending` | `paid` | `cancelled` | `failed`), and `expiresAt`.
+### A. Telegram Stars (`XTR`) in Mini App
+1. **Backend Order & Invoice Creation (`POST /api/payments/stars/create` & `POST /api/payments/stars/create-link`)**:
+   - Extract and validate Telegram `initData` via HMAC signature (when `TELEGRAM_BOT_TOKEN` is configured).
+   - Derive the real Telegram `user_id` from validated `initData`. Do NOT trust unverified `user_id` from client body.
+   - Enforce pricing on server: `pro_monthly` / `PRO` = 250 Stars (`amount: 250`), `WHALE` = 500 Stars (`amount: 500`).
+   - Currency strictly `'XTR'`. Reject any attempts with `'GRAM'` or other tokens.
+   - Generate unique cryptographic `invoice_payload` tied to order ID and user ID.
+   - Return `{ success: true, invoiceUrl, invoiceLink, order: { orderId, amount, currency: 'XTR', status: 'PENDING', ... } }`.
+2. **Frontend Mini App Invoice Launch**:
+   - Call `Telegram.WebApp.openInvoice(invoiceUrl, callback)`.
+   - The invoice callback is strictly informational and is NOT accepted as proof of payment.
+   - Frontend polls `GET /api/me/subscription` or `GET /api/subscription/status?orderId=...` to confirm activation.
+3. **Mandatory Webhook Processing (`POST /api/payments/stars/webhook`)**:
+   - `pre_checkout_query`: Validate `order_id`, `invoice_payload`, currency (`XTR`), amount. Respond within 10 seconds via `answerPreCheckoutQuery(ok: true)`. Reject non-XTR currencies.
+   - `successful_payment`: Verify payload, total amount, currency (`XTR`). Idempotently check `telegram_payment_charge_id`. Transition order to `'PAID'` and activate subscription for 30 days.
+4. **Authoritative Source of Truth**:
+   - `GET /api/me/subscription` returns:
+     ```json
+     {
+       "plan": "pro",
+       "status": "active",
+       "source": "TELEGRAM_STARS",
+       "expiresAt": "2026-11-20T10:00:00.000Z"
+     }
+     ```
+   - No `isPro = true` in frontend without this server response.
 
-### B. Payment UX Modal (`SubscriptionModal.tsx`)
-- Displays exact plain-text descriptors:
-  - **Payment method**: Telegram Stars
-  - **Currency**: XTR
-  - **Status**: `Ready` / `Awaiting payment` / `Confirming` / `Active` / `Failed` / `Cancelled`
-- Buttons:
-  - `Pay with Telegram Stars`
-  - `Cancel`
-  - `Retry payment`
-  - `View payment status`
-- Compact centered modal format (restricted specifically to Pro/Whale subscription modal as allowed in P1-4; other informational windows remain full-screen bottom-sheet / modal overlays).
-- No simulated `Stars Purchased`, `demoBalance`, or local increments of Telegram Stars.
+### B. External Web Invoice Flow (Browser outside Telegram)
+1. User clicks "Оплатити через Telegram" / "Pay via Telegram".
+2. Web requests `POST /api/payments/stars/create-link`.
+3. Opens HTTPS link to Telegram invoice (`https://t.me/$...`).
+4. If Telegram is not installed or invoice fails, displays fallback button: `Open in Telegram`.
+5. Web polls `/api/subscription/status?orderId=...` and activates PRO strictly after backend confirmation.
 
-### C. TON Wallet & Asset Decoupling (P1-1 & P1-2)
-- Explicit prohibition of GRAM as a Telegram currency.
-- `Connect TON Wallet` button in `PortfolioScreen` handles discrete connection states:
-  - `disconnected`, `opening chooser`, `connecting`, `connected`, `cancelled`, `failed`, `disconnected again`.
-- Does not display verified balance until fetch completes. No payment action without connected wallet and server-issued intent.
+### C. TON Connect Wallet Picker & Address Display
+1. **Root Configuration & Singleton Instance**:
+   - Singleton `getTonConnectUI()` with `tonconnect-manifest.json`.
+   - Update `public/tonconnect-manifest.json` with official parameters (`url: "https://storkcrypto.pages.dev"`, `termsOfUseUrl`, `privacyPolicyUrl`, `iconUrl`).
+2. **Auto-closing Custom Modal Overlay**:
+   - In `WalletConnectModal.tsx`, subscribe to `tonConnectUI.onStatusChange((wallet) => { ... })`.
+   - When `wallet !== null` (connection confirmed), IMMEDIATELY call `onClose()` / `setWalletPickerOpen(false)` so the overlay vanishes from DOM without lingering.
+3. **Masked Friendly Address Display**:
+   - Display masked friendly address: `UQAb12…xYz9` instead of raw hexadecimal or full string on mobile screens.
+   - Actions provided:
+     - Copy address (with toast feedback and haptic)
+     - Open in TON explorer (`tonscan.org/address/...`)
+     - Disconnect (clearing both SDK and Zustand state)
+     - Connected wallet name (e.g. Tonkeeper, Telegram Wallet)
+     - Network status (Mainnet)
+     - Error / Retry state
 
-### D. AI Chat Resilience (P1-3)
-- Endpoint `/api/chat` returns:
-  - HTTP 200 with non-empty answer when upstream is healthy.
-  - HTTP 502/504 with safe message and status `OFFLINE` when upstream is unavailable.
-  - Zero fake `LIVE AI` indicators when offline.
+### D. PRO Modal States Machine
+Implement full UI states in `SubscriptionModal.tsx`:
+- `BASIC`
+- `Invoice preparing...` (with spinner, disabled repeat clicks, client request ID)
+- `Waiting for Telegram payment...`
+- `Payment verification...`
+- `PRO active`
+- `Payment canceled`
+- `Payment failed`
+- `Payment pending`
+- Timeout after 60-90 seconds with Retry button.
 
-### E. Modal Stability & Geometry (P1-4)
-- Portals to `#modal-root` with strict viewport geometry (`fixed inset-0`, `w-screen`, `h-[100dvh]`).
-- Reference-counted `useScrollLock` to ensure `lockCount` matches visible dialogs.
-- `max visible dialogs = 1` (unless deliberate nested flow). `final visible dialogs = 0` on close.
-- Support for `X` button, `Escape` key, Telegram `BackButton`, and proper focus return.
-
----
-
-## 3. Implementation Steps
-
-### Step 1: Backend Telegram Stars Flow (`functions/api/payments/stars/`)
-- Create `/functions/api/payments/stars/create.ts`:
-  - Validates input and Telegram `initData`.
-  - Creates order in memory / KV / server store with status `PENDING`, currency `XTR`.
-  - Calls Telegram Bot `createInvoiceLink` (or simulator if `TELEGRAM_BOT_TOKEN` is unset).
-- Create `/functions/api/payments/stars/webhook.ts`:
-  - Handles `pre_checkout_query` and answers within 10s.
-  - Handles `successful_payment`, verifies charge ID, enforces idempotency, updates order to `PAID`.
-- Create/Update `/functions/api/subscription/status.ts`:
-  - Returns server-authoritative subscription status and order state.
-- Update `vite.config.ts` dev middleware to support `/api/payments/stars/create`, `/api/payments/stars/webhook`, and `/api/subscription/status` locally.
-
-### Step 2: Payment Modal UX (`SubscriptionModal.tsx`)
-- Implement required status machine (`Ready`, `Awaiting payment`, `Confirming`, `Active`, `Failed`, `Cancelled`).
-- Display clear Telegram Stars (`XTR`) information.
-- Implement buttons: `Pay with Telegram Stars`, `Cancel`, `Retry payment`, `View payment status`.
-- Eliminate any client-side PRO activation from click handlers.
-- Query backend `/api/subscription/status` after invoice closes.
-
-### Step 3: TON Wallet Decoupling & UI Guardrails
-- Verify no references to GRAM as a Telegram currency.
-- Ensure `Connect TON Wallet` button in `PortfolioScreen` implements all required connection states without unverified balance displays.
-
-### Step 4: AI Chat Resilience & Upstream Offline Handling
-- Audit `/functions/api/chat.ts` and dev proxy in `vite.config.ts` to ensure HTTP 502/504 responses are returned gracefully when upstream models fail, with honest `OFFLINE` indicators.
-
-### Step 5: Modal Stability Verification (30-Cycle Test)
-- Test open/close cycles across `Subscription`, `AI Insight`, `Quests`, `Mining`, `Sentinel`, `Terminal details`, `News details`, `Academy video`, and `Wallet chooser`.
-- Verify scroll lock cleanup, Telegram `BackButton` binding, and focus restoration.
-
-### Step 6: Full Regression & Automated Validation
-- Run `npm run test:security` and `npm run test:academy`.
-- Verify loading screen (6.5s immutable), Day/Night persistence, Terminal 35 assets, CSP/HSTS/CORS headers, and mobile viewport adaptability (360x800, 390x844, 412x915).
-- Run `compile_applet` and `lint_applet`.
+### E. Design Invariants & Readability (Chief Design Developer role)
+1. **Loading Screen (Manifesto)**:
+   - Keep 6.5s ± 100ms duration, vertical layout, dark background, fog emergence, pixel-by-pixel disintegration into progress bar.
+   - Absolutely no replacement with generic spinners or premature cutoff.
+2. **Typography & Readability**:
+   - Increase text size of key market indicators by ~10% ($2.1T Market Cap, +3.2% 24h Change, asset prices, LIVE / DELAYED / STALE / DEMO badges, Pay / Connect Wallet / Disconnect buttons).
+   - Ensure clean dark terminal aesthetic without rainbow or excess neon colors.
+   - Ensure mobile compatibility (360x800, 390x844, 412x915).
 
 ---
 
-## 4. Verification & Final Deliverables
-- Detailed report with all 14 required sections:
-  1. Changed files
-  2. Stars invoice evidence
-  3. `pre_checkout_query` evidence
-  4. `successful_payment` evidence without revealing secrets
-  5. Duplicate payment test
-  6. Cancelled payment test
-  7. No-PRO-before-receipt evidence
-  8. TON/jetton contract and network evidence
-  9. `/api/chat` status
-  10. Modal geometry and 30-cycle result
-  11. Mobile results (360x800, 390x844, 412x915)
-  12. Security headers (CSP, HSTS, CORS)
-  13. Residual risks
-  14. Final release verdict
+## 2. Proposed Code Changes
+
+### Step 1: Telegram Stars Backend Endpoints
+- **`/functions/api/payments/stars/create.ts`**:
+  - Support `Authorization: tma <initData>` header and body.
+  - Map `plan: 'pro_monthly'` to `PRO` (250 Stars) and `WHALE` (500 Stars).
+  - Return both `invoiceUrl` and `invoiceLink`.
+  - Validate HMAC signature when `TELEGRAM_BOT_TOKEN` is present.
+- **`/functions/api/payments/stars/create-link.ts`**:
+  - Create alias or dedicated web link creation endpoint.
+- **`/functions/api/me/subscription.ts`**:
+  - Update format to return `{ plan: 'pro', status: 'active', source: 'TELEGRAM_STARS', expiresAt: '...' }` matching Section 2.4.
+- **`/vite.config.ts`**:
+  - Update dev middleware to support `/api/payments/stars/create-link` and header-based `Authorization: tma ...`.
+
+### Step 2: TON Connect Manifest & Singleton Service
+- **`/public/tonconnect-manifest.json` & `/tonconnect-manifest.json`**:
+  - Update with compliant metadata:
+    ```json
+    {
+      "url": "https://storkcrypto.pages.dev",
+      "name": "StorkCrypto",
+      "iconUrl": "https://storkcrypto.pages.dev/icon-180.png",
+      "termsOfUseUrl": "https://storkcrypto.pages.dev/terms",
+      "privacyPolicyUrl": "https://storkcrypto.pages.dev/privacy"
+    }
+    ```
+- **`/services/tonConnectService.ts`**:
+  - Ensure singleton stability, correct manifest loading with fallback, and safe error suppression in iframe.
+
+### Step 3: TON Wallet Picker Lifecycle & Address UI
+- **`/components/WalletConnectModal.tsx`**:
+  - Hook into `tonConnectUI.onStatusChange((wallet) => { if (wallet) onClose(); })` to close picker immediately upon connect.
+- **`/components/screens/PortfolioScreen.tsx`**:
+  - Add friendly address display: `UQAb12…xYz9`.
+  - Add Copy address button with haptic feedback.
+  - Add "Open in explorer" link with `noopener,noreferrer`.
+  - Add Disconnect button and connected wallet app name (e.g. Tonkeeper).
+  - Handle all connection states (`disconnected`, `opening chooser`, `connecting`, `connected`, `cancelled`, `failed`, `disconnected again`).
+
+### Step 4: PRO Subscription Modal States & Web Fallback
+- **`/components/SubscriptionModal.tsx`**:
+  - Update states to: `BASIC`, `Invoice preparing...`, `Waiting for Telegram payment...`, `Payment verification...`, `PRO active`, `Payment canceled`, `Payment failed`, `Payment pending`.
+  - Disable buttons during preparation to prevent double clicks.
+  - Add 60-90s timeout with Retry button.
+  - Add Web fallback button "Open in Telegram" if outside Telegram or invoice cannot open directly.
+  - Query `/api/me/subscription` and activate PRO only upon successful server response.
+
+### Step 5: Readability & Design Polish
+- **`/components/AIMarketSummary.tsx` & `/components/screens/HomeScreen.tsx`**:
+  - Increase market indicator font size by ~10% ($2.1T Market Cap, +3.2% 24h Change, prices, badges).
+  - Ensure contrast and readability in Telegram Android WebView and iOS Safari.
+- **`/components/LoadingScreen.tsx`**:
+  - Verify strict 6.5s sequence and single-line responsive branding on 360x800.
+
+---
+
+## 3. Verification Plan
+
+1. **E2E Telegram Stars Payment Test**:
+   - `npm run test:stars`: verify order creation with `currency: 'XTR'`, `amount: 250`, `invoiceUrl`, `pre_checkout_query` within 10s, `successful_payment` verification, idempotency on duplicate charge ID, and No-PRO-before-receipt.
+2. **Security & Regression Test**:
+   - `npm run test:security`: verify no credentials leaked, demo simulation transparency, 44px touch targets.
+   - `npm run test:academy`: verify all 13 academy modules.
+3. **Manifest & TON Connect Test**:
+   - Verify `tonconnect-manifest.json` returns HTTP 200 with valid schema.
+   - Verify `onStatusChange` closes the custom modal immediately when wallet connects.
+4. **Build & Lint Verification**:
+   - `lint_applet` (`tsc --noEmit`).
+   - `compile_applet` (`npm run build`).
+5. **Final 14-Section Audit Report**:
+   - Render the exact report specified in Section 10 of the specification.

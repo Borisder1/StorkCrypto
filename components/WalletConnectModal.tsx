@@ -47,6 +47,27 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose]);
 
+    // Close picker immediately when wallet connects (Section 5.3 & 5.6)
+    useEffect(() => {
+        if (wallet.isConnected) {
+            onClose();
+            return;
+        }
+
+        const tonConnectUI = getTonConnectUI();
+        if (!tonConnectUI) return;
+
+        const unsubscribe = tonConnectUI.onStatusChange((connectedWallet) => {
+            if (connectedWallet) {
+                onClose();
+            }
+        });
+
+        return () => {
+            if (unsubscribe) unsubscribe();
+        };
+    }, [wallet.isConnected, onClose]);
+
     // Handle TON Connect launch with session cleanup
     const handleTonConnect = async () => {
         triggerHaptic('medium');

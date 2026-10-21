@@ -1,6 +1,6 @@
 {
-  "summary": "End-to-end plan for Telegram Stars (XTR) payment architecture, backend order lifecycle with pre_checkout_query and successful_payment verification, payment UX modal states, AI Chat resilience, modal geometry stability, and comprehensive regression verification.",
-  "updatedAt": "2026-10-18T14:26:50.594466005Z",
-  "requestFeedback": true,
-  "userFacing": true
+  "summary":  "Comprehensive Implementation Plan for Telegram Stars (XTR), Web Invoice, and TON Wallet Connect according to the 21.10.2026 specification.\nIncludes backend endpoints (/api/payments/stars/create, /api/payments/stars/create-link, /api/payments/stars/webhook, /api/me/subscription), TonConnectUI onStatusChange synchronization with auto-closing picker, shortened friendly address displays, full PRO modal states, and design/readability enhancements.",
+  "updatedAt":  "2026-10-21T08:38:09.882437284Z",
+  "requestFeedback":  true,
+  "userFacing":  true
 }

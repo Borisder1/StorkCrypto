@@ -25,14 +25,17 @@ async function runTests() {
 
   // 1. Test POST /api/payments/stars/create
   console.log('\n--- 1. Testing Stars Order & Invoice Creation ---');
+  const testUserId = Math.floor(1000000000 + Math.random() * 900000000);
   let orderData = null;
   try {
     const res = await fetch(`${BASE_URL}/api/payments/stars/create`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `tma user=%7B%22id%22%3A${testUserId}%2C%22username%22%3A%22testuser%22%7D`
+      },
       body: JSON.stringify({
-        planId: 'PRO',
-        userId: '1098273645'
+        plan: 'pro_monthly'
       })
     });
     const data = await res.json();
@@ -49,8 +52,24 @@ async function runTests() {
     assert(false, `Order creation request failed: ${err.message}`);
   }
 
-  // 2. Test No-PRO-before-receipt Invariant
-  console.log('\n--- 2. Testing No-PRO-Before-Receipt Invariant ---');
+  // 2. Test External Web Invoice Link (POST /api/payments/stars/create-link)
+  console.log('\n--- 2. Testing External Web Checkout Link ---');
+  try {
+    const webRes = await fetch(`${BASE_URL}/api/payments/stars/create-link`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: 'pro_monthly' })
+    });
+    const webData = await webRes.json();
+    assert(webRes.status === 200, 'Web checkout endpoint returns HTTP 200');
+    assert(webData.success === true, 'Web checkout link creation success');
+    assert(Boolean(webData.invoiceUrl || webData.invoiceLink), 'Web invoice link returned');
+  } catch (err) {
+    assert(false, `Web link creation failed: ${err.message}`);
+  }
+
+  // 3. Test No-PRO-before-receipt Invariant
+  console.log('\n--- 3. Testing No-PRO-Before-Receipt Invariant ---');
   try {
     const statusRes = await fetch(`${BASE_URL}/api/subscription/status?orderId=${orderData.orderId}`);
     const statusData = await statusRes.json();
@@ -61,8 +80,8 @@ async function runTests() {
     assert(false, `Pre-payment check failed: ${err.message}`);
   }
 
-  // 3. Test pre_checkout_query handling
-  console.log('\n--- 3. Testing pre_checkout_query Verification ---');
+  // 4. Test pre_checkout_query handling
+  console.log('\n--- 4. Testing pre_checkout_query Verification ---');
   try {
     const pcqRes = await fetch(`${BASE_URL}/api/payments/stars/webhook`, {
       method: 'POST',
@@ -70,7 +89,7 @@ async function runTests() {
       body: JSON.stringify({
         pre_checkout_query: {
           id: 'pcq_test_123',
-          from: { id: 1098273645 },
+          from: { id: testUserId },
           currency: 'XTR',
           total_amount: 250,
           invoice_payload: orderData.uniquePayload
@@ -81,14 +100,14 @@ async function runTests() {
     assert(pcqRes.status === 200, 'pre_checkout_query returns HTTP 200');
     assert(pcqData.ok === true && pcqData.verified === true, 'pre_checkout_query verified successfully within 10s');
 
-    // Test rejection with wrong currency
+    // Test rejection with wrong currency (e.g. GRAM)
     const invalidCurrencyRes = await fetch(`${BASE_URL}/api/payments/stars/webhook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         pre_checkout_query: {
           id: 'pcq_test_invalid',
-          from: { id: 1098273645 },
+          from: { id: testUserId },
           currency: 'GRAM', // Forbidden currency
           total_amount: 250,
           invoice_payload: orderData.uniquePayload
@@ -101,8 +120,8 @@ async function runTests() {
     assert(false, `pre_checkout_query test failed: ${err.message}`);
   }
 
-  // 4. Test successful_payment & Server Activation
-  console.log('\n--- 4. Testing successful_payment & Server Activation ---');
+  // 5. Test successful_payment & Server Activation
+  console.log('\n--- 5. Testing successful_payment & Server Activation ---');
   const mockChargeId = `ch_tg_stars_${Date.now()}_ABC123`;
   try {
     const payRes = await fetch(`${BASE_URL}/api/payments/stars/webhook`, {
@@ -110,7 +129,7 @@ async function runTests() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         message: {
-          from: { id: 1098273645 },
+          from: { id: testUserId },
           successful_payment: {
             currency: 'XTR',
             total_amount: 250,
@@ -131,13 +150,16 @@ async function runTests() {
     const verifyStatusData = await verifyStatusRes.json();
     assert(verifyStatusData.order.status === 'PAID', 'Verified order is PAID');
     assert(verifyStatusData.isPro === true, 'User is now confirmed PRO on server');
-    assert(verifyStatusData.tier === 'PRO', 'Tier is PRO');
+    assert(verifyStatusData.plan === 'pro', 'Plan is pro');
+    assert(verifyStatusData.status === 'active', 'Status is active');
+    assert(verifyStatusData.source === 'TELEGRAM_STARS', 'Source is TELEGRAM_STARS');
+    assert(Boolean(verifyStatusData.expiresAt), 'expiresAt timestamp present');
   } catch (err) {
     assert(false, `successful_payment test failed: ${err.message}`);
   }
 
-  // 5. Test Duplicate Payment Rejection / Idempotency
-  console.log('\n--- 5. Testing Idempotency & Duplicate Rejection ---');
+  // 6. Test Duplicate Payment Rejection / Idempotency
+  console.log('\n--- 6. Testing Idempotency & Duplicate Rejection ---');
   try {
     const dupRes = await fetch(`${BASE_URL}/api/payments/stars/webhook`, {
       method: 'POST',
@@ -161,8 +183,8 @@ async function runTests() {
     assert(false, `Idempotency test failed: ${err.message}`);
   }
 
-  // 6. Test Cancelled Payment Order
-  console.log('\n--- 6. Testing Cancelled Payment Order ---');
+  // 7. Test Cancelled Payment Order
+  console.log('\n--- 7. Testing Cancelled Payment Order ---');
   try {
     const cancelOrderRes = await fetch(`${BASE_URL}/api/payments/stars/create`, {
       method: 'POST',
@@ -184,8 +206,22 @@ async function runTests() {
     assert(false, `Cancelled payment test failed: ${err.message}`);
   }
 
-  // 7. Test AI Chat Endpoint P1-3
-  console.log('\n--- 7. Testing AI Chat Endpoint (/api/chat) ---');
+  // 8. Test TON Connect Manifest Schema
+  console.log('\n--- 8. Testing TON Connect Manifest ---');
+  try {
+    const manifestRes = await fetch(`${BASE_URL}/tonconnect-manifest.json`);
+    const manifestData = await manifestRes.json();
+    assert(manifestRes.status === 200, 'tonconnect-manifest.json returns HTTP 200');
+    assert(manifestData.name === 'StorkCrypto', 'Manifest name is StorkCrypto');
+    assert(manifestData.url === 'https://storkcrypto.pages.dev', 'Manifest url is valid HTTPS');
+    assert(Boolean(manifestData.termsOfUseUrl), 'termsOfUseUrl present');
+    assert(Boolean(manifestData.privacyPolicyUrl), 'privacyPolicyUrl present');
+  } catch (err) {
+    assert(false, `tonconnect-manifest.json request failed: ${err.message}`);
+  }
+
+  // 9. Test AI Chat Endpoint P1-3
+  console.log('\n--- 9. Testing AI Chat Endpoint (/api/chat) ---');
   try {
     const chatRes = await fetch(`${BASE_URL}/api/chat`, {
       method: 'POST',

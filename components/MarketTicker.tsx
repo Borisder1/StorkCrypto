@@ -121,7 +121,7 @@ const MarketTicker: React.FC = React.memo(() => {
                             : 'bg-white/10 border-white/10 text-slate-200'
                     }`}>
                         <div className={`w-2 h-2 rounded-full ${status.dotClass}`}></div>
-                        <span className="text-[10px] font-black tracking-widest uppercase font-mono">
+                        <span className="text-[11px] font-black tracking-widest uppercase font-mono">
                             {status.label}
                         </span>
                     </div>
@@ -144,13 +144,13 @@ const MarketTicker: React.FC = React.memo(() => {
                                             : 'bg-white/5 border-white/5 hover:bg-white/15 hover:border-cyan-500/40'
                                     }`}
                                 >
-                                    <span className={`text-xs font-black font-mono tracking-tight ${isDaylight ? 'text-slate-900' : 'text-slate-100'}`}>
+                                    <span className={`text-[13px] font-black font-mono tracking-tight ${isDaylight ? 'text-slate-900' : 'text-slate-100'}`}>
                                         {coin.ticker}
                                     </span>
-                                    <span className={`text-xs font-mono font-bold ${isDaylight ? 'text-sky-700' : 'text-cyan-300'}`}>
+                                    <span className={`text-[13px] font-mono font-bold ${isDaylight ? 'text-sky-700' : 'text-cyan-300'}`}>
                                         {formatCryptoPrice(coin.price)}
                                     </span>
-                                    <span className={`text-[10px] font-mono font-black px-1.5 py-0.5 rounded ${
+                                    <span className={`text-[11px] font-mono font-black px-1.5 py-0.5 rounded ${
                                         coin.change >= 0 
                                             ? (isDaylight ? 'text-emerald-800 bg-emerald-100 border border-emerald-300' : 'text-emerald-400 bg-emerald-500/10 border border-emerald-500/20')
                                             : (isDaylight ? 'text-rose-800 bg-rose-100 border border-rose-300' : 'text-rose-400 bg-rose-500/10 border border-rose-500/20')

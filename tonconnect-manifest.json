@@ -1,5 +1,7 @@
 {
-  "url": "https://a310c93f.storkcrypto-app.pages.dev/",
-  "name": "StorkCrypto Terminal",
-  "iconUrl": "https://a310c93f.storkcrypto-app.pages.dev/logo.jpg"
+  "url": "https://storkcrypto.pages.dev",
+  "name": "StorkCrypto",
+  "iconUrl": "https://storkcrypto.pages.dev/icon-180.png",
+  "termsOfUseUrl": "https://storkcrypto.pages.dev/terms",
+  "privacyPolicyUrl": "https://storkcrypto.pages.dev/privacy"
 }

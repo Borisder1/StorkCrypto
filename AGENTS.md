@@ -78,11 +78,16 @@
   - `AssetDetailModal.tsx`: підключено `useScrollLock(true)` для блокування фонового скролу при детальному аналізі активу.
 
 
-- **Telegram Stars (XTR) Payment Architecture & E2E Verification (18.10.2026)**:
-  - **P0-1 Наскрізний бекенд Telegram Stars (`/api/payments/stars/`)**: Впроваджено `create.ts` (створення замовлень із `currency: 'XTR'`, 250 Stars для PRO, 500 для WHALE, TTL 30хв), `webhook.ts` (`pre_checkout_query` з відповіддю < 10с, відхилення невалідних валют як GRAM, `successful_payment` із фіксацією `telegram_payment_charge_id`, ідемпотентна обробка повторних запитів), та `status.ts` (серверна верифікація статусу замовлення та підписки).
-  - **P0-2 Платіжний UX у `SubscriptionModal.tsx`**: Повний автомат станів (`Ready`, `Awaiting payment`, `Confirming`, `Active`, `Failed`, `Cancelled`). Кнопки `Pay with Telegram Stars`, `Cancel`, `Retry payment`, `View payment status`. Повна відсутність локальної активації PRO без серверної квитанції.
-  - **P1-1 & P1-2 Розмежування TON та Telegram Stars**: Жодних згадок або використання GRAM як валюти Telegram Stars. Повна дискретність станів гаманця TON (`disconnected`, `connecting`, `connected`, `failed`) без відображення неперевірених балансів.
-  - **E2E Автоматизований аудит (`npm run test:stars`)**: 25 з 25 тестів пройдено успішно (створення інвойсу, перевірка інваріанту No-PRO-before-receipt, валідація pre_checkout_query, верифікація successful_payment, захист від дублікатів платежів, скасування замовлень, тайм-аут AI Chat).
+- **Telegram Stars (XTR), Web Invoice & TON Wallet Architecture Fix (21.10.2026)**:
+  - **Backend Endpoints (`/api/payments/stars/create`, `create-link`, `webhook`)**: Підтримка `Authorization: tma <initData>`, прив'язка до тарифу `pro_monthly` (250 XTR) та `whale_monthly` (500 XTR), визначення ціни виключно на сервері, унікальний криптографічний плейлоад, швидка валідація `pre_checkout_query` (< 10с), ідемпотентний обробник `successful_payment` із фіксацією `charge_id`.
+  - **Авторитарний стан підписки (`/api/me/subscription`)**: Повертає `{ plan: 'pro', status: 'active', source: 'TELEGRAM_STARS', expiresAt }`, сувора заборона клієнтського встановлення `isPro = true` без квитанції.
+  - **Зовнішній Web Checkout (`/api/payments/stars/create-link`)**: Повноцінний веб-сценарій із кнопкою `Open in Telegram` та серверним polling статусу.
+  - **TON Connect Wallet Picker Auto-close (`WalletConnectModal.tsx`)**: Синхронізація через єдиний `tonConnectUI.onStatusChange((wallet) => { if (wallet) onClose(); })` — автоматичне миттєве закриття пікера при виборі гаманця без залишення оверлею в DOM.
+  - **Відображення адреси TON (`PortfolioScreen.tsx`)**: Маскована дружня адреса `UQAb12…xYz9`, кнопки Copy address (з вібровідгуком і тостом), Explorer (`tonscan.org`), Disconnect, статус мережі `TON Mainnet · Online`, назва підключеного застосунку.
+  - **Офіційний Маніфест (`tonconnect-manifest.json`)**: Оновлено схему (https, terms, privacy, icon-180.png) без блокувань CORS.
+  - **PRO Modal UI States (`SubscriptionModal.tsx`)**: Реалізовано повний автомат станів (`BASIC`, `Invoice preparing...`, `Waiting for Telegram payment...`, `Payment verification...`, `PRO active`, `Payment canceled`, `Payment failed`, `Payment pending`), блокування повторних кліків, спінер, таймаут 75с з кнопкою `Retry payment`.
+  - **Читабельність та дизайн (+10%)**: Збільшено шрифти індикаторів ринку ($2.1T Market Cap, +3.2% 24h Change, ціни, бейджі LIVE/STALE/SYNCING, кнопки дій) на 10% для кращої читабельності у Telegram Android WebView. Збережено незмінний темний стиль Midnight та Loading Screen Manifesto (6.5с).
+  - **Автоматизовані тести**: 36 з 36 тестів `npm run test:stars`, 16 з 16 `npm run test:security`, 13 з 13 `npm run test:academy` успішно пройдено.
 
 ## 3. Architecture Constraints
 - z-index hierarchy: base:0, elevated:10, dropdown:20, sticky:30, modal:40, toast:50.

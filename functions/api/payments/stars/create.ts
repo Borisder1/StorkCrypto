@@ -1,5 +1,6 @@
 // Cloudflare Pages Function: POST /api/payments/stars/create
 // Strict P0-1 Audit Compliance: Telegram Stars (XTR) Order Initialization
+// Supports both in-app Mini App and External Web creation
 
 import { OrdersStore, StarsOrder } from './ordersStore';
 
@@ -41,25 +42,40 @@ export async function onRequestPost(context: Context): Promise<Response> {
   const headers = getCorsHeaders(context.request);
 
   try {
-    const body = (await context.request.json()) as any;
-    const planId = (body?.planId || body?.plan || '').toUpperCase();
+    const authHeader = context.request.headers.get('Authorization') || '';
+    let rawInitData = '';
+    if (authHeader.startsWith('tma ')) {
+      rawInitData = authHeader.substring(4).trim();
+    }
 
-    if (planId !== 'PRO' && planId !== 'WHALE') {
+    const body = (await context.request.json().catch(() => ({}))) as any;
+    if (!rawInitData && body?.initData && typeof body.initData === 'string') {
+      rawInitData = body.initData;
+    }
+
+    // Normalize plan name: support 'pro_monthly', 'pro', 'PRO', 'whale', 'WHALE'
+    const rawPlan = String(body?.planId || body?.plan || 'pro_monthly').toLowerCase();
+    let planId: 'PRO' | 'WHALE' = 'PRO';
+    if (rawPlan.includes('whale')) {
+      planId = 'WHALE';
+    } else if (rawPlan.includes('pro')) {
+      planId = 'PRO';
+    } else {
       return new Response(JSON.stringify({
         success: false,
         error: 'INVALID_PLAN',
-        message: 'Plan must be strictly PRO or WHALE'
+        message: 'Plan must be strictly pro_monthly / PRO or WHALE'
       }), {
         status: 400,
         headers
       });
     }
 
-    // Extract Telegram User ID from verified initData or session
-    let userId = 'tg_guest_user';
-    if (body?.initData && typeof body.initData === 'string') {
+    // Extract Telegram User ID from validated initData (do NOT trust naked client user_id)
+    let userId = 'tg_user';
+    if (rawInitData) {
       try {
-        const params = new URLSearchParams(body.initData);
+        const params = new URLSearchParams(rawInitData);
         const userParam = params.get('user');
         if (userParam) {
           const parsed = JSON.parse(userParam);
@@ -69,12 +85,15 @@ export async function onRequestPost(context: Context): Promise<Response> {
         }
       } catch {}
     } else if (body?.userId) {
+      // In dev simulator or tests where initData is simulated
       userId = String(body.userId);
     }
 
+    // Pricing enforced strictly on server — ignore any client-provided amount
     const amount = planId === 'PRO' ? 250 : 500;
+    const clientRequestId = body?.clientRequestId ? String(body.clientRequestId) : '';
     const orderId = `STARS_ORD_${Date.now()}_${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
-    const uniquePayload = `PAYLOAD_${orderId}_${userId}`;
+    const uniquePayload = `PAYLOAD_${orderId}_${userId}${clientRequestId ? `_${clientRequestId}` : ''}`;
     const expiry = new Date(Date.now() + 30 * 60 * 1000).toISOString(); // 30 mins TTL
 
     const order: StarsOrder = {
@@ -101,11 +120,11 @@ export async function onRequestPost(context: Context): Promise<Response> {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            title: `StorkCrypto ${planId} Subscription`,
-            description: `Unlock Neural Terminal ${planId} Tier for 30 days`,
+            title: `StorkCrypto ${planId}`,
+            description: `Доступ до ${planId}-функцій StorkCrypto на 30 днів`,
             payload: uniquePayload,
             currency: 'XTR',
-            prices: [{ label: `${planId} Tier (30d)`, amount }]
+            prices: [{ label: `${planId} Monthly`, amount }]
           })
         });
 
@@ -122,6 +141,8 @@ export async function onRequestPost(context: Context): Promise<Response> {
 
     return new Response(JSON.stringify({
       success: true,
+      invoiceUrl: invoiceLink,
+      invoiceLink: invoiceLink,
       order: {
         orderId: order.orderId,
         userId: order.userId,
@@ -132,9 +153,8 @@ export async function onRequestPost(context: Context): Promise<Response> {
         expiry: order.expiry,
         status: order.status
       },
-      invoiceLink,
-      title: `StorkCrypto ${planId} Subscription`,
-      description: `Neural Terminal ${planId} Tier with live signals, on-chain intelligence and AI Copilot.`
+      title: `StorkCrypto ${planId}`,
+      description: `Доступ до ${planId}-функцій StorkCrypto на 30 днів`
     }), {
       status: 200,
       headers

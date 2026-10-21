@@ -54,6 +54,10 @@ export async function onRequestGet(context: Context): Promise<Response> {
   return new Response(JSON.stringify({
     authenticated: !!authHeader,
     userId: sub.userId,
+    plan: sub.tier.toLowerCase(),
+    status: sub.isPro ? 'active' : 'inactive',
+    source: 'TELEGRAM_STARS',
+    expiresAt: sub.activeUntil,
     tier: sub.tier,
     isPro: sub.isPro,
     activeUntil: sub.activeUntil,

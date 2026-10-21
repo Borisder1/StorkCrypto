@@ -126,22 +126,22 @@ export const AIMarketSummary: React.FC = () => {
             <div className="flex-1 relative z-10">
                 <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-1.5">
-                        <span className="text-[8px] font-black text-brand-cyan uppercase tracking-widest font-orbitron">
+                        <span className="text-[9px] font-black text-brand-cyan uppercase tracking-widest font-orbitron">
                             {t('insight.title') || 'Neural_Summary'}
                         </span>
                         <HelpIndicator id="ai_market_summary" />
                     </div>
                     <div className="flex items-center gap-1">
-                        <ActivityIcon className={`w-2 h-2 ${statusBadge.iconColor} animate-pulse`} />
-                        <span className={`text-[7px] ${statusBadge.textColor} font-mono uppercase font-bold tracking-wider`}>
+                        <ActivityIcon className={`w-2.5 h-2.5 ${statusBadge.iconColor} animate-pulse`} />
+                        <span className={`text-[8.5px] ${statusBadge.textColor} font-mono uppercase font-bold tracking-wider`}>
                             {statusBadge.label}
                         </span>
                     </div>
                 </div>
-                <p className="text-[10px] text-slate-300 font-mono leading-relaxed italic">
+                <p className="text-[11px] text-slate-300 font-mono leading-relaxed italic">
                     {renderSummary()}
                 </p>
-                <div className="mt-2 pt-1.5 border-t border-white/5 flex items-center justify-between text-[8px] font-mono text-slate-400">
+                <div className="mt-2 pt-1.5 border-t border-white/5 flex items-center justify-between text-[9px] font-mono text-slate-400">
                     <div className="flex items-center gap-1.5">
                         <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.textColor.replace('text-', 'bg-')} animate-pulse`}></span>
                         <span>Джерело: <strong className="text-slate-300">Binance API · {statusBadge.label === 'LIVE' ? 'Онлайн сокет' : statusBadge.label === 'STALE' ? 'Кеш (затримка)' : statusBadge.label === 'OFFLINE' ? 'Офлайн резерв' : 'Синхронізація'}</strong></span>

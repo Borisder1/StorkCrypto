@@ -57,11 +57,17 @@ const AssetEntry = React.memo(({ asset, totalPortfolioValue, t }: { asset: Asset
 });
 
 const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
-    const { assets, updateAssetPrice, wallet, addAsset, syncChainAssets, disconnectWallet, settings } = useStore();
+    const { assets, updateAssetPrice, wallet, addAsset, syncChainAssets, disconnectWallet, settings, showToast } = useStore();
     const t = (key: string) => getTranslation(settings.language, key);
     const [balanceType, setBalanceType] = useState<'NEURAL' | 'MAINNET'>('NEURAL');
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isRefreshing, setIsRefreshing] = useState(false);
+
+    const shortenTonAddress = (addr: string | null) => {
+        if (!addr) return '';
+        if (addr.length <= 12) return addr;
+        return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+    };
     
     const isSyncing = wallet.isSyncing && balanceType === 'MAINNET';
 
@@ -180,57 +186,109 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         </div>
                     </div>
                     {balanceType === 'MAINNET' && (
-                        <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-                            <button
-                                type="button"
-                                onClick={async () => {
-                                    triggerHaptic('medium');
-                                    setWalletConnectState('opening chooser');
-                                    try {
-                                        const tonConnectUI = getTonConnectUI();
-                                        if (!tonConnectUI) {
-                                            setWalletConnectState('failed');
-                                            return;
-                                        }
-                                        setWalletConnectState('connecting');
-                                        await tonConnectUI.openModal();
-                                    } catch (e: any) {
-                                        if (e?.message?.toLowerCase().includes('cancel') || e?.name === 'UserRejectsError') {
-                                            setWalletConnectState('cancelled');
-                                        } else {
-                                            setWalletConnectState('failed');
-                                        }
-                                    }
-                                }}
-                                aria-label="Connect TON Wallet"
-                                className="px-4 py-2.5 bg-brand-cyan/20 border border-brand-cyan/40 hover:bg-brand-cyan/30 text-brand-cyan rounded-xl text-xs font-orbitron font-bold transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)] flex items-center gap-2 min-h-[44px]"
-                            >
-                                <ShieldIcon className="w-4 h-4 text-brand-cyan" />
-                                {wallet.isConnected
-                                    ? `${wallet.address?.slice(0, 4)}...${wallet.address?.slice(-4)}`
-                                    : walletConnectState === 'opening chooser'
-                                    ? 'Opening chooser...'
-                                    : walletConnectState === 'connecting'
-                                    ? 'Connecting...'
-                                    : walletConnectState === 'cancelled'
-                                    ? 'Connect TON Wallet (Retry)'
-                                    : walletConnectState === 'failed'
-                                    ? 'Connect TON Wallet (Retry)'
-                                    : 'Connect TON Wallet'}
-                            </button>
-                            {wallet.isConnected && (
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        triggerHaptic('light');
-                                        disconnectWallet();
-                                        setWalletConnectState('disconnected again');
-                                    }}
-                                    aria-label="Disconnect TON Wallet"
-                                    className="px-3 py-2 bg-white/5 border border-white/10 hover:bg-white/10 text-slate-400 hover:text-white rounded-xl text-xs font-mono font-bold transition-all min-h-[44px]"
-                                >
-                                    Disconnect
-                                </button>
+                        <div className="mt-5 space-y-3">
+                            {wallet.isConnected ? (
+                                <div className="p-4 rounded-2xl bg-black/60 border border-brand-cyan/30 text-left space-y-3 font-mono text-xs shadow-[0_0_20px_rgba(0,240,255,0.08)]">
+                                    <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                                        <div className="flex items-center gap-2">
+                                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                            <span className="text-emerald-400 font-bold font-orbitron text-[11px] uppercase tracking-wider">TON Wallet connected</span>
+                                        </div>
+                                        <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5 font-mono">
+                                            {wallet.walletType || 'TON Wallet'}
+                                        </span>
+                                    </div>
+
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <div>
+                                            <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Address:</span>
+                                            <code className="text-white font-bold font-mono text-xs tracking-wider">
+                                                {shortenTonAddress(wallet.address)}
+                                            </code>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 flex-wrap">
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (wallet.address) {
+                                                        navigator.clipboard?.writeText(wallet.address);
+                                                        triggerHaptic('success');
+                                                        showToast('Адресу TON скопійовано');
+                                                    }
+                                                }}
+                                                aria-label="Copy address"
+                                                className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 hover:text-white border border-white/10 text-[10px] font-mono transition-all min-h-[36px]"
+                                            >
+                                                Copy
+                                            </button>
+                                            <a
+                                                href={`https://tonscan.org/address/${encodeURIComponent(wallet.address || '')}`}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                aria-label="Open in explorer"
+                                                className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-brand-cyan border border-brand-cyan/20 text-[10px] font-mono transition-all min-h-[36px] flex items-center"
+                                            >
+                                                Explorer
+                                            </a>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    triggerHaptic('light');
+                                                    disconnectWallet();
+                                                    setWalletConnectState('disconnected again');
+                                                }}
+                                                aria-label="Disconnect"
+                                                className="px-2.5 py-1.5 rounded-lg bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-[10px] font-mono transition-all min-h-[36px]"
+                                            >
+                                                Disconnect
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-slate-500">
+                                        <span>Network status:</span>
+                                        <span className="text-emerald-400 font-mono">TON Mainnet · Online</span>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="flex flex-col items-center justify-center gap-2">
+                                    <button
+                                        type="button"
+                                        onClick={async () => {
+                                            triggerHaptic('medium');
+                                            setWalletConnectState('opening chooser');
+                                            try {
+                                                const tonConnectUI = getTonConnectUI();
+                                                if (!tonConnectUI) {
+                                                    setWalletConnectState('failed');
+                                                    return;
+                                                }
+                                                setWalletConnectState('connecting');
+                                                await tonConnectUI.openModal();
+                                            } catch (e: any) {
+                                                if (e?.message?.toLowerCase().includes('cancel') || e?.name === 'UserRejectsError') {
+                                                    setWalletConnectState('cancelled');
+                                                } else {
+                                                    setWalletConnectState('failed');
+                                                }
+                                            }
+                                        }}
+                                        aria-label="Connect TON Wallet"
+                                        className="px-5 py-3 bg-brand-cyan/20 border border-brand-cyan/40 hover:bg-brand-cyan/30 text-brand-cyan rounded-xl text-xs font-orbitron font-bold transition-all shadow-[0_0_15px_rgba(0,240,255,0.15)] flex items-center gap-2 min-h-[44px]"
+                                    >
+                                        <ShieldIcon className="w-4 h-4 text-brand-cyan" />
+                                        {walletConnectState === 'opening chooser'
+                                            ? 'Opening chooser...'
+                                            : walletConnectState === 'connecting'
+                                            ? 'Connecting...'
+                                            : walletConnectState === 'cancelled'
+                                            ? 'Connect TON Wallet (Retry)'
+                                            : walletConnectState === 'failed'
+                                            ? 'Connect TON Wallet (Retry)'
+                                            : 'Connect TON Wallet'}
+                                    </button>
+                                    <span className="text-[10px] text-slate-500 font-mono">TON Wallet not connected</span>
+                                </div>
                             )}
                         </div>
                     )}

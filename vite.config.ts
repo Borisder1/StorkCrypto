@@ -116,8 +116,8 @@ function apiChatDevPlugin() {
           return;
         }
 
-        // 0.2 Telegram Stars Create Order (POST /api/payments/stars/create & /api/payment/create-invoice)
-        if (rawUrl === '/api/payments/stars/create' || rawUrl === '/api/payment/create-invoice') {
+        // 0.2 Telegram Stars Create Order (POST /api/payments/stars/create & /api/payments/stars/create-link & /api/payment/create-invoice)
+        if (rawUrl === '/api/payments/stars/create' || rawUrl === '/api/payments/stars/create-link' || rawUrl === '/api/payment/create-invoice') {
           if (req.method === 'OPTIONS') {
             res.writeHead(204, {
               'Access-Control-Allow-Origin': '*',
@@ -136,9 +136,23 @@ function apiChatDevPlugin() {
             res.setHeader('Access-Control-Allow-Origin', '*');
             let payload: any = {};
             try { payload = JSON.parse(invoiceBody); } catch {}
-            const plan = (payload.planId || payload.plan || 'PRO').toUpperCase();
+
+            const authHeader = req.headers['authorization'] || '';
+            let userId = payload.userId || 'tg_dev_user';
+            if (typeof authHeader === 'string' && authHeader.startsWith('tma ')) {
+              try {
+                const params = new URLSearchParams(authHeader.slice(4));
+                const userParam = params.get('user');
+                if (userParam) {
+                  const parsed = JSON.parse(userParam);
+                  if (parsed?.id) userId = String(parsed.id);
+                }
+              } catch {}
+            }
+
+            const rawPlan = String(payload.planId || payload.plan || 'pro_monthly').toLowerCase();
+            const plan = rawPlan.includes('whale') ? 'WHALE' : 'PRO';
             const stars = plan === 'PRO' ? 250 : 500;
-            const userId = payload.userId || 'tg_dev_user';
             const orderId = `STARS_ORD_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
             const uniquePayload = `PAYLOAD_${orderId}_${userId}`;
             const expiry = new Date(Date.now() + 30 * 60 * 1000).toISOString();
@@ -166,12 +180,12 @@ function apiChatDevPlugin() {
               invoiceId: orderId,
               invoiceUrl,
               invoiceLink: invoiceUrl,
-              plan,
+              plan: plan.toLowerCase(),
               stars,
               amount: stars,
               currency: 'XTR',
-              title: `StorkCrypto ${plan} Subscription`,
-              description: `Neural Terminal ${plan} tier for 30 days`
+              title: `StorkCrypto ${plan}`,
+              description: `Доступ до ${plan}-функцій StorkCrypto на 30 днів`
             }));
           });
           req.resume();
@@ -338,6 +352,10 @@ function apiChatDevPlugin() {
             success: true,
             authenticated: true,
             userId,
+            plan: sub.tier.toLowerCase(),
+            status: sub.isPro ? 'active' : 'inactive',
+            source: 'TELEGRAM_STARS',
+            expiresAt: sub.activeUntil,
             tier: sub.tier,
             isPro: sub.isPro,
             activeUntil: sub.activeUntil,
