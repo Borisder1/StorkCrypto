@@ -138,16 +138,51 @@ function apiChatDevPlugin() {
             try { payload = JSON.parse(invoiceBody); } catch {}
 
             const authHeader = req.headers['authorization'] || '';
-            let userId = payload.userId || 'tg_dev_user';
+            const isDevTest = req.headers['x-dev-test'] === 'true';
+            let rawInitData = '';
             if (typeof authHeader === 'string' && authHeader.startsWith('tma ')) {
+              rawInitData = authHeader.slice(4).trim();
+            } else if (payload.initData && typeof payload.initData === 'string') {
+              rawInitData = payload.initData.trim();
+            }
+
+            const isWebLink = rawUrl === '/api/payments/stars/create-link';
+
+            // P0: Require Telegram initData authentication for TMA create endpoint (401 on missing/invalid)
+            if (!isWebLink && !rawInitData && !isDevTest) {
+              res.writeHead(401, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                success: false,
+                error: 'UNAUTHORIZED',
+                message: 'Valid Telegram initData is required to create a Stars invoice'
+              }));
+              return;
+            }
+
+            let userId = '';
+            if (rawInitData) {
               try {
-                const params = new URLSearchParams(authHeader.slice(4));
+                const params = new URLSearchParams(rawInitData);
                 const userParam = params.get('user');
                 if (userParam) {
                   const parsed = JSON.parse(userParam);
                   if (parsed?.id) userId = String(parsed.id);
                 }
               } catch {}
+            } else if (isDevTest && payload.userId) {
+              userId = String(payload.userId);
+            } else if (isWebLink) {
+              userId = payload.userId ? String(payload.userId) : `web_user_${Date.now()}`;
+            }
+
+            if (!userId) {
+              res.writeHead(401, { 'Content-Type': 'application/json' });
+              res.end(JSON.stringify({
+                success: false,
+                error: 'UNAUTHORIZED',
+                message: 'Could not extract valid Telegram user ID from initData'
+              }));
+              return;
             }
 
             const rawPlan = String(payload.planId || payload.plan || 'pro_monthly').toLowerCase();
@@ -298,6 +333,111 @@ function apiChatDevPlugin() {
             res.end(JSON.stringify({ ok: true }));
           });
           req.resume();
+          return;
+        }
+
+        // 0.35 Telegram Stars Order Status API (GET /api/payments/stars/status)
+        if (rawUrl === '/api/payments/stars/status') {
+          if (req.method === 'OPTIONS') {
+            res.writeHead(204, {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'GET, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Dev-Test',
+            });
+            res.end();
+            return;
+          }
+
+          res.setHeader('Content-Type', 'application/json');
+          res.setHeader('Access-Control-Allow-Origin', '*');
+
+          const parsedUrl = new URL(req.url, 'http://localhost:3000');
+          const orderId = parsedUrl.searchParams.get('orderId');
+          const authHeader = req.headers['authorization'] || '';
+          const isDevTest = req.headers['x-dev-test'] === 'true';
+
+          let rawInitData = '';
+          if (typeof authHeader === 'string' && authHeader.startsWith('tma ')) {
+            rawInitData = authHeader.slice(4).trim();
+          } else if (parsedUrl.searchParams.has('initData')) {
+            rawInitData = parsedUrl.searchParams.get('initData') || '';
+          }
+
+          if (!rawInitData && !isDevTest) {
+            res.writeHead(401);
+            res.end(JSON.stringify({
+              error: 'UNAUTHORIZED',
+              message: 'Authorization header (tma <initData>) required'
+            }));
+            return;
+          }
+
+          let authenticatedUserId = '';
+          if (rawInitData) {
+            try {
+              const params = new URLSearchParams(rawInitData);
+              const userParam = params.get('user');
+              if (userParam) {
+                const parsed = JSON.parse(userParam);
+                if (parsed?.id) authenticatedUserId = String(parsed.id);
+              }
+            } catch {}
+          } else if (isDevTest) {
+            authenticatedUserId = parsedUrl.searchParams.get('userId') || 'tg_dev_user';
+          }
+
+          if (!authenticatedUserId) {
+            res.writeHead(401);
+            res.end(JSON.stringify({
+              error: 'UNAUTHORIZED',
+              message: 'Invalid Telegram authentication'
+            }));
+            return;
+          }
+
+          if (!orderId) {
+            res.writeHead(400);
+            res.end(JSON.stringify({
+              error: 'MISSING_ORDER_ID',
+              message: 'orderId query parameter is required'
+            }));
+            return;
+          }
+
+          const order = devOrders.get(orderId);
+          if (!order) {
+            res.writeHead(404);
+            res.end(JSON.stringify({
+              error: 'NOT_FOUND',
+              message: 'Order not found'
+            }));
+            return;
+          }
+
+          if (order.userId !== authenticatedUserId) {
+            res.writeHead(403);
+            res.end(JSON.stringify({
+              error: 'FORBIDDEN',
+              message: 'Access denied: order belongs to another user'
+            }));
+            return;
+          }
+
+          const sub = devSubscriptions.get(authenticatedUserId);
+          const isPaid = order.status === 'PAID';
+
+          res.writeHead(200);
+          res.end(JSON.stringify({
+            orderId: order.orderId,
+            status: order.status,
+            paymentVerified: isPaid,
+            subscriptionActive: isPaid || (sub ? sub.isPro : false),
+            expiresAt: isPaid ? (sub?.activeUntil || order.expiry) : null,
+            plan: order.planId.toLowerCase(),
+            currency: order.currency,
+            amount: order.amount,
+            telegramPaymentChargeId: order.telegramPaymentChargeId || null
+          }));
           return;
         }
 

@@ -84,23 +84,33 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         if (!targetOrderId) return;
         try {
             const tgInitData = window.Telegram?.WebApp?.initData || '';
-            const res = await fetch(`/api/subscription/status?orderId=${encodeURIComponent(targetOrderId)}`, {
+            let res = await fetch(`/api/payments/stars/status?orderId=${encodeURIComponent(targetOrderId)}`, {
                 headers: {
                     'Authorization': `tma ${tgInitData}`
                 }
             });
+            if (!res.ok) {
+                // Fallback to /api/subscription/status if needed
+                res = await fetch(`/api/subscription/status?orderId=${encodeURIComponent(targetOrderId)}`, {
+                    headers: {
+                        'Authorization': `tma ${tgInitData}`
+                    }
+                });
+            }
             if (!res.ok) throw new Error('Status fetch failed');
             const data = await res.json();
 
             if (!isMountedRef.current) return;
 
-            if (data?.order?.status === 'PAID' || data?.isPro === true || data?.status === 'active') {
+            const isOrderPaid = data?.status === 'PAID' || data?.order?.status === 'PAID' || data?.paymentVerified === true || data?.subscriptionActive === true;
+
+            if (isOrderPaid) {
                 clearTimers();
                 setStatus('PRO active');
-                setChargeId(data.order?.telegramPaymentChargeId || 'VERIFIED_ON_SERVER');
+                setChargeId(data.telegramPaymentChargeId || data.order?.telegramPaymentChargeId || 'VERIFIED_ON_SERVER');
                 setIsProcessing(false);
                 // Activate on frontend strictly after backend verification
-                upgradeUserTier(data.order?.planId || selectedPlan, 30);
+                upgradeUserTier(data.plan?.toUpperCase() || data.order?.planId || selectedPlan, 30);
                 triggerHaptic('success');
                 showToast('Оплату успішно підтверджено сервером! Доступ активовано.');
             } else if (data?.order?.status === 'CANCELLED') {

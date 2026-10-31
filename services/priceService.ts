@@ -209,11 +209,12 @@ export const TICKER_TO_ID = MASTER_ASSET_LIST.reduce((acc, item) => {
  * РЕЗИЛЬЄНТНИЙ АГРЕГАТОР ЦІН
  * Спроби: Binance -> Coincap -> Cache -> Static
  */
-export const getCryptoPrices = async (ids?: string[]): Promise<MarketPriceMap> => {
+export const getCryptoPrices = async (ids?: string[] | boolean, forceRefresh?: boolean): Promise<MarketPriceMap> => {
+    const isForce = typeof ids === 'boolean' ? ids : !!forceRefresh;
     const now = Date.now();
     
     // 1. Check Cache
-    if (now - CACHE.PRICES.timestamp < CACHE.PRICES.ttl && Object.keys(CACHE.PRICES.data).length > 0) {
+    if (!isForce && now - CACHE.PRICES.timestamp < CACHE.PRICES.ttl && Object.keys(CACHE.PRICES.data).length > 0) {
         return CACHE.PRICES.data;
     }
 

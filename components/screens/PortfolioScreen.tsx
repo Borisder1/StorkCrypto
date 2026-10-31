@@ -16,6 +16,7 @@ import Skeleton from '../Skeleton';
 import { PortfolioDistributionChart } from '../PortfolioDistributionChart';
 import { HelpIndicator } from '../HelpIndicator';
 import { getTonConnectUI } from '../../services/tonConnectService';
+import { useIsConnectionRestored } from '@tonconnect/ui-react';
 
 // OPTIMIZATION: Memoized component to prevent re-renders on parent state changes
 const AssetEntry = React.memo(({ asset, totalPortfolioValue, t }: { asset: Asset, totalPortfolioValue: number, t: (key: string) => string }) => {
@@ -69,6 +70,7 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
     };
     
+    const isConnectionRestored = useIsConnectionRestored();
     const isSyncing = wallet.isSyncing && balanceType === 'MAINNET';
 
     const [walletConnectState, setWalletConnectState] = useState<'disconnected' | 'opening chooser' | 'connecting' | 'connected' | 'cancelled' | 'failed' | 'disconnected again'>('disconnected');
@@ -248,6 +250,13 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                     <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-slate-500">
                                         <span>Network status:</span>
                                         <span className="text-emerald-400 font-mono">TON Mainnet · Online</span>
+                                    </div>
+                                </div>
+                            ) : !isConnectionRestored ? (
+                                <div className="flex flex-col items-center justify-center gap-2 py-3">
+                                    <div className="flex items-center gap-2 text-slate-400 text-xs font-mono">
+                                        <span className="w-2 h-2 rounded-full bg-brand-cyan animate-ping" />
+                                        <span>Restoring TON session...</span>
                                     </div>
                                 </div>
                             ) : (

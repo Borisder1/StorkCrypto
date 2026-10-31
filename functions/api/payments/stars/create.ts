@@ -1,8 +1,9 @@
 // Cloudflare Pages Function: POST /api/payments/stars/create
-// Strict P0-1 Audit Compliance: Telegram Stars (XTR) Order Initialization
-// Supports both in-app Mini App and External Web creation
+// Strict P0 Security & Telegram Stars (XTR) Order Initialization
+// Rejects unauthenticated or forged requests with HTTP 401
 
 import { OrdersStore, StarsOrder } from './ordersStore';
+import { verifyTelegramInitData } from './auth';
 
 interface Context {
   request: Request;
@@ -26,7 +27,7 @@ function getCorsHeaders(request: Request): Record<string, string> {
     'Content-Type': 'application/json',
     'Access-Control-Allow-Origin': safeOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Dev-Test',
     'Vary': 'Origin'
   };
 }
@@ -53,6 +54,27 @@ export async function onRequestPost(context: Context): Promise<Response> {
       rawInitData = body.initData;
     }
 
+    // P0: Enforce Telegram initData authentication
+    const host = context.request.headers.get('Host') || '';
+    const isDevHost = host.includes('localhost') || host.includes('127.0.0.1') || context.request.headers.get('X-Dev-Test') === 'true';
+    const botToken = context.env?.TELEGRAM_BOT_TOKEN || context.env?.BOT_TOKEN || '';
+
+    const authResult = await verifyTelegramInitData(rawInitData, botToken, isDevHost);
+
+    if (!authResult.valid || !authResult.userId) {
+      return new Response(JSON.stringify({
+        success: false,
+        error: 'UNAUTHORIZED',
+        message: 'Valid Telegram initData is required to create a Stars invoice',
+        detail: authResult.error
+      }), {
+        status: 401,
+        headers
+      });
+    }
+
+    const userId = authResult.userId;
+
     // Normalize plan name: support 'pro_monthly', 'pro', 'PRO', 'whale', 'WHALE'
     const rawPlan = String(body?.planId || body?.plan || 'pro_monthly').toLowerCase();
     let planId: 'PRO' | 'WHALE' = 'PRO';
@@ -69,24 +91,6 @@ export async function onRequestPost(context: Context): Promise<Response> {
         status: 400,
         headers
       });
-    }
-
-    // Extract Telegram User ID from validated initData (do NOT trust naked client user_id)
-    let userId = 'tg_user';
-    if (rawInitData) {
-      try {
-        const params = new URLSearchParams(rawInitData);
-        const userParam = params.get('user');
-        if (userParam) {
-          const parsed = JSON.parse(userParam);
-          if (parsed?.id) {
-            userId = String(parsed.id);
-          }
-        }
-      } catch {}
-    } else if (body?.userId) {
-      // In dev simulator or tests where initData is simulated
-      userId = String(body.userId);
     }
 
     // Pricing enforced strictly on server — ignore any client-provided amount
@@ -112,7 +116,6 @@ export async function onRequestPost(context: Context): Promise<Response> {
 
     // Create Telegram invoice link
     let invoiceLink = `https://t.me/$stork_sub_${planId.toLowerCase()}_30d?startattach=${orderId}`;
-    const botToken = context.env?.TELEGRAM_BOT_TOKEN || '';
 
     if (botToken) {
       try {

@@ -308,6 +308,22 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         />
       </div>
 
+      {/* 🌀 Concentric Neural Rings per manifesto */}
+      <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-10 overflow-hidden transition-all duration-700 ${progress === 100 ? 'scale-110 opacity-40' : 'opacity-70'}`}>
+        <div 
+          className="absolute w-[240px] h-[240px] rounded-full border border-brand-cyan/25 animate-spin"
+          style={{ animationDuration: '16s', borderStyle: 'dashed' }}
+        />
+        <div 
+          className="absolute w-[320px] h-[320px] rounded-full border border-brand-purple/20 animate-spin"
+          style={{ animationDuration: '24s', animationDirection: 'reverse' }}
+        />
+        <div 
+          className="absolute w-[400px] h-[400px] rounded-full border border-brand-cyan/15 animate-spin"
+          style={{ animationDuration: '36s' }}
+        />
+      </div>
+
       <style>{`
         @keyframes cyberGridMove {
           0% { transform: translate(0, 0); }

@@ -23,9 +23,21 @@ async function runTests() {
     }
   }
 
-  // 1. Test POST /api/payments/stars/create
-  console.log('\n--- 1. Testing Stars Order & Invoice Creation ---');
+  // 1. Test POST /api/payments/stars/create Unauthorized vs Authorized
+  console.log('\n--- 1. Testing Stars Order & Invoice Creation (Auth & Security) ---');
+  try {
+    const unauthRes = await fetch(`${BASE_URL}/api/payments/stars/create`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan: 'pro_monthly' })
+    });
+    assert(unauthRes.status === 401, 'Order creation without auth returns strict HTTP 401');
+  } catch (err) {
+    assert(false, `Unauth check failed: ${err.message}`);
+  }
+
   const testUserId = Math.floor(1000000000 + Math.random() * 900000000);
+  const foreignUserId = Math.floor(2000000000 + Math.random() * 900000000);
   let orderData = null;
   try {
     const res = await fetch(`${BASE_URL}/api/payments/stars/create`, {
@@ -50,6 +62,45 @@ async function runTests() {
     orderData = data.order;
   } catch (err) {
     assert(false, `Order creation request failed: ${err.message}`);
+  }
+
+  // 1b. Test GET /api/payments/stars/status Endpoint Security (401, 404, 403, 200)
+  console.log('\n--- 1b. Testing /api/payments/stars/status Security & Contracts ---');
+  try {
+    // Missing auth -> 401
+    const noAuthStatusRes = await fetch(`${BASE_URL}/api/payments/stars/status?orderId=${orderData.orderId}`);
+    assert(noAuthStatusRes.status === 401, 'Status API without auth returns HTTP 401');
+
+    // Unknown order with auth -> 404
+    const notFoundStatusRes = await fetch(`${BASE_URL}/api/payments/stars/status?orderId=STARS_ORD_UNKNOWN_999`, {
+      headers: {
+        'Authorization': `tma user=%7B%22id%22%3A${testUserId}%2C%22username%22%3A%22testuser%22%7D`
+      }
+    });
+    assert(notFoundStatusRes.status === 404, 'Status API with unknown orderId returns HTTP 404');
+
+    // Foreign user accessing order -> 403
+    const foreignStatusRes = await fetch(`${BASE_URL}/api/payments/stars/status?orderId=${orderData.orderId}`, {
+      headers: {
+        'Authorization': `tma user=%7B%22id%22%3A${foreignUserId}%2C%22username%22%3A%22foreignuser%22%7D`
+      }
+    });
+    assert(foreignStatusRes.status === 403, 'Status API for foreign user returns HTTP 403 (access denied)');
+
+    // Order owner accessing order -> 200 JSON
+    const ownerStatusRes = await fetch(`${BASE_URL}/api/payments/stars/status?orderId=${orderData.orderId}`, {
+      headers: {
+        'Authorization': `tma user=%7B%22id%22%3A${testUserId}%2C%22username%22%3A%22testuser%22%7D`
+      }
+    });
+    const ownerStatusData = await ownerStatusRes.json();
+    assert(ownerStatusRes.status === 200, 'Status API for order owner returns HTTP 200');
+    assert(ownerStatusData.orderId === orderData.orderId, 'Status API returns correct orderId');
+    assert(ownerStatusData.status === 'PENDING', 'Status API initial status is PENDING');
+    assert(ownerStatusData.paymentVerified === false, 'Status API paymentVerified is false initially');
+    assert(ownerStatusData.subscriptionActive === false, 'Status API subscriptionActive is false initially');
+  } catch (err) {
+    assert(false, `Status endpoint security tests failed: ${err.message}`);
   }
 
   // 2. Test External Web Invoice Link (POST /api/payments/stars/create-link)
@@ -188,8 +239,11 @@ async function runTests() {
   try {
     const cancelOrderRes = await fetch(`${BASE_URL}/api/payments/stars/create`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ planId: 'WHALE', userId: 'user_cancel_test' })
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `tma user=%7B%22id%22%3A88889999%2C%22username%22%3A%22canceluser%22%7D`
+      },
+      body: JSON.stringify({ planId: 'WHALE', userId: '88889999' })
     });
     const cancelOrderData = await cancelOrderRes.json();
     const cancelRes = await fetch(`${BASE_URL}/api/payments/stars/webhook`, {
@@ -216,6 +270,8 @@ async function runTests() {
     assert(manifestData.url === 'https://storkcrypto.pages.dev', 'Manifest url is valid HTTPS');
     assert(Boolean(manifestData.termsOfUseUrl), 'termsOfUseUrl present');
     assert(Boolean(manifestData.privacyPolicyUrl), 'privacyPolicyUrl present');
+    assert(manifestData.iconUrl && manifestData.iconUrl.endsWith('.png'), 'iconUrl is PNG (not JPEG)');
+    assert(manifestData.iconUrl.includes('icon-180.png'), 'iconUrl points to icon-180.png');
   } catch (err) {
     assert(false, `tonconnect-manifest.json request failed: ${err.message}`);
   }

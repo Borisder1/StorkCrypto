@@ -19,12 +19,24 @@ export const AcademyBannerWidget: React.FC = () => {
         }
     });
 
+    React.useEffect(() => {
+        const handler = () => {
+            const saved = localStorage.getItem('stork_academy_lang');
+            if (saved && (saved === 'uk' || saved === 'ru' || saved === 'en')) {
+                setAcademyLang(saved);
+            }
+        };
+        window.addEventListener('stork_academy_lang_changed', handler);
+        return () => window.removeEventListener('stork_academy_lang_changed', handler);
+    }, []);
+
     const handleSelectLanguage = (langId: string, e: React.MouseEvent) => {
         e.stopPropagation();
         triggerHaptic('selection');
         setAcademyLang(langId);
         try {
             localStorage.setItem('stork_academy_lang', langId);
+            window.dispatchEvent(new Event('stork_academy_lang_changed'));
         } catch (_) {}
     };
 

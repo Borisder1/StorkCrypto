@@ -174,12 +174,22 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
     const [academyLang, setAcademyLang] = useState<AcademyLanguage>(() => resolveAcademyLanguage());
 
+    useEffect(() => {
+        const handler = () => {
+            const saved = resolveAcademyLanguage();
+            setAcademyLang(saved);
+        };
+        window.addEventListener('stork_academy_lang_changed', handler);
+        return () => window.removeEventListener('stork_academy_lang_changed', handler);
+    }, []);
+
     const handleSelectAcademyLang = (lang: AcademyLanguage) => {
         triggerHaptic('selection');
         setAcademyLang(lang);
         if (typeof window !== 'undefined') {
             try {
                 localStorage.setItem('stork_academy_lang', lang);
+                window.dispatchEvent(new Event('stork_academy_lang_changed'));
             } catch {}
         }
     };

@@ -87,7 +87,16 @@
   - **Офіційний Маніфест (`tonconnect-manifest.json`)**: Оновлено схему (https, terms, privacy, icon-180.png) без блокувань CORS.
   - **PRO Modal UI States (`SubscriptionModal.tsx`)**: Реалізовано повний автомат станів (`BASIC`, `Invoice preparing...`, `Waiting for Telegram payment...`, `Payment verification...`, `PRO active`, `Payment canceled`, `Payment failed`, `Payment pending`), блокування повторних кліків, спінер, таймаут 75с з кнопкою `Retry payment`.
   - **Читабельність та дизайн (+10%)**: Збільшено шрифти індикаторів ринку ($2.1T Market Cap, +3.2% 24h Change, ціни, бейджі LIVE/STALE/SYNCING, кнопки дій) на 10% для кращої читабельності у Telegram Android WebView. Збережено незмінний темний стиль Midnight та Loading Screen Manifesto (6.5с).
-  - **Автоматизовані тести**: 36 з 36 тестів `npm run test:stars`, 16 з 16 `npm run test:security`, 13 з 13 `npm run test:academy` успішно пройдено.
+- **Cloudflare Pages Live Audit Remediation (31.10.2026)**:
+  - **P0 Telegram Stars Auth & Security (`/functions/api/payments/stars/create.ts`, `auth.ts`)**: Вилучено вразливий fallback `"tg_user"`. Впроваджено Web Crypto HMAC-SHA256 валідацію `initData` проти `TELEGRAM_BOT_TOKEN`, повернення строгого HTTP 401 при відсутності/підробці автентифікації. Серверні ціни: 250 XTR (PRO), 500 XTR (WHALE).
+  - **P0 Dedicated Order Status API (`/functions/api/payments/stars/status.ts`, `vite.config.ts`)**: Створено виділену Cloudflare Pages Function замість збою через SPA HTML fallback. Повертає строгий JSON: 401 (Unauthorized), 404 (Not Found), 403 (Forbidden при спробі доступу до чужого ордера), 200 (актуальний статус платежу).
+  - **P0 Зовнішній веб-чекаут (`/functions/api/payments/stars/create-link.ts`)**: Відокремлено генерацію веб-інвойсів для браузерних користувачів без обов'язкового TMA `initData` з переходом у Telegram.
+  - **P1 TON Connect Manifest PNG Icon**: Згенеровано валідний 180x180 PNG `public/icon-180.png` замість непідтримуваного JPEG. Оновлено `public/tonconnect-manifest.json` та кореневий маніфест.
+  - **P1 TON Session Restoration (`PortfolioScreen.tsx`, `index.tsx`)**: Кореневий `<TonConnectUIProvider>` у `index.tsx`, використання хука `useIsConnectionRestored()` для усунення мерехтіння «Disconnected» при відновленні сесії.
+  - **P1 STALE Data Transparency (`AIMarketSummary.tsx`, `priceService.ts`)**: Додано таймстамп оновлення (`HH:MM:SS`), ручну кнопку `[↻ Оновити]`, автоматичне відображення `STALE (Кеш) · Поріг: 30с`. Заборонено показ `LIVE` на застарілих кешованих даних.
+  - **P1 Реактивна мовна синхронізація Академії (`AcademyBannerWidget.tsx`, `MediaScreen.tsx`)**: Миттєва міжкомпонентна синхронізація мов (УКР / ENG / РУС) через подію `stork_academy_lang_changed` та `localStorage`.
+  - **P1 Loading Screen Manifesto (`LoadingScreen.tsx`)**: Суворо 6.5с ± 100мс, колір `#020617`, обертові концентричні кібер-кільця, однорядковий логотип на 360x800.
+  - **Автоматизоване тестування**: 47 з 47 тестів `npm run test:stars`, 16 з 16 `npm run test:security`, 13 з 13 `npm run test:academy` успішно пройдено; `tsc --noEmit` та `npm run build` успішно завершено.
 
 ## 3. Architecture Constraints
 - z-index hierarchy: base:0, elevated:10, dropdown:20, sticky:30, modal:40, toast:50.

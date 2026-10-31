@@ -92,6 +92,8 @@ window.addEventListener('error', (event) => {
 
 console.log("[System] Booting Neural Terminal...");
 
+import { TonConnectUIProvider } from '@tonconnect/ui-react';
+
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
@@ -108,7 +110,14 @@ if (!rootElement) {
         
         root.render(
           <ErrorBoundary>
-            <App />
+            <TonConnectUIProvider 
+              manifestUrl={MANIFEST_URL}
+              actionsConfiguration={{
+                twaReturnUrl: 'https://t.me/StorkCryptoBot/app'
+              }}
+            >
+              <App />
+            </TonConnectUIProvider>
           </ErrorBoundary>
         );
         console.log("[System] React Application Mounted.");

@@ -15,8 +15,12 @@ export const AIMarketSummary: React.FC = () => {
 
     const [summary, setSummary] = useState<string>('insight.initializing');
     const [loading, setLoading] = useState(true);
+    const [isRefreshing, setIsRefreshing] = useState(false);
     const [source, setSource] = useState<string>('SYNCING');
+    const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [chartData, setChartData] = useState<{val: number}[]>([]);
+
+    const isStale = source === 'CACHE' || (Date.now() - lastUpdated.getTime() > 35000);
 
     const getStatusBadge = () => {
         if (settings?.marketOverride === 'PUMP' || settings?.marketOverride === 'DUMP') {
@@ -26,7 +30,7 @@ export const AIMarketSummary: React.FC = () => {
                 textColor: 'text-amber-400'
             };
         }
-        if (source === 'CACHE') {
+        if (isStale || source === 'CACHE') {
             return {
                 label: 'STALE',
                 iconColor: 'text-yellow-400',
@@ -56,37 +60,45 @@ export const AIMarketSummary: React.FC = () => {
 
     const statusBadge = getStatusBadge();
 
+    const fetchSummary = async (isManual = false) => {
+        if (isManual) {
+            setIsRefreshing(true);
+            triggerHaptic('light');
+        }
+        try {
+            // Check market data freshness with optional forceRefresh
+            try {
+                const prices = await getCryptoPrices(isManual);
+                const first = Object.values(prices)[0];
+                setSource(first?.source || (isManual ? 'BINANCE' : 'LIVE'));
+                setLastUpdated(new Date());
+            } catch {
+                setSource('CACHE');
+            }
+
+            const insight = await generateProactiveInsight(['BTC', 'ETH', 'SOL']);
+            if (insight && insight.text) {
+                setSummary(insight.text);
+            } else {
+                setSummary('insight.stable');
+            }
+        } catch (e) {
+            setSummary('insight.stable');
+        } finally {
+            setLoading(false);
+            if (isManual) {
+                setIsRefreshing(false);
+            }
+        }
+    };
+
     useEffect(() => {
         // Generate dummy sparkline data
         const data = Array.from({length: 20}, () => ({ val: 50 + Math.random() * 50 }));
         setChartData(data);
 
-        const fetchSummary = async () => {
-            try {
-                // Check market data freshness
-                try {
-                    const prices = await getCryptoPrices();
-                    const first = Object.values(prices)[0];
-                    setSource(first?.source || 'LIVE');
-                } catch {
-                    setSource('CACHE');
-                }
-
-                const insight = await generateProactiveInsight(['BTC', 'ETH', 'SOL']);
-                if (insight && insight.text) {
-                    setSummary(insight.text);
-                } else {
-                    setSummary('insight.stable');
-                }
-            } catch (e) {
-                setSummary('insight.stable');
-            } finally {
-                setLoading(false);
-            }
-        };
-
         fetchSummary();
-        const interval = setInterval(fetchSummary, 300000); // Every 5 mins
+        const interval = setInterval(() => fetchSummary(false), 30000); // Check every 30s
         return () => clearInterval(interval);
     }, []);
 
@@ -100,6 +112,12 @@ export const AIMarketSummary: React.FC = () => {
         }
         return summary;
     };
+
+    const formattedTime = lastUpdated.toLocaleTimeString('uk-UA', { 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit' 
+    });
 
     return (
         <div className="bg-brand-cyan/5 border border-brand-cyan/20 rounded-2xl p-4 mb-6 flex items-start gap-3 relative overflow-hidden group">
@@ -131,22 +149,39 @@ export const AIMarketSummary: React.FC = () => {
                         </span>
                         <HelpIndicator id="ai_market_summary" />
                     </div>
-                    <div className="flex items-center gap-1">
-                        <ActivityIcon className={`w-2.5 h-2.5 ${statusBadge.iconColor} animate-pulse`} />
-                        <span className={`text-[8.5px] ${statusBadge.textColor} font-mono uppercase font-bold tracking-wider`}>
-                            {statusBadge.label}
-                        </span>
+                    <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1">
+                            <ActivityIcon className={`w-2.5 h-2.5 ${statusBadge.iconColor} animate-pulse`} />
+                            <span className={`text-[8.5px] ${statusBadge.textColor} font-mono uppercase font-bold tracking-wider`}>
+                                {statusBadge.label}
+                            </span>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => fetchSummary(true)}
+                            disabled={isRefreshing}
+                            aria-label="Оновити ринкові дані"
+                            className="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 active:scale-95 text-brand-cyan border border-brand-cyan/20 text-[9px] font-mono transition-all flex items-center gap-1"
+                        >
+                            <span className={isRefreshing ? 'animate-spin inline-block' : 'inline-block'}>↻</span>
+                            <span>{isRefreshing ? '...' : 'Оновити'}</span>
+                        </button>
                     </div>
                 </div>
                 <p className="text-[11px] text-slate-300 font-mono leading-relaxed italic">
                     {renderSummary()}
                 </p>
-                <div className="mt-2 pt-1.5 border-t border-white/5 flex items-center justify-between text-[9px] font-mono text-slate-400">
+                <div className="mt-2 pt-1.5 border-t border-white/5 flex flex-wrap items-center justify-between gap-1 text-[9px] font-mono text-slate-400">
                     <div className="flex items-center gap-1.5">
                         <span className={`w-1.5 h-1.5 rounded-full ${statusBadge.textColor.replace('text-', 'bg-')} animate-pulse`}></span>
-                        <span>Джерело: <strong className="text-slate-300">Binance API · {statusBadge.label === 'LIVE' ? 'Онлайн сокет' : statusBadge.label === 'STALE' ? 'Кеш (затримка)' : statusBadge.label === 'OFFLINE' ? 'Офлайн резерв' : 'Синхронізація'}</strong></span>
+                        <span>Джерело: <strong className="text-slate-300">
+                            {statusBadge.label === 'LIVE' ? 'Binance API · Онлайн сокет' : statusBadge.label === 'STALE' ? 'STALE (Кеш) · Поріг: 30с' : statusBadge.label === 'OFFLINE' ? 'Офлайн резерв' : 'Синхронізація'}
+                        </strong></span>
                     </div>
-                    <span className="text-slate-500">Авто-синхронізація: 30с</span>
+                    <div className="flex items-center gap-2 text-slate-500">
+                        <span>Оновлено: <strong className="text-slate-400">{formattedTime}</strong></span>
+                        <span>· Авто: 30с</span>
+                    </div>
                 </div>
             </div>
         </div>
