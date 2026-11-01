@@ -67,14 +67,17 @@ const MarketTicker: React.FC = React.memo(() => {
         if (settings.marketOverride === 'PUMP' || settings.marketOverride === 'DUMP') {
             return { label: 'DEMO', dotClass: 'bg-amber-400 shadow-[0_0_6px_#f59e0b]' };
         }
+        if (source === 'ERROR') {
+            return { label: 'ERROR', dotClass: 'bg-rose-500 shadow-[0_0_6px_#f43f5e]' };
+        }
+        if (source === 'CACHE' || source === 'STALE') {
+            return { label: 'STALE', dotClass: 'bg-yellow-500 shadow-[0_0_6px_#eab308]' };
+        }
+        if (source === 'COINCAP' || source === 'DELAYED') {
+            return { label: 'DELAYED', dotClass: 'bg-orange-400 shadow-[0_0_6px_#fb923c]' };
+        }
         if (source === 'BINANCE' || source === 'LIVE') {
             return { label: 'LIVE', dotClass: 'bg-emerald-500 shadow-[0_0_6px_#22c55e]' };
-        }
-        if (source === 'COINCAP') {
-            return { label: 'LIVE', dotClass: 'bg-cyan-500 shadow-[0_0_6px_#06b6d4]' };
-        }
-        if (source === 'CACHE') {
-            return { label: 'STALE', dotClass: 'bg-yellow-500 shadow-[0_0_6px_#eab308]' };
         }
         if (source === 'SYNCING') {
             return { label: 'SYNCING', dotClass: 'bg-cyan-400 animate-pulse' };

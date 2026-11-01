@@ -36,7 +36,7 @@ function resolveAcademyLanguage(): AcademyLanguage {
     return 'uk';
 }
 
-const QUIZZES: Record<Language, Record<string, { question: string; options: string[]; answer: string }>> = {
+const QUIZZES: Record<string, Record<string, { question: string; options: string[]; answer: string }>> = {
     en: {
         blockchain_basics: { question: "Can a central bank reverse or delete confirmed blockchain transactions?", options: ["No, blockchain records are immutable", "Yes, with a court order"], answer: "No, blockchain records are immutable" },
         bitcoin_intro: { question: "What is the maximum hard cap of Bitcoin ever to exist?", options: ["21,000,000 BTC", "100,000,000 BTC"], answer: "21,000,000 BTC" },
@@ -105,6 +105,187 @@ const QUIZZES: Record<Language, Record<string, { question: string; options: stri
         p2p_scam_prevention: { question: "Kiedy zwolnić środki krypto w P2P?", options: ["Dopiero po wpływie pieniędzy na konto", "Na prośbę kupującego"], answer: "Dopiero po wpływie pieniędzy na konto" },
         api_keys_security: { question: "Jakie uprawnienie należy zawsze wyłączyć w kluczach API?", options: ["Wypłaty (Withdrawal)", "Odczyt (Read-Only)"], answer: "Wypłaty (Withdrawal)" },
         risk_reward_calc: { question: "Jaki jest zalecany minimalny stosunek Risk-to-Reward?", options: ["Minimum 1:2 lub 1:3", "1:0.5"], answer: "Minimum 1:2 lub 1:3" }
+    },
+    ru: {
+        blockchain_basics: { question: "Может ли банк или государство удалить подтвержденную транзакцию в блокчейне?", options: ["Нет, записи в блокчейне неизменяемы и защищены", "Да, по специальному запросу"], answer: "Нет, записи в блокчейне неизменяемы и защищены" },
+        bitcoin_intro: { question: "Каков максимальный фиксированный лимит эмиссии Bitcoin?", options: ["21,000,000 BTC", "100,000,000 BTC"], answer: "21,000,000 BTC" },
+        account_security_2fa: { question: "Какой метод 2FA наиболее безопасен от перехвата SIM-карты?", options: ["Аппаратный ключ / Приложение-аутентификатор", "SMS сообщение"], answer: "Аппаратный ключ / Приложение-аутентификатор" },
+        p2p_trading_guide: { question: "Когда следует нажимать 'Подтвердить получение' в P2P сделке?", options: ["Только после проверки баланса в банковском приложении", "Сразу как покупатель прислал скриншот чека"], answer: "Только после проверки баланса в банковском приложении" },
+        spot_vs_futures: { question: "Существует ли риск ликвидации депозита на обычном спотовом рынке?", options: ["Нет, вы владеете реальным активом", "Да, при падении цены на 10%"], answer: "Нет, вы владеете реальным активом" },
+        orders_guide: { question: "Какой тип ордера гарантирует покупку по строго выбранной вами цене?", options: ["Limit-ордер", "Market-ордер"], answer: "Limit-ордер" },
+        pinbar_hammer: { question: "Что означает длинная нижняя тень у свечи Молот (Пин-бар)?", options: ["Агрессивный откуп цены покупателями", "Превосходство продавцов"], answer: "Агрессивный откуп цены покупателями" },
+        wallets_storage: { question: "Где безопасно хранить сид-фразу из 12-24 слов?", options: ["Офлайн на бумаге или металле", "В заметках или фото на телефоне"], answer: "Офлайн на бумаге или металле" },
+        fomo_psychology: { question: "Что делать трейдеру, если актив уже вырос на 300% (FOMO)?", options: ["Ждать коррекции или искать другой сетап", "Заходить на всю котлету на пике"], answer: "Ждать коррекции или искать другой сетап" },
+        rsi: { question: "Показатель RSI > 70 указывает на Перекупленность или Перепроданность?", options: ["Перекупленность", "Перепроданность"], answer: "Перекупленность" },
+        macd: { question: "На что указывает сигнал 'Золотой крест'?", options: ["Вход в лонг (Bullish)", "Выход из позиции (Bearish)"], answer: "Вход в лонг (Bullish)" },
+        orderblock: { question: "Чем выступает Ордер Блок (Order Block)?", options: ["Сильной зоной поддержки/сопротивления", "Никак не влияет"], answer: "Сильной зоной поддержки/сопротивления" },
+        fvg: { question: "Что представляет собой Имбаланс (FVG)?", options: ["Ценовую неэффективность / Разрыв ликвидности", "Идеальный баланс покупок"], answer: "Ценовую неэффективность / Разрыв ликвидности" },
+        hns: { question: "Какой моделью является паттерн 'Голова и Плечи'?", options: ["Разворотным паттерном", "Паттерном продолжения тренда"], answer: "Разворотным паттерном" },
+        bullflag: { question: "О чем сигнализирует Бычий Флаг?", options: ["О продолжении роста", "О развороте тренда вниз"], answer: "О продолжении роста" },
+        onepercentrule: { question: "Каким процентом депозита рекомендуют рисковать в одной сделке?", options: ["1% - 2% капитала", "25% - 50% капитала"], answer: "1% - 2% капитала" },
+        smc: { question: "Что в первую очередь отслеживают концепции Smart Money (SMC)?", options: ["Институциональные пулы ликвидности и ордера", "Случайные колебания цены"], answer: "Институциональные пулы ликвидности и ордера" },
+        stablecoins_intro: { question: "Чем обеспечен стейблкоин USDT (Tether)?", options: ["Резервами фиата и казначейскими облигациями США", "Только обещаниями без залога"], answer: "Резервами фиата и казначейскими облигациями США" },
+        p2p_scam_prevention: { question: "Что делать, если покупатель в P2P просит отпустить крипту без денег на карте?", options: ["Ни в коем случае не отпускать и открыть апелляцию", "Поверить и отпустить"], answer: "Ни в коем случае не отпускать и открыть апелляцию" },
+        api_keys_security: { question: "Какое разрешение обязательно отключать при создании биржевых API ключей?", options: ["Withdrawal (Вывод средств)", "Read-Only (Чтение)"], answer: "Withdrawal (Вывод средств)" },
+        risk_reward_calc: { question: "Каково рекомендуемое соотношение Риск/Прибыль (Risk/Reward)?", options: ["Минимум 1:2 или 1:3", "1:0.5"], answer: "Минимум 1:2 или 1:3" }
+    }
+};
+
+const ACADEMY_I18N: Record<AcademyLanguage, Record<string, string>> = {
+    uk: {
+        title: 'Крипто Академія',
+        badge_subtitle: 'Офіційна Програма',
+        lang_label: 'МОВА НАВЧАННЯ',
+        progress: 'Прогрес курсу',
+        lessons_completed: 'уроків пройдено',
+        xp_earned: 'XP Отримано',
+        search_placeholder: 'Пошук теми чи терміну...',
+        basics: 'Основи',
+        trading: 'Трейдинг',
+        patterns: 'Патерни',
+        security: 'Безпека',
+        psychology: 'Психологія',
+        mastered: 'ВИВЧЕНО',
+        watch_video: 'Дивитися відео',
+        start_quiz: 'Пройти тест (+50 XP)',
+        video_in_app: 'Відео відтворюється всередині додатка без виходу в браузер',
+        practical_example: 'ПРАКТИЧНИЙ ПРИКЛАД:',
+        completed: 'Матеріал закріплено',
+        practice_again: 'Повторити тест',
+        empty_search: 'Уроків за цим фільтром не знайдено',
+        close: 'Закрити',
+        correct_toast: '✓ Вірно! Отримано +50 XP'
+    },
+    en: {
+        title: 'Crypto Academy',
+        badge_subtitle: 'Official Curriculum',
+        lang_label: 'LEARNING LANGUAGE',
+        progress: 'Course Progress',
+        lessons_completed: 'lessons completed',
+        xp_earned: 'XP EARNED',
+        search_placeholder: 'Search topic or term...',
+        basics: 'Basics',
+        trading: 'Trading',
+        patterns: 'Patterns',
+        security: 'Security',
+        psychology: 'Psychology',
+        mastered: 'MASTERED',
+        watch_video: 'Watch Video',
+        start_quiz: 'Start Quiz (+50 XP)',
+        video_in_app: 'Video plays directly inside the app without leaving to browser',
+        practical_example: 'PRACTICAL EXAMPLE:',
+        completed: 'Topic Mastered',
+        practice_again: 'Practice Again',
+        empty_search: 'No lessons found for this query',
+        close: 'Close',
+        correct_toast: '✓ Correct! +50 XP Earned'
+    },
+    ru: {
+        title: 'Крипто Академия',
+        badge_subtitle: 'Официальная Программа',
+        lang_label: 'ЯЗЫК ОБУЧЕНИЯ',
+        progress: 'Прогресс курса',
+        lessons_completed: 'уроков пройдено',
+        xp_earned: 'XP Получено',
+        search_placeholder: 'Поиск темы или термина...',
+        basics: 'Основы',
+        trading: 'Трейдинг',
+        patterns: 'Паттерны',
+        security: 'Безопасность',
+        psychology: 'Психология',
+        mastered: 'ИЗУЧЕНО',
+        watch_video: 'Смотреть видео',
+        start_quiz: 'Пройти тест (+50 XP)',
+        video_in_app: 'Видео воспроизводится внутри приложения без перехода в браузер',
+        practical_example: 'ПРАКТИЧЕСКИЙ ПРИМЕР:',
+        completed: 'Материал закреплен',
+        practice_again: 'Повторить тест',
+        empty_search: 'Уроков по данному запросу не найдено',
+        close: 'Закрыть',
+        correct_toast: '✓ Верно! Начислено +50 XP'
+    }
+};
+
+const ACADEMY_RUSSIAN_TERMS: Record<string, { term: string; definition: string; example?: string }> = {
+    pinbar_hammer: {
+        term: 'Пин-бар (Свеча Молот)',
+        definition: 'Свечной паттерн с маленьким телом и длинной нижней тенью (фитилем), сигнализирующий о резком откупе цены покупателями и отказе падать ниже.',
+        example: 'Пин-бар от сильного недельного уровня поддержки дал точку входа в лонг.'
+    },
+    doji: {
+        term: 'Доджи (Doji)',
+        definition: 'Свеча с практически одинаковыми ценами открытия и закрытия, отражающая равенство сил покупателей и продавцов на рынке.',
+        example: 'Доджи на вершине восходящего импульса сигнализирует о возможном затухании тренда.'
+    },
+    engulfing: {
+        term: 'Бычье / Медвежье Поглощение',
+        definition: 'Разворотная формация из двух свечей, где тело второй свечи полностью перекрывает тело предыдущей в противоположную сторону.',
+        example: 'Бычье поглощение на 4-часовом графике подтвердило смену тренда.'
+    },
+    bullflag: {
+        term: 'Бычий Флаг',
+        definition: 'Классический паттерн продолжения восходящего тренда: короткая наклонная консолидация после мощного импульсного роста.',
+        example: 'Вход на пробое верхней границы флага с понятным стопом под минимум консолидации.'
+    },
+    hns: {
+        term: 'Голова и Плечи (Head & Shoulders)',
+        definition: 'Известный разворотный паттерн восходящего тренда, состоящий из левого плеча, более высокого пика (головы) и правого плеча.',
+        example: 'Пробой линии шеи (Neckline) подтвердил переход рынка в нисходящую фазу.'
+    },
+    smc: {
+        term: 'Концепция Smart Money (SMC)',
+        definition: 'Методика анализа институциональной ликвидности и действий маркет-мейкеров. Изучает снятие ликвидности, слом структуры (BOS/CHoCH) и пулы заявок крупного капитала.',
+        example: 'Ожидаю снятия ликвидности за предыдущим дневным максимумом перед поиском шорта.'
+    },
+    orderblock: {
+        term: 'Ордер Блок (Order Block)',
+        definition: 'Ценовая зона, где крупный игрок размещал свои основные ордера перед сильным импульсным движением. Выступает мощным уровнем реакции цены.',
+        example: 'Лимитный ордер на ретесте не перекрытого бычьего ордер-блока на 1-часовом таймфрейме.'
+    },
+    fvg: {
+        term: 'Имбаланс / FVG (Fair Value Gap)',
+        definition: 'Трехсвечной разрыв ликвидности без достаточного встречного объема. Цена стремится вернуться в эту зону для восстановления баланса.',
+        example: 'Вход в позицию в зоне 50% заполнения дневного FVG.'
+    },
+    fomo_psychology: {
+        term: 'Синдром FOMO (Страх упущенной выгоды)',
+        definition: 'Психологическое состояние паники, когда трейдер покупает актив на пике цены из-за страха остаться в стороне от взрывного роста.',
+        example: 'Вместо покупки на волне всеобщей эйфории дожидаюсь коррекции к ключевым уровням.'
+    },
+    onepercentrule: {
+        term: 'Правило 1% Риска на сделку',
+        definition: 'Базовое правило риск-менеджмента: потеря в одной сделке при срабатывании стоп-лосса не должна превышать 1–2% от общего депозита.',
+        example: 'При депозите $10,000 максимальный риск на сделку строго ограничен суммой $100.'
+    },
+    revengetrading: {
+        term: 'Тильт и Месть Рынку (Revenge Trading)',
+        definition: 'Эмоциональные неконтролируемые сделки с завышенным плечом сразу после убытка в попытке мгновенно отыграться.',
+        example: 'После получения двух стоп-лоссов закрываю терминал до следующего дня для сохранения дисциплины.'
+    },
+    risk_reward_calc: {
+        term: 'Соотношение Риск/Прибыль (Risk-to-Reward)',
+        definition: 'Математическое отношение потенциального убытка по стоп-лоссу к планируемой прибыли по тейк-профиту. Рекомендуемый минимум от 1:2 или 1:3.',
+        example: 'Рискуя $50 ради потенциальной прибыли $150, мы получаем выгодное соотношение 1:3.'
+    },
+    orderbook_depth: {
+        term: 'Биржевой Стакан (Order Book Depth)',
+        definition: 'Список активных лимитных заявок на покупку (Bids) и продажу (Asks) актива в реальном времени, отражающий плотность ликвидности.',
+        example: 'Крупная лимитная плотность в стакане послужила дополнительным подтверждением отскока.'
+    },
+    cryptocurrency_basics: {
+        term: 'Основы криптовалют',
+        definition: 'Цифровые активы, защищенные криптографией и функционирующие в децентрализованных распределенных реестрах без банков.',
+        example: 'Биткоин и эфириум обеспечивают прямые одноранговые (P2P) переводы по всему миру.'
+    },
+    mining_intro: {
+        term: 'Майнинг и Proof-of-Work',
+        definition: 'Механизм защиты и консенсуса блокчейна, при котором вычислительные мощности решают криптографические задачи для добавления новых блоков.',
+        example: 'Майнеры получают вознаграждение за каждый валидированный блок в сети Bitcoin.'
+    },
+    ethereum_contracts: {
+        term: 'Ethereum и Смарт-контракты',
+        definition: 'Автономные программные контракты, исполняющиеся в сети Ethereum точно по коду без возможности цензуры или вмешательства третьих лиц.',
+        example: 'Децентрализованные протоколы DeFi работают полностью на смарт-контрактах.'
     }
 };
 
@@ -194,7 +375,11 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
         }
     };
 
-    const currentLanguage: Language = (settings?.language === 'pl' && academyLang === 'uk') ? 'pl' : (academyLang === 'uk' ? 'ua' : (academyLang === 'en' ? 'en' : 'ua'));
+    const academyT = useCallback((key: string): string => {
+        return ACADEMY_I18N[academyLang]?.[key] || ACADEMY_I18N['uk']?.[key] || key;
+    }, [academyLang]);
+
+    const currentLanguage: Language = academyLang === 'en' ? 'en' : 'ua';
     const currentContent = useMemo(() => {
         const baseItems = ACADEMY_DATABASE?.[currentLanguage] || ACADEMY_DATABASE?.['en'] || [];
         return baseItems.map(item => {
@@ -219,6 +404,14 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         } : item.videoData
                     };
                 }
+            } else if (academyLang === 'ru' && ACADEMY_RUSSIAN_TERMS[item.id]) {
+                const ruItem = ACADEMY_RUSSIAN_TERMS[item.id];
+                return {
+                    ...item,
+                    term: ruItem.term,
+                    definition: ruItem.definition,
+                    example: ruItem.example || item.example
+                };
             }
             return item;
         });
@@ -242,7 +435,8 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
 
     // Dynamic Quiz generator for any term
     const getQuizForTerm = useCallback((item: AcademyTerm) => {
-        const specific = QUIZZES[currentLanguage]?.[item.id] || QUIZZES['en']?.[item.id];
+        const quizLang = academyLang === 'uk' ? 'ua' : (academyLang === 'ru' ? 'ru' : 'en');
+        const specific = QUIZZES[quizLang]?.[item.id] || QUIZZES['en']?.[item.id];
         if (specific) return specific;
 
         if (item.category === 'PATTERNS') {
@@ -251,40 +445,45 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                            item.term.toLowerCase().includes('cup') || 
                            item.term.toLowerCase().includes('bottom') ||
                            item.term.toLowerCase().includes('молот') ||
+                           item.term.toLowerCase().includes('быч') ||
                            item.term.toLowerCase().includes('бичач');
             return {
-                question: currentLanguage === 'ua' 
+                question: academyLang === 'ru' 
+                    ? `Какое потенциальное направление движения показывает "${item.term}"?` 
+                    : academyLang === 'uk'
                     ? `Який потенційний напрямок руху сигналізує "${item.term}"?` 
-                    : currentLanguage === 'pl'
-                    ? `Jaki kierunek ruchu sugeruje formacja "${item.term}"?`
                     : `What direction does the "${item.term}" pattern typically indicate?`,
-                options: currentLanguage === 'ua'
+                options: academyLang === 'ru'
+                    ? (isBull ? ["Восходящий (Бычий)", "Нисходящий (Медвежий)"] : ["Нисходящий (Медвежий)", "Восходящий (Бычий)"])
+                    : academyLang === 'uk'
                     ? (isBull ? ["Висхідний (Бичачий)", "Низхідний (Ведмежий)"] : ["Низхідний (Ведмежий)", "Висхідний (Бичачий)"])
-                    : currentLanguage === 'pl'
-                    ? (isBull ? ["Wzrostowy (Byczy)", "Spadkowy (Niedźwiedzi)"] : ["Spadkowy (Niedźwiedzi)", "Wzrostowy (Byczy)"])
                     : (isBull ? ["Bullish Continuation", "Bearish Breakdown"] : ["Bearish Reversal", "Bullish Surge"]),
-                answer: currentLanguage === 'ua' ? (isBull ? "Висхідний (Бичачий)" : "Низхідний (Ведмежий)")
-                    : currentLanguage === 'pl' ? (isBull ? "Wzrostowy (Byczy)" : "Spadkowy (Niedźwiedzi)")
+                answer: academyLang === 'ru'
+                    ? (isBull ? "Восходящий (Бычий)" : "Нисходящий (Медвежий)")
+                    : academyLang === 'uk'
+                    ? (isBull ? "Висхідний (Бичачий)" : "Низхідний (Ведмежий)")
                     : (isBull ? "Bullish Continuation" : "Bearish Reversal")
             };
         }
 
         return {
-            question: currentLanguage === 'ua'
+            question: academyLang === 'ru'
+                ? `Какое главное правило касается темы "${item.term}"?`
+                : academyLang === 'uk'
                 ? `Яке головне правило стосується теми "${item.term}"?`
-                : currentLanguage === 'pl'
-                ? `Jaka jest kluczowa zasada dla "${item.term}"?`
                 : `What is the core rule for "${item.term}"?`,
-            options: currentLanguage === 'ua'
+            options: academyLang === 'ru'
+                ? ["Соблюдать риск-менеджмент и правила безопасности", "Игнорировать правила управления рисками"]
+                : academyLang === 'uk'
                 ? ["Дотримуватися ризик-менеджменту та верифікації", "Ігнорувати правила безпеки"]
-                : currentLanguage === 'pl'
-                ? ["Stosować zarządzanie ryzykiem i weryfikację", "Ignorować zasady bezpieczeństwa"]
                 : ["Maintain strict risk management & verification", "Ignore security guidelines"],
-            answer: currentLanguage === 'ua' ? "Дотримуватися ризик-менеджменту та верифікації"
-                : currentLanguage === 'pl' ? "Stosować zarządzanie ryzykiem i weryfikację"
+            answer: academyLang === 'ru'
+                ? "Соблюдать риск-менеджмент и правила безопасности"
+                : academyLang === 'uk'
+                ? "Дотримуватися ризик-менеджменту та верифікації"
                 : "Maintain strict risk management & verification"
         };
-    }, [currentLanguage]);
+    }, [academyLang]);
 
     const handleInlineOptionClick = (item: AcademyTerm, chosen: string, correct: string) => {
         triggerHaptic('medium');
@@ -308,11 +507,11 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     };
 
     const categoriesList: { id: AcademyCategory; label: string; icon: string }[] = [
-        { id: 'BASICS', label: t('academy.basics') || 'Основи', icon: '🚀' },
-        { id: 'TRADING', label: t('academy.trading') || 'Трейдинг', icon: '📈' },
-        { id: 'PATTERNS', label: t('academy.patterns') || 'Патерни', icon: '🕯️' },
-        { id: 'SECURITY', label: t('academy.security') || 'Безпека', icon: '🛡️' },
-        { id: 'PSYCHOLOGY', label: t('academy.psychology') || 'Психологія', icon: '🧠' },
+        { id: 'BASICS', label: academyT('basics'), icon: '🚀' },
+        { id: 'TRADING', label: academyT('trading'), icon: '📈' },
+        { id: 'PATTERNS', label: academyT('patterns'), icon: '🕯️' },
+        { id: 'SECURITY', label: academyT('security'), icon: '🛡️' },
+        { id: 'PSYCHOLOGY', label: academyT('psychology'), icon: '🧠' },
     ];
 
     return (
@@ -322,7 +521,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
             exit={{ opacity: 0, x: '100%' }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             role="region"
-            aria-label={t('academy.title')}
+            aria-label={academyT('title')}
             className="fixed inset-0 z-[110] bg-brand-bg flex flex-col overflow-hidden h-[100dvh] w-full"
         >
             <TacticalBackground />
@@ -332,7 +531,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 <div className="flex items-center gap-3">
                     <button 
                         onClick={() => { triggerHaptic('light'); onClose?.(); }}
-                        aria-label={t('common.close')}
+                        aria-label={academyT('close')}
                         className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-slate-300 active:scale-90 hover:border-brand-cyan/40 hover:text-white transition-all shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-cyan"
                     >
                         <ChevronRightIcon className="w-5 h-5 rotate-180" />
@@ -340,14 +539,14 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <div>
                         <div className="flex items-center gap-1.5">
                             <h1 className="font-orbitron text-base sm:text-lg font-black text-white tracking-wider uppercase italic">
-                                {t('academy.title')}
+                                {academyT('title')}
                             </h1>
                             <HelpIndicator id="academy_hub" />
                         </div>
                         <p className="text-[9px] text-brand-cyan font-mono uppercase tracking-widest flex items-center gap-1">
                             <span>StorkCrypto Academy</span>
                             <span className="text-slate-500">•</span>
-                            <span className="text-emerald-400 font-bold">{t('academy.badge_subtitle') || 'Офіційна Програма'}</span>
+                            <span className="text-emerald-400 font-bold">{academyT('badge_subtitle')}</span>
                         </p>
                     </div>
                 </div>
@@ -376,16 +575,16 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <div className="flex items-center justify-between mb-2">
                         <span className="text-[10px] font-orbitron font-bold text-white uppercase tracking-wider flex items-center gap-1.5">
                             <span>🌐</span>
-                            <span>{t('academy.lang_label') || 'МОВА НАВЧАННЯ'}</span>
+                            <span>{academyT('lang_label')}</span>
                         </span>
                         <span className="text-[9px] font-mono text-slate-400">
-                            {academyLang === 'uk' ? 'Українська' : academyLang === 'ru' ? 'Російська' : 'English'}
+                            {academyLang === 'uk' ? 'Українська' : academyLang === 'ru' ? 'Русский' : 'English'}
                         </span>
                     </div>
                     <div className="grid grid-cols-3 gap-2" role="group" aria-label="Вибір мови навчання">
                         {[
                             { id: 'uk' as AcademyLanguage, label: 'Українська', flag: '🇺🇦' },
-                            { id: 'ru' as AcademyLanguage, label: 'Російська', flag: '🇷🇺' },
+                            { id: 'ru' as AcademyLanguage, label: 'Русский', flag: '🇷🇺' },
                             { id: 'en' as AcademyLanguage, label: 'English', flag: '🇬🇧' }
                         ].map(item => {
                             const isActive = academyLang === item.id;
@@ -415,7 +614,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                         <div className="flex items-center gap-2">
                             <ZapIcon className="w-4 h-4 text-brand-cyan animate-pulse" />
                             <span className="font-orbitron text-xs font-bold text-white uppercase tracking-wider">
-                                {t('academy.progress')}
+                                {academyT('progress')}
                             </span>
                         </div>
                         <span className="text-[11px] font-mono font-bold text-brand-cyan">
@@ -432,8 +631,8 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </div>
 
                     <div className="flex items-center justify-between mt-2.5 text-[9px] font-mono text-slate-400">
-                        <span>{completedCount} {t('academy.lessons_completed')}</span>
-                        <span className="text-brand-purple font-bold">+{completedCount * 50} XP EARNED</span>
+                        <span>{completedCount} {academyT('lessons_completed')}</span>
+                        <span className="text-brand-purple font-bold">+{completedCount * 50} {academyT('xp_earned')}</span>
                     </div>
                 </div>
 
@@ -470,8 +669,8 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     <input 
                         id="academy-search-input"
                         type="text" 
-                        placeholder={t('academy.search_placeholder')}
-                        aria-label={t('academy.search_placeholder')}
+                        placeholder={academyT('search_placeholder')}
+                        aria-label={academyT('search_placeholder')}
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         className="w-full bg-brand-card/40 border border-white/10 rounded-2xl py-3.5 pl-11 pr-4 text-white placeholder-slate-500 focus:outline-none focus:border-brand-cyan transition-all font-mono text-xs shadow-inner"
@@ -491,7 +690,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                 <div className="space-y-3.5">
                     {filteredItems.length === 0 ? (
                         <div className="text-center py-12 text-slate-500 font-mono text-xs border border-dashed border-white/10 rounded-2xl">
-                            {currentLanguage === 'ua' ? 'Уроків за цим фільтром не знайдено' : 'No lessons found for this query'}
+                            {academyT('empty_search')}
                         </div>
                     ) : (
                         filteredItems.map((item) => {
@@ -548,7 +747,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                                     )}
                                                 </div>
                                                 <span className="text-[8px] text-slate-500 font-mono uppercase tracking-wider">
-                                                    {t(`academy.${item.category.toLowerCase()}`)}
+                                                    {academyT(item.category.toLowerCase())}
                                                 </span>
                                             </div>
                                         </div>
@@ -557,7 +756,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                             {isCompleted ? (
                                                 <span className="text-[9px] font-black text-brand-emerald bg-brand-emerald/10 px-2.5 py-1 rounded-lg border border-brand-emerald/30 flex items-center gap-1">
                                                     <CheckIcon className="w-3 h-3" />
-                                                    ✓ {currentLanguage === 'ua' ? 'ВИВЧЕНО' : currentLanguage === 'pl' ? 'UKOŃCZONE' : 'MASTERED'}
+                                                    ✓ {academyT('mastered')}
                                                 </span>
                                             ) : (
                                                 <span className="text-[9px] font-black text-brand-purple bg-brand-purple/10 px-2.5 py-1 rounded-lg border border-brand-purple/30">
@@ -595,7 +794,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                                                     {item.videoData.title || item.term}
                                                                 </h5>
                                                                 <p className="text-[10px] text-slate-400 font-mono mt-0.5">
-                                                                    Відео відтворюється всередині додатка без виходу в браузер
+                                                                    {academyT('video_in_app')}
                                                                 </p>
                                                             </div>
                                                             <button
@@ -604,11 +803,11 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                                                     triggerHaptic('medium');
                                                                     setActiveVideoLesson(item);
                                                                 }}
-                                                                aria-label={`Дивитися відео-урок ${item.term}`}
+                                                                aria-label={`Watch video ${item.term}`}
                                                                 className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-yellow-400 hover:bg-yellow-300 text-black font-orbitron font-black text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-yellow-400"
                                                             >
                                                                 <PlayIcon className="w-3.5 h-3.5 fill-current" />
-                                                                <span>{t('academy.watch_video')}</span>
+                                                                <span>{academyT('watch_video')}</span>
                                                             </button>
                                                         </div>
                                                     )}
@@ -629,7 +828,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                                     {item.example && (
                                                         <div className="bg-brand-cyan/5 rounded-xl p-3 border-l-2 border-brand-cyan">
                                                             <p className="text-[9px] text-brand-cyan uppercase font-bold tracking-wider mb-0.5">
-                                                                {currentLanguage === 'ua' ? 'ПРАКТИЧНИЙ ПРИКЛАД:' : 'PRACTICAL EXAMPLE:'}
+                                                                {academyT('practical_example')}
                                                             </p>
                                                             <p className="text-xs text-slate-300 italic font-mono">
                                                                 "{item.example}"
@@ -643,7 +842,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                                             <div className="flex items-center gap-2">
                                                                 <CheckIcon className="w-4 h-4 text-brand-emerald" />
                                                                 <span className="text-xs font-bold text-brand-emerald uppercase">
-                                                                    {t('academy.completed')}
+                                                                    {academyT('completed')}
                                                                 </span>
                                                             </div>
                                                             <button 
@@ -654,7 +853,7 @@ const MediaScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                                                 }}
                                                                 className="text-[10px] text-slate-300 hover:text-white underline font-mono uppercase"
                                                             >
-                                                                {t('academy.practice_again')}
+                                                                {academyT('practice_again')}
                                                             </button>
                                                         </div>
                                                     )}

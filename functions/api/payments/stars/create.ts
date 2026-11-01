@@ -75,18 +75,25 @@ export async function onRequestPost(context: Context): Promise<Response> {
 
     const userId = authResult.userId;
 
-    // Normalize plan name: support 'pro_monthly', 'pro', 'PRO', 'whale', 'WHALE'
+    // Normalize plan name: support 'starter', 'STARTER', 'pro_monthly', 'pro', 'PRO', 'whale', 'WHALE'
     const rawPlan = String(body?.planId || body?.plan || 'pro_monthly').toLowerCase();
-    let planId: 'PRO' | 'WHALE' = 'PRO';
-    if (rawPlan.includes('whale')) {
+    let planId: 'STARTER' | 'PRO' | 'WHALE' = 'PRO';
+    let amount = 250;
+
+    if (rawPlan.includes('starter')) {
+      planId = 'STARTER';
+      amount = 99;
+    } else if (rawPlan.includes('whale')) {
       planId = 'WHALE';
+      amount = 500;
     } else if (rawPlan.includes('pro')) {
       planId = 'PRO';
+      amount = 250;
     } else {
       return new Response(JSON.stringify({
         success: false,
         error: 'INVALID_PLAN',
-        message: 'Plan must be strictly pro_monthly / PRO or WHALE'
+        message: 'Plan must be strictly STARTER, PRO, or WHALE'
       }), {
         status: 400,
         headers
@@ -94,7 +101,6 @@ export async function onRequestPost(context: Context): Promise<Response> {
     }
 
     // Pricing enforced strictly on server — ignore any client-provided amount
-    const amount = planId === 'PRO' ? 250 : 500;
     const clientRequestId = body?.clientRequestId ? String(body.clientRequestId) : '';
     const orderId = `STARS_ORD_${Date.now()}_${Math.random().toString(36).substring(2, 9).toUpperCase()}`;
     const uniquePayload = `PAYLOAD_${orderId}_${userId}${clientRequestId ? `_${clientRequestId}` : ''}`;

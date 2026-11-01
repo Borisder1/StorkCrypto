@@ -30,11 +30,25 @@ export const AIMarketSummary: React.FC = () => {
                 textColor: 'text-amber-400'
             };
         }
-        if (isStale || source === 'CACHE') {
+        if (source === 'ERROR') {
+            return {
+                label: 'ERROR',
+                iconColor: 'text-rose-400',
+                textColor: 'text-rose-400'
+            };
+        }
+        if (isStale || source === 'CACHE' || source === 'STALE') {
             return {
                 label: 'STALE',
                 iconColor: 'text-yellow-400',
                 textColor: 'text-yellow-400'
+            };
+        }
+        if (source === 'DELAYED' || source === 'COINCAP') {
+            return {
+                label: 'DELAYED',
+                iconColor: 'text-orange-400',
+                textColor: 'text-orange-400'
             };
         }
         if (source === 'SYNCING') {
@@ -164,7 +178,7 @@ export const AIMarketSummary: React.FC = () => {
                             className="px-1.5 py-0.5 rounded bg-white/5 hover:bg-white/10 active:scale-95 text-brand-cyan border border-brand-cyan/20 text-[9px] font-mono transition-all flex items-center gap-1"
                         >
                             <span className={isRefreshing ? 'animate-spin inline-block' : 'inline-block'}>↻</span>
-                            <span>{isRefreshing ? '...' : 'Оновити'}</span>
+                            <span>{isRefreshing ? '...' : (statusBadge.label === 'ERROR' || statusBadge.label === 'STALE' ? 'Повторити' : 'Оновити')}</span>
                         </button>
                     </div>
                 </div>

@@ -73,13 +73,35 @@ const QUIZ_LANGS: Record<string, Record<string, string>> = {
         'opt_other_irrelevant': 'Jest mało istotny w krypto.',
         'opt_other_risk': 'Pomaga zarządzać ryzykiem lub określić trendy.',
         'opt_other_guarantee': 'Daje gwarantowane sygnały bez ryzyka.'
+    },
+    'ru': {
+        'title': 'ТАКТИЧЕСКАЯ ТРЕНИРОВКА',
+        'subject': 'ПРЕДМЕТ',
+        'correct': 'ПРАВИЛЬНО',
+        'failed': 'НЕПРАВИЛЬНО',
+        'xp_granted': '+50 XP НАЧИСЛЕНО',
+        'resync': 'Попробуйте снова позже...',
+        'q_pattern': 'Что обычно показывает паттерн "{term}" на графике?',
+        'q_technical': 'Для чего в первую очередь используется {term} трейдерами?',
+        'q_other': 'Какое утверждение о "{term}" верно?',
+        'opt_indecision': 'Нерешительность рынка и баланс сил',
+        'opt_bullish': 'Восходящее (Бычье) движение',
+        'opt_bearish': 'Нисходящее (Медвежье) движение',
+        'opt_volume_only': 'Только падение объемов торгов',
+        'opt_tech_use': 'Для измерения импульса, тренда или зон перекупленности/перепроданности',
+        'opt_tech_news': 'Для точного прогнозирования мировых новостей',
+        'opt_tech_profit': 'Для гарантии 100% прибыли в каждой сделке',
+        'opt_other_irrelevant': 'Это не имеет значения для криптовалют.',
+        'opt_other_risk': 'Это помогает контролировать риски и определять тренды.',
+        'opt_other_guarantee': 'Это гарантированный сигнал без риска.'
     }
 };
 
 const QuizModal: React.FC<QuizModalProps> = ({ term, onClose, onSuccess }) => {
     const { grantXp, updateQuestProgress, settings } = useStore();
-    const lang = settings?.language || 'en';
-    const dict = QUIZ_LANGS[lang] || QUIZ_LANGS['en'];
+    const savedAcademyLang = typeof window !== 'undefined' ? localStorage.getItem('stork_academy_lang') : null;
+    const effectiveLang = savedAcademyLang === 'uk' ? 'ua' : (savedAcademyLang === 'ru' ? 'ru' : (savedAcademyLang === 'en' ? 'en' : (settings?.language === 'pl' ? 'pl' : (settings?.language === 'ua' ? 'ua' : 'en'))));
+    const dict = QUIZ_LANGS[effectiveLang] || QUIZ_LANGS['en'];
 
     const [status, setStatus] = useState<'QUESTION' | 'SUCCESS' | 'FAILURE'>('QUESTION');
     const [timeLeft, setTimeLeft] = useState(15);

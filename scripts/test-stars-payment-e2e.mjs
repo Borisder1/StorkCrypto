@@ -40,6 +40,33 @@ async function runTests() {
   const foreignUserId = Math.floor(2000000000 + Math.random() * 900000000);
   let orderData = null;
   try {
+    // Test 3 Plans Creation: STARTER (99 XTR), PRO (250 XTR), WHALE (500 XTR)
+    const starterRes = await fetch(`${BASE_URL}/api/payments/stars/create`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `tma user=%7B%22id%22%3A${testUserId}%2C%22username%22%3A%22testuser%22%7D`
+      },
+      body: JSON.stringify({ planId: 'STARTER' })
+    });
+    const starterData = await starterRes.json();
+    assert(starterRes.status === 200, 'STARTER order creation returns HTTP 200');
+    assert(starterData.order.amount === 99, 'STARTER amount is strictly 99 XTR');
+    assert(starterData.order.planId === 'STARTER', 'STARTER planId is STARTER');
+
+    const whaleRes = await fetch(`${BASE_URL}/api/payments/stars/create`, {
+      method: 'POST',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Authorization': `tma user=%7B%22id%22%3A${testUserId}%2C%22username%22%3A%22testuser%22%7D`
+      },
+      body: JSON.stringify({ planId: 'WHALE' })
+    });
+    const whaleData = await whaleRes.json();
+    assert(whaleRes.status === 200, 'WHALE order creation returns HTTP 200');
+    assert(whaleData.order.amount === 500, 'WHALE amount is strictly 500 XTR');
+    assert(whaleData.order.planId === 'WHALE', 'WHALE planId is WHALE');
+
     const res = await fetch(`${BASE_URL}/api/payments/stars/create`, {
       method: 'POST',
       headers: { 
@@ -51,11 +78,12 @@ async function runTests() {
       })
     });
     const data = await res.json();
-    assert(res.status === 200, 'Order creation returns HTTP 200');
+    assert(res.status === 200, 'PRO Order creation returns HTTP 200');
     assert(data.success === true, 'Response success is true');
     assert(data.order && data.order.orderId.startsWith('STARS_ORD_'), 'Valid orderId generated');
     assert(data.order.currency === 'XTR', 'Currency is strictly XTR');
     assert(data.order.amount === 250, 'PRO amount is 250 Stars');
+    assert(data.order.planId === 'PRO', 'PRO planId is PRO');
     assert(data.order.status === 'PENDING', 'Order initial status is PENDING');
     assert(data.order.uniquePayload.includes(data.order.orderId), 'Payload contains orderId');
     assert(Boolean(data.invoiceUrl || data.invoiceLink), 'Invoice link generated');

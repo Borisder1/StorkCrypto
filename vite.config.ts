@@ -7,7 +7,7 @@ const usedPaymentHashes = new Set<string>();
 interface DevStarsOrder {
   orderId: string;
   userId: string;
-  planId: 'PRO' | 'WHALE';
+  planId: 'STARTER' | 'PRO' | 'WHALE';
   amount: number;
   currency: 'XTR';
   uniquePayload: string;
@@ -19,7 +19,7 @@ interface DevStarsOrder {
 }
 
 const devOrders = new Map<string, DevStarsOrder>();
-const devSubscriptions = new Map<string, { tier: 'BASIC' | 'PRO' | 'WHALE'; isPro: boolean; activeUntil: string }>();
+const devSubscriptions = new Map<string, { tier: 'BASIC' | 'STARTER' | 'PRO' | 'WHALE'; isPro: boolean; activeUntil: string }>();
 const devProcessedCharges = new Set<string>();
 
 function apiChatDevPlugin() {
@@ -186,8 +186,18 @@ function apiChatDevPlugin() {
             }
 
             const rawPlan = String(payload.planId || payload.plan || 'pro_monthly').toLowerCase();
-            const plan = rawPlan.includes('whale') ? 'WHALE' : 'PRO';
-            const stars = plan === 'PRO' ? 250 : 500;
+            let plan: 'STARTER' | 'PRO' | 'WHALE' = 'PRO';
+            let stars = 250;
+            if (rawPlan.includes('starter')) {
+              plan = 'STARTER';
+              stars = 99;
+            } else if (rawPlan.includes('whale')) {
+              plan = 'WHALE';
+              stars = 500;
+            } else {
+              plan = 'PRO';
+              stars = 250;
+            }
             const orderId = `STARS_ORD_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
             const uniquePayload = `PAYLOAD_${orderId}_${userId}`;
             const expiry = new Date(Date.now() + 30 * 60 * 1000).toISOString();
@@ -195,7 +205,7 @@ function apiChatDevPlugin() {
             const order: DevStarsOrder = {
               orderId,
               userId,
-              planId: plan as 'PRO' | 'WHALE',
+              planId: plan,
               amount: stars,
               currency: 'XTR',
               uniquePayload,
@@ -433,6 +443,7 @@ function apiChatDevPlugin() {
             paymentVerified: isPaid,
             subscriptionActive: isPaid || (sub ? sub.isPro : false),
             expiresAt: isPaid ? (sub?.activeUntil || order.expiry) : null,
+            planId: order.planId,
             plan: order.planId.toLowerCase(),
             currency: order.currency,
             amount: order.amount,

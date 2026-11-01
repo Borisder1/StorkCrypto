@@ -30,8 +30,18 @@ export async function onRequestPost(context: Context): Promise<Response> {
   try {
     const body = (await context.request.json().catch(() => ({}))) as any;
     const rawPlan = String(body?.planId || body?.plan || 'pro_monthly').toLowerCase();
-    const planId: 'PRO' | 'WHALE' = rawPlan.includes('whale') ? 'WHALE' : 'PRO';
-    const amount = planId === 'PRO' ? 250 : 500;
+    let planId: 'STARTER' | 'PRO' | 'WHALE' = 'PRO';
+    let amount = 250;
+    if (rawPlan.includes('starter')) {
+      planId = 'STARTER';
+      amount = 99;
+    } else if (rawPlan.includes('whale')) {
+      planId = 'WHALE';
+      amount = 500;
+    } else {
+      planId = 'PRO';
+      amount = 250;
+    }
     const webUserId = body?.userId ? String(body.userId) : `web_user_${Date.now()}`;
     const orderId = `STARS_ORD_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
     const uniquePayload = `PAYLOAD_${orderId}_${webUserId}`;

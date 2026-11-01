@@ -33,8 +33,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
     
     useScrollLock(true);
 
-    const isCurrentPro = userStats?.subscriptionTier === 'PRO' || userStats?.subscriptionTier === 'WHALE';
-    const [selectedPlan, setSelectedPlan] = useState<'PRO' | 'WHALE'>('PRO');
+    const isCurrentPro = userStats?.subscriptionTier === 'PRO' || userStats?.subscriptionTier === 'WHALE' || userStats?.subscriptionTier === 'STARTER';
+    const [selectedPlan, setSelectedPlan] = useState<'STARTER' | 'PRO' | 'WHALE'>('PRO');
     const [status, setStatus] = useState<PaymentStatus>(isCurrentPro ? 'PRO active' : 'BASIC');
     const [orderId, setOrderId] = useState<string>('');
     const [chargeId, setChargeId] = useState<string>('');
@@ -46,12 +46,61 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
     const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
     const timeoutTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-    const plans = settings?.subscriptionPlans || [
-        { id: 'PRO', name: 'PRO Neural Tier', price: 5, features: ['Live Neural Signals', 'Priority AI Processing', 'Whale Radar Pro'] },
-        { id: 'WHALE', name: 'WHALE Tier', price: 10, features: ['Unlimited AI Copilot', 'Sub-second Order Blocks', 'Alpha VIP Group'] }
+    const plans = [
+        {
+            id: 'STARTER' as const,
+            name: 'STARTER',
+            price: 99,
+            popular: false,
+            description: '30 днів доступу',
+            features: [
+                'Актуальні market signals з fair-use',
+                '10–20 AI scans на день',
+                'Базові alerts',
+                'Basic Academy',
+                'Базовий Whale Radar'
+            ]
+        },
+        {
+            id: 'PRO' as const,
+            name: 'PRO',
+            price: 250,
+            popular: true,
+            description: '30 днів доступу',
+            features: [
+                'Unlimited Signals з fair-use limit',
+                'AI Market Scan',
+                'Whale Radar',
+                'Liquidation Heatmap',
+                'Без реклами (No ads)',
+                'Повна Academy',
+                'Advanced alerts',
+                'Dashboard customization'
+            ]
+        },
+        {
+            id: 'WHALE' as const,
+            name: 'WHALE',
+            price: 500,
+            popular: false,
+            description: '30 днів VIP',
+            features: [
+                'Усе з тарифу PRO',
+                'VIP Whale Radar',
+                'Advanced on-chain intelligence',
+                'Custom alerts',
+                'Priority AI queue',
+                'Early access',
+                'Розширені metrics'
+            ]
+        }
     ];
 
-    const getStarsAmount = (plan: 'PRO' | 'WHALE') => (plan === 'PRO' ? 250 : 500);
+    const getStarsAmount = (plan: 'STARTER' | 'PRO' | 'WHALE') => {
+        if (plan === 'STARTER') return 99;
+        if (plan === 'WHALE') return 500;
+        return 250;
+    };
 
     const clearTimers = () => {
         if (pollIntervalRef.current) {
@@ -159,7 +208,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                         'Authorization': `tma ${tgInitData}`
                     },
                     body: JSON.stringify({
-                        plan: selectedPlan === 'PRO' ? 'pro_monthly' : 'whale_monthly'
+                        planId: selectedPlan
                     })
                 });
             } else {
@@ -168,7 +217,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        plan: selectedPlan === 'PRO' ? 'pro_monthly' : 'whale_monthly'
+                        planId: selectedPlan
                     })
                 });
             }
@@ -244,39 +293,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         }
     };
 
-    // Dev Simulator trigger for end-to-end verification without real stars
-    const handleSimulatePayment = async () => {
-        if (!orderId) {
-            showToast('Спершу створіть замовлення');
-            return;
-        }
-        setIsProcessing(true);
-        setStatus('Payment verification...');
-        setStatusMessage('Симуляція webhook successful_payment...');
-        try {
-            const res = await fetch('/api/payments/stars/webhook', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'simulate_payment',
-                    orderId,
-                    chargeId: `tg_test_charge_${Date.now()}`
-                })
-            });
-            const data = await res.json();
-            if (res.ok && data.ok) {
-                await checkBackendStatus(orderId);
-            } else {
-                setStatus('Payment failed');
-                setIsProcessing(false);
-                showToast(data.error || 'Помилка симуляції');
-            }
-        } catch {
-            setStatus('Payment failed');
-            setIsProcessing(false);
-            showToast('Збій запиту до сервера');
-        }
-    };
 
     const handleCancelPayment = async () => {
         triggerHaptic('light');
@@ -379,38 +395,62 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                     
                     {/* Plan Selector (when not yet active) */}
                     {status !== 'PRO active' && (
-                        <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="План підписки">
-                            <button
-                                type="button"
-                                role="radio"
-                                aria-checked={selectedPlan === 'PRO'}
-                                onClick={() => { setSelectedPlan('PRO'); triggerHaptic('selection'); }}
-                                disabled={isProcessing}
-                                className={`p-4 rounded-2xl border text-left transition-all ${selectedPlan === 'PRO' ? 'border-brand-cyan bg-brand-cyan/10 ring-1 ring-brand-cyan' : 'border-white/10 bg-white/5 opacity-70'}`}
-                            >
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="font-bold text-white text-xs font-orbitron">PRO TIER</span>
-                                    <StarIcon className="w-4 h-4 text-yellow-400" />
-                                </div>
-                                <div className="text-lg font-black text-white font-orbitron">250 XTR</div>
-                                <div className="text-[10px] text-slate-400 font-mono">30 днів доступу</div>
-                            </button>
+                        <div className="space-y-2">
+                            <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="План підписки">
+                                <button
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={selectedPlan === 'STARTER'}
+                                    onClick={() => { setSelectedPlan('STARTER'); triggerHaptic('selection'); }}
+                                    disabled={isProcessing}
+                                    className={`relative p-3 rounded-2xl border text-left transition-all ${selectedPlan === 'STARTER' ? 'border-amber-400 bg-amber-400/10 ring-1 ring-amber-400' : 'border-white/10 bg-white/5 opacity-70'}`}
+                                >
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="font-bold text-white text-[11px] font-orbitron">STARTER</span>
+                                        <StarIcon className="w-3.5 h-3.5 text-amber-400" />
+                                    </div>
+                                    <div className="text-sm sm:text-base font-black text-white font-orbitron">99 XTR</div>
+                                    <div className="text-[9px] text-slate-400 font-mono mt-0.5">30 днів</div>
+                                </button>
 
-                            <button
-                                type="button"
-                                role="radio"
-                                aria-checked={selectedPlan === 'WHALE'}
-                                onClick={() => { setSelectedPlan('WHALE'); triggerHaptic('selection'); }}
-                                disabled={isProcessing}
-                                className={`p-4 rounded-2xl border text-left transition-all ${selectedPlan === 'WHALE' ? 'border-brand-purple bg-brand-purple/10 ring-1 ring-brand-purple' : 'border-white/10 bg-white/5 opacity-70'}`}
-                            >
-                                <div className="flex items-center justify-between mb-1">
-                                    <span className="font-bold text-brand-purple text-xs font-orbitron">WHALE TIER</span>
-                                    <StarIcon className="w-4 h-4 text-yellow-400" />
-                                </div>
-                                <div className="text-lg font-black text-white font-orbitron">500 XTR</div>
-                                <div className="text-[10px] text-slate-400 font-mono">30 днів VIP доступу</div>
-                            </button>
+                                <button
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={selectedPlan === 'PRO'}
+                                    onClick={() => { setSelectedPlan('PRO'); triggerHaptic('selection'); }}
+                                    disabled={isProcessing}
+                                    className={`relative p-3 rounded-2xl border text-left transition-all ${selectedPlan === 'PRO' ? 'border-brand-cyan bg-brand-cyan/15 ring-2 ring-brand-cyan shadow-[0_0_15px_rgba(0,240,255,0.2)]' : 'border-white/10 bg-white/5 opacity-70'}`}
+                                >
+                                    <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-gradient-to-r from-brand-cyan to-blue-500 text-black text-[8px] font-black font-orbitron px-2 py-0.5 rounded-full uppercase tracking-wider shadow-md">
+                                        POPULAR
+                                    </span>
+                                    <div className="flex items-center justify-between mb-1 mt-0.5">
+                                        <span className="font-bold text-brand-cyan text-[11px] font-orbitron">PRO</span>
+                                        <StarIcon className="w-3.5 h-3.5 text-yellow-400" />
+                                    </div>
+                                    <div className="text-sm sm:text-base font-black text-white font-orbitron">250 XTR</div>
+                                    <div className="text-[9px] text-slate-400 font-mono mt-0.5">30 днів</div>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    role="radio"
+                                    aria-checked={selectedPlan === 'WHALE'}
+                                    onClick={() => { setSelectedPlan('WHALE'); triggerHaptic('selection'); }}
+                                    disabled={isProcessing}
+                                    className={`relative p-3 rounded-2xl border text-left transition-all ${selectedPlan === 'WHALE' ? 'border-brand-purple bg-brand-purple/15 ring-1 ring-brand-purple' : 'border-white/10 bg-white/5 opacity-70'}`}
+                                >
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="font-bold text-brand-purple text-[11px] font-orbitron">WHALE</span>
+                                        <StarIcon className="w-3.5 h-3.5 text-purple-400" />
+                                    </div>
+                                    <div className="text-sm sm:text-base font-black text-white font-orbitron">500 XTR</div>
+                                    <div className="text-[9px] text-slate-400 font-mono mt-0.5">30 днів VIP</div>
+                                </button>
+                            </div>
+                            <div className="text-center text-[10px] text-slate-500 font-mono">
+                                Безкоштовний тариф <span className="text-slate-300 font-bold">BASIC</span> активний за замовчуванням
+                            </div>
                         </div>
                     )}
 
@@ -476,7 +516,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                 <ShieldIcon className="w-8 h-8 text-emerald-400" />
                             </div>
                             <h3 className="text-lg font-black text-white font-orbitron uppercase">
-                                PRO АКТИВОВАНО
+                                {selectedPlan} АКТИВОВАНО
                             </h3>
                             <p className="text-xs text-slate-400 font-mono">
                                 Сервер підтвердив платіж. Доступ активовано на 30 днів.
@@ -532,14 +572,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                     View payment status
                                 </button>
                                 
-                                {/* Dev test simulation helper */}
-                                <button
-                                    onClick={handleSimulatePayment}
-                                    aria-label="Simulate payment confirmation"
-                                    className="w-full py-2.5 bg-white/10 hover:bg-white/20 text-slate-300 font-mono text-[10px] rounded-xl uppercase tracking-wider transition-colors border border-white/10 min-h-[36px]"
-                                >
-                                    ⚡ Simulate Test Confirmation (Dev)
-                                </button>
 
                                 <button
                                     onClick={handleCancelPayment}

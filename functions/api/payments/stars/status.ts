@@ -129,6 +129,7 @@ export async function onRequestGet(context: Context): Promise<Response> {
     paymentVerified: isPaid,
     subscriptionActive: isPaid || sub.isPro,
     expiresAt: isPaid ? (sub.activeUntil || order.expiry) : null,
+    planId: order.planId,
     plan: order.planId.toLowerCase(),
     currency: order.currency,
     amount: order.amount,

@@ -4,7 +4,7 @@
 export interface StarsOrder {
   orderId: string;
   userId: string;
-  planId: 'PRO' | 'WHALE';
+  planId: 'STARTER' | 'PRO' | 'WHALE';
   amount: number; // in Stars (XTR)
   currency: 'XTR';
   uniquePayload: string;
@@ -17,7 +17,7 @@ export interface StarsOrder {
 
 export interface UserSubscription {
   userId: string;
-  tier: 'BASIC' | 'PRO' | 'WHALE';
+  tier: 'BASIC' | 'STARTER' | 'PRO' | 'WHALE';
   isPro: boolean;
   activeUntil: string;
   lastOrderId?: string;

@@ -122,7 +122,7 @@ export interface UserStats {
     avatarUrl?: string;
     storkBalance: number;
     signalsGenerated: number;
-    subscriptionTier: 'FREE' | 'PRO' | 'WHALE';
+    subscriptionTier: 'FREE' | 'STARTER' | 'PRO' | 'WHALE';
     trialActive: boolean; 
     trialEndsAt: string;  
     xp: number;
