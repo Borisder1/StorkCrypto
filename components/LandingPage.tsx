@@ -20,7 +20,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenApp }) => {
         },
         {
             q: "Як підключити гаманець чи Telegram?",
-            a: "Ви можете використовувати термінал безпосередньо в Telegram WebApp через TonConnect або авторизуватись через MetaMask, Phantom чи Telegram Wallet."
+            a: "Ви можете використовувати термінал безпосередньо в Telegram WebApp через TON Connect (Tonkeeper, Telegram Wallet, MyTonWallet)."
         },
         {
             q: "Чи безпечно підключати свої гаманці?",
@@ -232,7 +232,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({ onOpenApp }) => {
                         <div className="p-6 rounded-3xl bg-white/5 border border-white/10 text-center relative">
                             <div className="w-10 h-10 rounded-full bg-brand-cyan text-black font-orbitron font-black text-lg flex items-center justify-center mx-auto mb-4">2</div>
                             <h3 className="font-bold text-white text-base mb-2">Підключи Гаманець</h3>
-                            <p className="text-xs text-slate-400">Авторизуйся через TonConnect, MetaMask чи Telegram Wallet без передачи приватних ключів.</p>
+                            <p className="text-xs text-slate-400">Авторизуйся через офіційний TON Connect без передачі приватних ключів.</p>
                         </div>
 
                         <div className="p-6 rounded-3xl bg-white/5 border border-white/10 text-center relative">

@@ -15,38 +15,34 @@ class EnergyParticle {
   speed: number;
   lifespan: number;
   opacity: number;
-  color: string;
 
   constructor(x: number, y: number, targetX: number, targetY: number) {
     this.x = x;
     this.y = y;
     this.tx = targetX;
     this.ty = targetY;
-    this.size = Math.random() * 2.5 + 1;
-    this.speed = Math.random() * 0.06 + 0.04;
+    this.size = Math.random() * 2 + 1;
+    this.speed = Math.random() * 0.05 + 0.05;
     this.lifespan = 1;
     this.opacity = 1;
-    this.color = Math.random() > 0.3 ? '#00d9ff' : '#00ff9d';
   }
 
   update() {
-    this.lifespan -= 0.018;
+    this.lifespan -= 0.02;
     this.opacity = Math.max(0, this.lifespan);
     const dx = this.tx - this.x;
     const dy = this.ty - this.y;
     this.x += dx * this.speed;
     this.y += dy * this.speed;
-    if (Math.abs(dx) < 6 && Math.abs(dy) < 6) {
+    if (Math.abs(dx) < 5 && Math.abs(dy) < 5) {
       this.lifespan = 0;
     }
   }
 
   draw(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = this.color === '#00d9ff'
-      ? `rgba(0, 217, 255, ${this.opacity})`
-      : `rgba(0, 255, 157, ${this.opacity})`;
-    ctx.shadowColor = this.color;
-    ctx.shadowBlur = 8;
+    ctx.fillStyle = `rgba(0, 217, 255, ${this.opacity})`;
+    ctx.shadowColor = '#00d9ff';
+    ctx.shadowBlur = 10;
     ctx.fillRect(this.x, this.y, this.size, this.size);
     ctx.shadowBlur = 0;
   }
@@ -54,6 +50,7 @@ class EnergyParticle {
 
 const LETTERS = ['S', 'T', 'O', 'R', 'K', 'C', 'R', 'Y', 'P', 'T', 'O'];
 
+// 🛡️ Канонічний 3D-шифр згідно з PROJECT_MANIFESTO.md (без статичних знаків '?')
 const CIPHER_POOL: string[][] = [
   ['S', '0x53', 'NODE', 'S'],
   ['T', '0x54', 'HASH', 'T'],
@@ -80,17 +77,16 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
   const [scannerVisible, setScannerVisible] = useState(false);
   const [progressVisible, setProgressVisible] = useState(false);
   const [scrambleSymbols, setScrambleSymbols] = useState<string[]>(() =>
-    CIPHER_POOL.map(pool => pool[0])
+    CIPHER_POOL.map((pool) => pool[0])
   );
-  const [statusPhase, setStatusPhase] = useState<string>('INIT_NEURAL_LINK');
+  const [statusPhase, setStatusPhase] = useState<string>('INITIALIZING // NEURAL CORE');
 
-  // Зберігаємо колбек у ref, щоб уникнути зайвих перезапусків useEffect
   const onSkipRef = useRef(onSkip);
   useEffect(() => {
     onSkipRef.current = onSkip;
   }, [onSkip]);
 
-  // Контрольований перебір крипто-символів для нерозкритих літер (без хаотичного шуму)
+  // Контрольований перебір крипто-символів на нерозкритих 3D-гранях
   useEffect(() => {
     const interval = setInterval(() => {
       setScrambleSymbols((prev) =>
@@ -139,7 +135,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
     }
     animationFrameId = requestAnimationFrame(animateParticles);
 
-    // 🚀 ГОЛОВНА 6.5-СЕКУНДНА ПОСЛІДОВНІСТЬ (За маніфестом)
+    // 🚀 ГОЛОВНА 6.5-СЕКУНДНА ПОСЛІДОВНІСТЬ ЗАВАНТАЖЕННЯ (Канонічний Маніфест)
     async function startLoadingSequence() {
       if (isCleanedUp) return;
 
@@ -148,11 +144,12 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
       if (!lettersWrapper || !scannerLine) return;
 
       const wrapperRect = lettersWrapper.getBoundingClientRect();
+
+      // ⚡ ФАЗА 1: Лазерне 3D-сканування зверху вниз (0 - 2.5с)
       setScannerVisible(true);
       scannerLine.style.top = `${wrapperRect.top}px`;
       setStatusPhase('INITIALIZING // NEURAL CORE');
 
-      // ⚡ ФАЗА 1: Рух сканера зверху вниз та 3D-переворот літер (0 - 2.5с)
       const scanStartTime = performance.now();
       const scanDuration = 2500;
       const revealedIndices = new Set<number>();
@@ -163,6 +160,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         const scanProgress = Math.min(elapsed / scanDuration, 1);
         const currentY = wrapperRect.top + wrapperRect.height * scanProgress;
 
+        // Оновлення стадій за маніфестом
         if (elapsed > 900 && elapsed < 1800) {
           setStatusPhase('GRID_BUILD // 0x574F524B');
         } else if (elapsed >= 1800) {
@@ -173,28 +171,30 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           scannerLineRef.current.style.transform = `translateX(-50%) translateY(${currentY - wrapperRect.top}px)`;
         }
 
-        // Перевіряємо положення кожної літери
+        // Розкриття літер при проходженні сканера зверху вниз
         letterRefs.current.forEach((el, index) => {
           if (!el || revealedIndices.has(index)) return;
           const letterRect = el.getBoundingClientRect();
-          if (currentY >= letterRect.top + letterRect.height * 0.3) {
+          if (currentY >= letterRect.top) {
             el.classList.add('revealed');
             revealedIndices.add(index);
-            try { triggerHaptic('light'); } catch (_) {}
+            try {
+              triggerHaptic('light');
+            } catch (_) {}
           }
         });
 
         if (scanProgress < 1) {
           requestAnimationFrame(scan);
         } else {
-          // Завершення сканування
+          // Завершення сканування (fade out сканера)
           setScannerVisible(false);
           startEnergyTransfer();
         }
       }
       requestAnimationFrame(scan);
 
-      // ⚡ ФАЗА 2: Передача енергетичних часток до прогрес-бару (2.5 - 6.0с)
+      // ⚡ ФАЗА 2: Передача енергії до прогрес-бару (2.5 - 6.0с)
       async function startEnergyTransfer() {
         if (isCleanedUp) return;
         await new Promise((resolve) => setTimeout(resolve, 300));
@@ -207,7 +207,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         const chargeDuration = 3200;
         const chargeStartTime = Date.now();
 
-        // Генератор частинок
+        // Генератор часток від літер до прогрес-бару
         const chargeInterval = setInterval(() => {
           if (isCleanedUp) {
             clearInterval(chargeInterval);
@@ -218,16 +218,15 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           const progressBarWidth = progressBarRef.current?.offsetWidth || 0;
 
           if (textRect && barRect) {
-            // Створюємо пучок частинок, що летять від випадкових літер до прогрес-бару
-            for (let i = 0; i < 6; i++) {
-              const x = textRect.left + (Math.random() * 0.8 + 0.1) * textRect.width;
+            for (let i = 0; i < 5; i++) {
+              const x = textRect.left + Math.random() * textRect.width;
               const y = textRect.top + Math.random() * textRect.height;
-              const targetX = barRect.left + progressBarWidth + (Math.random() * 10 - 5);
+              const targetX = barRect.left + progressBarWidth;
               const targetY = barRect.top + barRect.height / 2;
               particles.push(new EnergyParticle(x, y, targetX, targetY));
             }
           }
-        }, 40);
+        }, 50);
 
         function updateProgressBar() {
           if (isCleanedUp) return;
@@ -256,7 +255,9 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         if (!isCleanedUp) {
           setProgress(100);
           setStatusPhase('SYSTEM READY // CONNECTED');
-          try { triggerHaptic('success'); } catch (_) {}
+          try {
+            triggerHaptic('success');
+          } catch (_) {}
           setTimeout(() => {
             if (!isCleanedUp && onSkipRef.current) {
               onSkipRef.current();
@@ -273,7 +274,7 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
 
     const timer = setTimeout(() => {
       startLoadingSequence();
-    }, 150);
+    }, 100);
 
     return () => {
       isCleanedUp = true;
@@ -293,51 +294,35 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
       role="status"
       aria-live="polite"
     >
-      {/* 🎨 Анімована кіберпанкова фонова сітка */}
-      <div className="absolute inset-0 opacity-25 pointer-events-none">
+      {/* 🎨 Канонічний анімований фоновий кібер-грід */}
+      <div className="absolute inset-0 opacity-20 pointer-events-none">
         <div
           className="absolute inset-0"
           style={{
             backgroundImage: `
-              linear-gradient(90deg, rgba(0, 217, 255, 0.4) 1px, transparent 1px),
-              linear-gradient(0deg, rgba(0, 217, 255, 0.4) 1px, transparent 1px)
+              linear-gradient(90deg, #00d9ff 1px, transparent 1px),
+              linear-gradient(0deg, #00d9ff 1px, transparent 1px)
             `,
-            backgroundSize: '40px 40px',
+            backgroundSize: '50px 50px',
             animation: 'cyberGridMove 20s linear infinite'
           }}
-        />
-      </div>
-
-      {/* 🌀 Concentric Neural Rings per manifesto */}
-      <div className={`absolute inset-0 flex items-center justify-center pointer-events-none z-10 overflow-hidden transition-all duration-700 ${progress === 100 ? 'scale-110 opacity-40' : 'opacity-70'}`}>
-        <div 
-          className="absolute w-[240px] h-[240px] rounded-full border border-brand-cyan/25 animate-spin"
-          style={{ animationDuration: '16s', borderStyle: 'dashed' }}
-        />
-        <div 
-          className="absolute w-[320px] h-[320px] rounded-full border border-brand-purple/20 animate-spin"
-          style={{ animationDuration: '24s', animationDirection: 'reverse' }}
-        />
-        <div 
-          className="absolute w-[400px] h-[400px] rounded-full border border-brand-cyan/15 animate-spin"
-          style={{ animationDuration: '36s' }}
         />
       </div>
 
       <style>{`
         @keyframes cyberGridMove {
           0% { transform: translate(0, 0); }
-          100% { transform: translate(40px, 40px); }
+          100% { transform: translate(50px, 50px); }
         }
 
         .letter-container {
           position: relative;
-          margin: clamp(0px, 0.15vh, 2px) 0;
+          margin: clamp(0px, 0.1vh, 2px) 0;
           font-family: 'Orbitron', monospace;
-          font-size: clamp(20px, 4.4vh, 32px);
+          font-size: clamp(20px, 4.5vh, 32px);
           font-weight: 900;
           width: 1.2em;
-          height: 1.45em;
+          height: 1.5em;
           color: #00d9ff;
           text-shadow: 0 0 20px rgba(0, 217, 255, 0.8), 0 0 40px rgba(0, 217, 255, 0.4);
           transition: color 1s, text-shadow 1s, opacity 0.5s;
@@ -359,15 +344,15 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         }
 
         .letter-container.draining {
-          animation: cyberPulse 2s infinite;
+          animation: pulse 2s infinite;
         }
 
-        @keyframes cyberPulse {
+        @keyframes pulse {
           0%, 100% {
             text-shadow: 0 0 20px rgba(0, 217, 255, 0.8), 0 0 40px rgba(0, 217, 255, 0.4);
           }
           50% {
-            text-shadow: 0 0 30px rgba(0, 217, 255, 1), 0 0 60px rgba(0, 217, 255, 0.7), 0 0 80px rgba(0, 255, 157, 0.5);
+            text-shadow: 0 0 30px rgba(0, 217, 255, 1), 0 0 60px rgba(0, 217, 255, 0.6), 0 0 80px rgba(255, 255, 255, 0.3);
           }
         }
 
@@ -384,17 +369,17 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         }
 
         .scrambler-face {
-          transform: rotateX(90deg) translateZ(0.72em);
-          color: rgba(0, 217, 255, 0.75);
+          transform: rotateX(90deg) translateZ(0.75em);
+          color: rgba(0, 217, 255, 0.7);
           font-family: 'JetBrains Mono', 'Orbitron', monospace;
-          font-size: clamp(10px, 2.2vh, 15px);
+          font-size: clamp(10px, 2vh, 14px);
           font-weight: 700;
           letter-spacing: -0.05em;
           text-shadow: 0 0 10px rgba(0, 217, 255, 0.5);
         }
 
         .final-face {
-          transform: translateZ(0.72em);
+          transform: translateZ(0.75em);
         }
 
         .scanner-line {
@@ -402,33 +387,32 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
           top: 0;
           left: 50%;
           transform: translateX(-50%);
-          width: 280px;
+          width: 300px;
           height: 3px;
-          background: linear-gradient(90deg, transparent, #00d9ff 25%, #ffffff 50%, #00d9ff 75%, transparent);
+          background: linear-gradient(90deg, transparent, #00d9ff 20%, #ffffff 50%, #00d9ff 80%, transparent);
           box-shadow: 0 0 20px #00d9ff, 0 0 40px #00d9ff, 0 0 60px #00d9ff;
-          transition: opacity 0.4s;
+          transition: opacity 0.5s;
           pointer-events: none;
         }
 
         .progress-container {
-          width: clamp(260px, 75vw, 420px);
+          width: clamp(280px, 70vw, 450px);
           height: 12px;
           background: rgba(0, 217, 255, 0.1);
-          border: 1px solid rgba(0, 217, 255, 0.3);
           border-radius: 6px;
           overflow: hidden;
-          transition: opacity 0.8s, transform 0.5s;
+          transition: opacity 1s, transform 0.5s;
           position: relative;
           box-shadow: 0 0 20px rgba(0, 217, 255, 0.2), inset 0 0 10px rgba(0, 217, 255, 0.1);
         }
 
         .progress-bar {
           height: 100%;
-          background: linear-gradient(90deg, #00d9ff, #00ff9d, #ffffff, #00d9ff);
+          background: linear-gradient(90deg, #00d9ff, #00e5ff, #ffffff, #00e5ff, #00d9ff);
           background-size: 200% 100%;
           animation: progressGlow 2s ease-in-out infinite;
           transition: width 0.1s linear;
-          box-shadow: 0 0 20px #00d9ff, 0 0 40px #00ff9d, 0 0 60px rgba(255, 255, 255, 0.5);
+          box-shadow: 0 0 20px #00d9ff, 0 0 40px #00d9ff, 0 0 60px rgba(255, 255, 255, 0.5);
         }
 
         @keyframes progressGlow {
@@ -437,19 +421,32 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         }
       `}</style>
 
-      {/* 🎨 Canvas для частинок кібер-енергії */}
+      {/* 🎨 Canvas для часток кібер-енергії */}
       <canvas ref={canvasRef} className="fixed inset-0 pointer-events-none z-10" />
 
-      {/* 📝 Контейнер з вертикальними літерами STORKCRYPTO */}
+      {/* 📝 Контейнер з літерами STORKCRYPTO (Вертикальна колонка згідно з Маніфестом) */}
       <div
-        className="text-container mb-6 relative z-20"
-        style={{ position: 'relative', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '10px 0' }}
+        className="text-container mb-6 relative z-20 max-w-full"
+        style={{
+          position: 'relative',
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          padding: '10px 0'
+        }}
       >
-        <div ref={lettersWrapperRef} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+        <div
+          ref={lettersWrapperRef}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+          className="select-none"
+        >
           {LETTERS.map((char, index) => (
             <div
               key={index}
-              ref={(el) => { letterRefs.current[index] = el; }}
+              ref={(el) => {
+                letterRefs.current[index] = el;
+              }}
               className="letter-container"
             >
               <div className="letter-inner">
@@ -461,39 +458,32 @@ export function LoadingScreen({ onSkip }: LoadingScreenProps) {
         </div>
       </div>
 
-      {/* 📊 Прогрес-бар з відсотками та телеметрією */}
+      {/* 📊 Прогрес-бар з відсотками та 8 стадіями телеметрії ядра */}
       <div
         className="w-full max-w-[320px] px-4 relative z-20 mb-3 flex flex-col items-center"
         style={{ opacity: progressVisible ? 1 : 0, transition: 'opacity 0.8s, transform 0.5s' }}
       >
-        <div className="flex justify-between items-center w-full text-[8px] font-mono text-brand-cyan/80 tracking-widest uppercase mb-1.5 px-0.5">
+        <div className="flex justify-between items-center w-full text-[8px] font-mono text-cyan-400 tracking-widest uppercase mb-1.5 px-0.5">
           <span>{statusPhase}</span>
           <span className="font-bold text-white">{progress}%</span>
         </div>
-        <div
-          ref={progressContainerRef}
-          className="progress-container w-full"
-        >
-          <div
-            ref={progressBarRef}
-            className="progress-bar"
-            style={{ width: `${progress}%` }}
-          />
+        <div ref={progressContainerRef} className="progress-container w-full">
+          <div ref={progressBarRef} className="progress-bar" style={{ width: `${progress}%` }} />
         </div>
       </div>
 
-      {/* ⚡ Лінія лазерного сканера */}
+      {/* ⚡ Горизонтальна лінія лазерного сканера (рух зверху вниз) */}
       <div
         ref={scannerLineRef}
         className="scanner-line z-20"
         style={{ opacity: scannerVisible ? 1 : 0 }}
       />
 
-      {/* Кнопка швидкого входу (Skip) */}
+      {/* Кнопка швидкого пропуску (Skip >=44px touch target) */}
       {onSkip && (
         <button
           onClick={onSkip}
-          className="relative z-30 mt-3 px-4 py-1.5 rounded-xl border border-brand-cyan/30 bg-brand-cyan/10 hover:bg-brand-cyan/20 text-brand-cyan text-[10px] font-mono tracking-widest uppercase transition-all duration-200 backdrop-blur-md cursor-pointer active:scale-95 shadow-[0_0_15px_rgba(0,217,255,0.15)]"
+          className="relative z-30 mt-2 min-h-[44px] min-w-[120px] px-4 py-2 rounded-xl border border-cyan-500/30 bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-400 text-[10px] font-mono tracking-widest uppercase transition-all duration-200 backdrop-blur-md cursor-pointer active:scale-95 shadow-[0_0_15px_rgba(0,217,255,0.15)] flex items-center justify-center"
         >
           ПРОПУСТИТИ &gt;&gt;
         </button>

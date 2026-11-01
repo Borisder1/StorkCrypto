@@ -1,42 +1,34 @@
-import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { ShieldIcon, TelegramIcon, ActivityIcon, ZapIcon, GlobeIcon, LinkIcon } from './icons';
-import { triggerHaptic } from '../utils/haptics';
+import React, { useEffect, useState } from 'react';
+import { motion } from 'motion/react';
 import { useStore } from '../store';
+import { ShieldIcon, TelegramIcon } from './icons';
+import { triggerHaptic } from '../utils/haptics';
 import { walletService } from '../services/walletService';
 import { getTonConnectUI } from '../services/tonConnectService';
 import { useScrollLock } from '../utils/useScrollLock';
+import { useIsConnectionRestored, useTonAddress, useTonWallet } from '@tonconnect/ui-react';
 
 interface WalletConnectModalProps {
     onClose: () => void;
 }
 
-type ModalCategory = 'ton' | 'exchange' | 'web3' | 'custom';
-
 export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose }) => {
-    const tonConnectUI = getTonConnectUI();
-    const { wallet, connectWallet, disconnectWallet, showToast } = useStore();
-    
+    const { wallet, disconnectWallet, showToast, connectWallet } = useStore();
+    const [isConnecting, setIsConnecting] = useState(false);
     useScrollLock(true);
 
-    const [activeTab, setActiveTab] = useState<ModalCategory>('ton');
-    const [customAddress, setCustomAddress] = useState('');
-    const [customWalletType, setCustomWalletType] = useState('EVM / Exchange');
-    const [customChain, setCustomChain] = useState<'ETH' | 'TON' | 'SOL'>('ETH');
-    const [isConnecting, setIsConnecting] = useState(false);
+    const isConnectionRestored = useIsConnectionRestored();
+    const tonAddress = useTonAddress();
+    const tonWallet = useTonWallet();
 
-    // Selected Provider State for user input flow
-    const [selectedProvider, setSelectedProvider] = useState<{
-        name: string;
-        chain: 'ETH' | 'TON' | 'SOL';
-        type: string;
-        url?: string;
-    } | null>(null);
-    const [providerAddressInput, setProviderAddressInput] = useState('');
-    const [connectionMode, setConnectionMode] = useState<'uid' | 'api'>('uid');
-    const [apiKeyInput, setApiKeyInput] = useState('');
-    const [apiSecretInput, setApiSecretInput] = useState('');
+    // Auto sync store when wallet connects via TON Connect UI
+    useEffect(() => {
+        if (tonAddress && tonWallet) {
+            connectWallet(tonAddress, tonWallet.device?.appName || 'TON Wallet', 'TON');
+        }
+    }, [tonAddress, tonWallet, connectWallet]);
 
+    // Handle ESC key
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -47,224 +39,59 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose]);
 
-    // Close picker immediately when wallet connects (Section 5.3 & 5.6)
+    // Listen to TON Connect UI status change to auto-close picker immediately on connect
     useEffect(() => {
-        if (wallet.isConnected) {
-            onClose();
-            return;
-        }
-
         const tonConnectUI = getTonConnectUI();
         if (!tonConnectUI) return;
 
-        const unsubscribe = tonConnectUI.onStatusChange((connectedWallet) => {
-            if (connectedWallet) {
+        const unsubscribe = tonConnectUI.onStatusChange((newWallet) => {
+            if (newWallet) {
+                const addr = newWallet.account.address;
+                const appName = newWallet.device?.appName || 'TON Wallet';
+                connectWallet(addr, appName, 'TON');
+                showToast(`TON Wallet підключено: ${walletService.formatAddress(addr)}`);
+                triggerHaptic('success');
                 onClose();
             }
         });
 
         return () => {
-            if (unsubscribe) unsubscribe();
+            unsubscribe();
         };
-    }, [wallet.isConnected, onClose]);
+    }, [connectWallet, onClose, showToast]);
 
-    // Handle TON Connect launch with session cleanup
-    const handleTonConnect = async () => {
-        triggerHaptic('medium');
-        const tonConnectUI = getTonConnectUI();
-        if (!tonConnectUI) return;
-
-        try {
-            // If already connected in SDK, force disconnect first for fresh session
-            if (tonConnectUI.connected) {
-                await tonConnectUI.disconnect();
-            }
-        } catch (e) {
-            console.warn('[TON Connect] Disconnect before reconnect warning:', e);
-        }
-
-        onClose();
-        setTimeout(() => {
-            tonConnectUI.openModal().catch(err => console.error('[TON Connect] Open modal error:', err));
-        }, 120);
-    };
-
-    // Handle Direct MetaMask / Web3 Browser Extension Connection (window.ethereum)
-    const handleDirectMetaMaskConnect = async () => {
+    const handleConnectTon = async () => {
         triggerHaptic('medium');
         setIsConnecting(true);
         try {
-            if (typeof window !== 'undefined' && (window as any).ethereum) {
-                const eth = (window as any).ethereum;
-                const accounts = await eth.request({ method: 'eth_requestAccounts' });
-                if (accounts && accounts.length > 0) {
-                    if (tonConnectUI?.connected) {
-                        await tonConnectUI.disconnect().catch(() => {});
-                    }
-                    await connectWallet(accounts[0], 'MetaMask (Web3 Extension)', 'ETH');
-                    showToast(`MetaMask підключено: ${walletService.formatAddress(accounts[0])}`);
-                    triggerHaptic('success');
-                    onClose();
-                    return;
-                }
-            }
-            
-            // Fallback for mobile / Telegram WebApp without window.ethereum
-            const metamaskDeepLink = `https://metamask.app.link/dapp/${window.location.host}`;
-            showToast('Утиліта MetaMask не виявлена у розширенні. Відкриваємо MetaMask App...');
-            handleOpenExternalUrl(metamaskDeepLink);
-        } catch (err: any) {
-            console.error('[MetaMask Connect Error]:', err);
-            showToast('Помилка авторизації в MetaMask');
-        } finally {
-            setIsConnecting(false);
-        }
-    };
-
-    // Open provider input form when exchange or web3 wallet card is clicked
-    const handleSelectProviderCard = (name: string, chain: 'ETH' | 'TON' | 'SOL', type: string = 'Exchange / Web3', url?: string) => {
-        triggerHaptic('light');
-        setSelectedProvider({ name, chain, type, url });
-        setProviderAddressInput('');
-        setApiKeyInput('');
-        setApiSecretInput('');
-        setConnectionMode('uid');
-    };
-
-    const handleOpenExternalUrl = (url?: string, e?: React.MouseEvent) => {
-        if (e) e.stopPropagation();
-        if (!url) return;
-        triggerHaptic('light');
-        const tg = (window as any).Telegram?.WebApp;
-        if (tg?.openLink) {
-            tg.openLink(url);
-        } else {
-            window.open(url, '_blank', 'noopener,noreferrer');
-        }
-    };
-
-    // Confirm connection with user's inputted exchange address/UID or Read-Only API
-    const handleConfirmProviderConnection = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!selectedProvider) return;
-
-        if (connectionMode === 'api') {
-            const key = apiKeyInput.trim();
-            if (!key) {
-                showToast('Будь ласка, введіть Read-Only API Key');
+            const tonConnectUI = getTonConnectUI();
+            if (!tonConnectUI) {
+                showToast('Модуль TON Connect ініціалізується, зачекайте...');
+                setIsConnecting(false);
                 return;
             }
 
-            triggerHaptic('medium');
-            setIsConnecting(true);
-
-            try {
-                if (tonConnectUI?.connected) {
-                    await tonConnectUI.disconnect().catch(() => {});
-                }
-
-                await connectWallet(key.slice(0, 16) + '...', `${selectedProvider.name} (API)`, selectedProvider.chain);
-                showToast(`Успішно підключено ${selectedProvider.name} через Read-Only API Key`);
-                setSelectedProvider(null);
-                onClose();
-            } catch (error) {
-                console.error('[Wallet] CEX API Connect failed:', error);
-                showToast('Помилка авторизації API');
-            } finally {
-                setIsConnecting(false);
-            }
-            return;
-        }
-
-        const trimmed = providerAddressInput.trim();
-        if (!trimmed) {
-            showToast('Будь ласка, введіть UID або адресу гаманця');
-            return;
-        }
-
-        triggerHaptic('medium');
-        setIsConnecting(true);
-
-        try {
-            if (tonConnectUI?.connected) {
-                await tonConnectUI.disconnect().catch(() => {});
+            if (tonConnectUI.connected) {
+                await tonConnectUI.disconnect();
             }
 
-            await connectWallet(trimmed, selectedProvider.name, selectedProvider.chain);
-            showToast(`Успішно підключено ${selectedProvider.name}: ${walletService.formatAddress(trimmed)}`);
-            setSelectedProvider(null);
             onClose();
-        } catch (error) {
-            console.error('[Wallet] Connect failed:', error);
-            showToast('Помилка підключення');
-        } finally {
+            setTimeout(() => {
+                tonConnectUI.openModal().catch(err => {
+                    console.error('[TON Connect] Open modal error:', err);
+                });
+            }, 100);
+        } catch (err: any) {
+            console.error('[TON Connect Connect Error]:', err);
+            showToast('Помилка відкриття TON Connect');
             setIsConnecting(false);
         }
     };
 
-    const generateDemoAddress = () => {
-        if (!selectedProvider) return;
-        if (connectionMode === 'api') {
-            setApiKeyInput('stork_key_' + Math.random().toString(36).substring(2, 14));
-            setApiSecretInput('stork_sec_' + Math.random().toString(36).substring(2, 18));
-            triggerHaptic('light');
-            return;
-        }
-        let demo = '';
-        if (selectedProvider.chain === 'ETH') {
-            demo = '0x' + Array.from({length: 40}, () => Math.floor(Math.random() * 16).toString(16)).join('');
-        } else if (selectedProvider.chain === 'SOL') {
-            demo = Array.from({length: 44}, () => '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'[Math.floor(Math.random() * 58)]).join('');
-        } else {
-            demo = 'EQ' + Array.from({length: 46}, () => 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_'[Math.floor(Math.random() * 64)]).join('');
-        }
-        setProviderAddressInput(demo);
-        triggerHaptic('light');
-    };
-
-    const handlePasteClipboard = async () => {
-        try {
-            const text = await navigator.clipboard.readText();
-            if (text) {
-                setProviderAddressInput(text.trim());
-                triggerHaptic('light');
-                showToast('Вставлено з буферу');
-            }
-        } catch (e) {
-            showToast('Не вдалося вставити');
-        }
-    };
-
-    // Handle Custom Address Linking
-    const handleConnectCustom = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!customAddress.trim()) {
-            showToast('Введіть коректну адресу гаманця');
-            return;
-        }
-
-        triggerHaptic('medium');
-        setIsConnecting(true);
-
-        try {
-            if (tonConnectUI?.connected) {
-                await tonConnectUI.disconnect().catch(() => {});
-            }
-
-            await connectWallet(customAddress.trim(), customWalletType, customChain);
-            showToast(`Підключено адресу: ${walletService.formatAddress(customAddress.trim())}`);
-            onClose();
-        } catch (error) {
-            showToast('Не вдалося підключити адресу');
-        } finally {
-            setIsConnecting(false);
-        }
-    };
-
-    // Full Disconnect Handler
-    const handleFullDisconnect = async () => {
+    const handleDisconnect = async () => {
         triggerHaptic('medium');
         try {
+            const tonConnectUI = getTonConnectUI();
             if (tonConnectUI?.connected) {
                 await tonConnectUI.disconnect();
             }
@@ -272,536 +99,144 @@ export const WalletConnectModal: React.FC<WalletConnectModalProps> = ({ onClose 
             console.warn('[TON Connect] Disconnect error:', e);
         }
         disconnectWallet();
-        showToast('Гаманець повністю від\'єднано');
+        showToast('Гаманець від\'єднано');
     };
 
-    const cexExchanges = [
-        { name: 'Binance CEX', type: 'Централізована Біржа (Spot/Futures)', chain: 'ETH' as const, color: 'from-amber-950/60 to-slate-950', border: 'border-amber-500/40', badge: 'CEX #1', url: 'https://www.binance.com' },
-        { name: 'WhiteBIT', type: 'CEX (Гривня UAH & Crypto)', chain: 'ETH' as const, color: 'from-sky-950/60 to-slate-950', border: 'border-sky-500/40', badge: 'CEX UAH', url: 'https://whitebit.com' },
-        { name: 'Bybit CEX', type: 'Централізована Біржа (Spot/Derivatives)', chain: 'ETH' as const, color: 'from-orange-950/60 to-slate-950', border: 'border-orange-500/40', badge: 'CEX Hot', url: 'https://www.bybit.com' },
-        { name: 'OKX CEX', type: 'Централізована Біржа (Spot/Futures)', chain: 'TON' as const, color: 'from-zinc-900 to-black', border: 'border-white/30', badge: 'CEX Global', url: 'https://www.okx.com' },
-        { name: 'Kuna Exchange', type: 'Українська CEX Біржа', chain: 'ETH' as const, color: 'from-blue-950/60 to-slate-950', border: 'border-blue-500/40', badge: 'UA CEX', url: 'https://kuna.io' },
-        { name: 'Bitget / Gate.io', type: 'Централізовані Біржі', chain: 'ETH' as const, color: 'from-emerald-950/60 to-slate-950', border: 'border-emerald-500/40', badge: 'CEX', url: 'https://www.bitget.com' },
-    ];
+    const shortenAddress = (addr: string | null) => {
+        if (!addr) return '';
+        if (addr.length <= 12) return addr;
+        return `${addr.slice(0, 6)}…${addr.slice(-4)}`;
+    };
 
-    const web3Exchanges = [
-        { name: 'OKX Web3 Wallet', type: 'Web3 / Multi-Chain', chain: 'TON' as const, color: 'from-black to-slate-900', border: 'border-white/20', badge: 'Web3 TON', url: 'https://www.okx.com/web3' },
-        { name: 'Binance Web3 Wallet', type: 'Web3 Wallet', chain: 'ETH' as const, color: 'from-amber-950/40 to-black', border: 'border-amber-500/30', badge: 'BSC/EVM', url: 'https://www.binance.com' },
-        { name: 'Bybit Web3 Wallet', type: 'Web3 Wallet', chain: 'ETH' as const, color: 'from-orange-950/40 to-black', border: 'border-orange-500/30', badge: 'Web3', url: 'https://www.bybit.com' },
-    ];
-
-    const web3Wallets = [
-        { name: 'MetaMask', chain: 'ETH' as const, badge: 'EVM', url: 'https://metamask.io' },
-        { name: 'Trust Wallet', chain: 'ETH' as const, badge: 'Multi-Chain', url: 'https://trustwallet.com' },
-        { name: 'Phantom Wallet', chain: 'SOL' as const, badge: 'Solana', url: 'https://phantom.app' },
-    ];
+    const activeAddress = tonAddress || wallet.address;
+    const isWalletConnected = Boolean(activeAddress && (wallet.isConnected || tonWallet));
 
     return (
         <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[120] flex items-center justify-center p-3 sm:p-4 overflow-y-auto overscroll-contain"
+            className="fixed inset-0 z-[120] flex items-center justify-center p-4 overflow-y-auto overscroll-contain"
         >
-            <div className="fixed inset-0 bg-black/95 backdrop-blur-md animate-fade-in" onClick={onClose}></div>
+            <div className="fixed inset-0 bg-black/95 backdrop-blur-md" onClick={onClose} aria-hidden="true" />
             
             <motion.div 
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="wallet-connect-title"
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
+                exit={{ scale: 0.95, opacity: 0 }}
                 transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-                className="relative z-10 w-full max-w-md bg-[#020617] border border-white/10 rounded-[2rem] overflow-hidden shadow-[0_0_80px_rgba(0,217,255,0.15)] flex flex-col my-auto max-h-[92vh]"
+                className="relative z-10 w-full max-w-sm bg-[#020617] border border-white/10 rounded-[2rem] overflow-hidden shadow-[0_0_80px_rgba(0,217,255,0.15)] flex flex-col my-auto"
             >
                 {/* Header Section */}
-                <div className="p-5 text-center bg-brand-card/40 border-b border-white/5 relative overflow-hidden shrink-0">
-                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/40 to-transparent"></div>
+                <div className="p-6 text-center bg-brand-card/40 border-b border-white/5 relative overflow-hidden">
+                    <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-brand-cyan/40 to-transparent" />
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan shadow-lg">
-                                <ShieldIcon className="w-5 h-5 animate-pulse" />
+                                <ShieldIcon className="w-5 h-5" />
                             </div>
                             <div className="text-left">
-                                <h2 id="wallet-connect-title" className="font-orbitron font-black text-sm text-white uppercase tracking-wider">Web3 Gateway</h2>
-                                <p className="text-slate-500 text-[9px] font-mono uppercase tracking-widest">Connect Wallet & Exchanges</p>
+                                <h2 id="wallet-connect-title" className="font-orbitron font-black text-sm text-white uppercase tracking-wider">TON Wallet</h2>
+                                <p className="text-slate-500 text-[9px] font-mono uppercase tracking-widest">TON Connect Protocol</p>
                             </div>
                         </div>
                         <button 
                             onClick={onClose} 
                             aria-label="Закрити вікно підключення гаманця"
-                            className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 hover:text-white transition-colors"
+                            className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center text-slate-400 hover:text-white transition-colors"
                         >
                             ✕
                         </button>
                     </div>
+                </div>
 
-                    {/* Active Connected Banner */}
-                    {wallet.isConnected && (
-                        <div className="mt-4 p-3 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-between text-left">
-                            <div className="flex items-center gap-2 overflow-hidden">
-                                <div className="w-2 h-2 rounded-full bg-brand-green animate-ping shrink-0"></div>
-                                <div className="min-w-0">
-                                    <p className="text-[9px] text-brand-cyan font-black uppercase tracking-wider truncate">
-                                        {wallet.walletType || 'Connected'} ({wallet.chain})
-                                    </p>
-                                    <p className="text-[10px] font-mono text-slate-300 font-bold truncate">
-                                        {walletService.formatAddress(wallet.address)}
-                                    </p>
+                {/* Body Content */}
+                <div className="p-6 space-y-5">
+                    {isWalletConnected ? (
+                        <div className="space-y-4">
+                            <div className="p-4 rounded-2xl bg-black/60 border border-brand-cyan/30 text-left space-y-3 font-mono text-xs shadow-[0_0_20px_rgba(0,240,255,0.08)]">
+                                <div className="flex items-center justify-between pb-2 border-b border-white/5">
+                                    <div className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                                        <span className="text-emerald-400 font-bold font-orbitron text-[11px] uppercase tracking-wider">Connected</span>
+                                    </div>
+                                    <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5 font-mono">
+                                        {tonWallet?.device?.appName || wallet.walletType || 'TON Wallet'}
+                                    </span>
+                                </div>
+
+                                <div>
+                                    <span className="text-[10px] text-slate-500 uppercase tracking-wider block mb-1">Address:</span>
+                                    <code className="text-white font-bold font-mono text-sm tracking-wider">
+                                        {shortenAddress(activeAddress)}
+                                    </code>
+                                </div>
+
+                                <div className="flex items-center gap-2 pt-2 border-t border-white/5">
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            if (activeAddress) {
+                                                navigator.clipboard?.writeText(activeAddress);
+                                                triggerHaptic('success');
+                                                showToast('Адресу скопійовано');
+                                            }
+                                        }}
+                                        aria-label="Скопіювати адресу"
+                                        className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 text-xs font-mono transition-all min-h-[38px]"
+                                    >
+                                        Copy
+                                    </button>
+                                    <a
+                                        href={`https://tonscan.org/address/${encodeURIComponent(activeAddress || '')}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        aria-label="Відкрити в оглядачі"
+                                        className="flex-1 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-brand-cyan border border-brand-cyan/20 text-xs font-mono transition-all min-h-[38px] flex items-center justify-center"
+                                    >
+                                        Explorer
+                                    </a>
+                                    <button
+                                        type="button"
+                                        onClick={handleDisconnect}
+                                        aria-label="Від'єднати гаманець"
+                                        className="flex-1 py-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/20 text-xs font-mono transition-all min-h-[38px]"
+                                    >
+                                        Disconnect
+                                    </button>
                                 </div>
                             </div>
-                            <button 
-                                onClick={handleFullDisconnect}
-                                className="px-2.5 py-1.5 rounded-lg bg-red-500/20 hover:bg-red-500/30 border border-red-500/40 text-[9px] font-black text-red-400 uppercase tracking-wider shrink-0 transition-all active:scale-95"
+                        </div>
+                    ) : !isConnectionRestored ? (
+                        <div className="py-6 text-center space-y-3 font-mono">
+                            <div className="w-8 h-8 rounded-full border-2 border-brand-cyan border-t-transparent animate-spin mx-auto" />
+                            <p className="text-xs text-slate-400">Відновлення сесії TON Connect...</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-4">
+                            <p className="text-xs text-slate-300 font-mono leading-relaxed text-center">
+                                Підключення офіційних гаманців екосистеми TON (Tonkeeper, Telegram Wallet, MyTonWallet) через TON Connect.
+                            </p>
+
+                            <button
+                                type="button"
+                                onClick={handleConnectTon}
+                                disabled={isConnecting}
+                                aria-label="Connect TON Wallet"
+                                className="w-full h-14 rounded-2xl bg-[#0098EA] hover:bg-[#0087d1] active:scale-[0.98] transition-all shadow-[0_0_25px_rgba(0,152,234,0.3)] flex items-center justify-center gap-3 font-orbitron font-bold text-xs uppercase tracking-widest text-white min-h-[48px]"
                             >
-                                Від'єднати
+                                <TelegramIcon className="w-6 h-6 text-white" />
+                                <span>{isConnecting ? 'Opening TON Connect...' : 'Connect TON Wallet'}</span>
                             </button>
+
+                            <div className="p-3 rounded-xl bg-white/[0.02] border border-white/5 text-[10px] text-slate-400 font-mono text-center">
+                                🔒 Підключення гаманця використовується виключно для ончейн-балансу портфеля і не активує PRO-підписку.
+                            </div>
                         </div>
                     )}
-                </div>
-
-                {/* Category Navigation Tabs */}
-                <div className="grid grid-cols-4 bg-black/60 p-1.5 border-b border-white/5 gap-1 shrink-0">
-                    <button 
-                        onClick={() => { triggerHaptic('light'); setActiveTab('ton'); }} 
-                        className={`py-2 px-1 rounded-xl text-[9px] font-black font-orbitron uppercase tracking-wider transition-all flex flex-col items-center gap-1 ${activeTab === 'ton' ? 'bg-brand-cyan text-black shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                    >
-                        <TelegramIcon className="w-3.5 h-3.5" />
-                        <span>TON</span>
-                    </button>
-                    <button 
-                        onClick={() => { triggerHaptic('light'); setActiveTab('exchange'); }} 
-                        className={`py-2 px-1 rounded-xl text-[9px] font-black font-orbitron uppercase tracking-wider transition-all flex flex-col items-center gap-1 ${activeTab === 'exchange' ? 'bg-brand-cyan text-black shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                    >
-                        <GlobeIcon className="w-3.5 h-3.5" />
-                        <span>Біржі</span>
-                    </button>
-                    <button 
-                        onClick={() => { triggerHaptic('light'); setActiveTab('web3'); }} 
-                        className={`py-2 px-1 rounded-xl text-[9px] font-black font-orbitron uppercase tracking-wider transition-all flex flex-col items-center gap-1 ${activeTab === 'web3' ? 'bg-brand-cyan text-black shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                    >
-                        <ZapIcon className="w-3.5 h-3.5" />
-                        <span>Web3</span>
-                    </button>
-                    <button 
-                        onClick={() => { triggerHaptic('light'); setActiveTab('custom'); }} 
-                        className={`py-2 px-1 rounded-xl text-[9px] font-black font-orbitron uppercase tracking-wider transition-all flex flex-col items-center gap-1 ${activeTab === 'custom' ? 'bg-brand-cyan text-black shadow-lg' : 'text-slate-400 hover:text-white'}`}
-                    >
-                        <LinkIcon className="w-3.5 h-3.5" />
-                        <span>Адреса</span>
-                    </button>
-                </div>
-
-                {/* Content Area */}
-                <div className="p-5 flex-1 overflow-y-auto custom-scrollbar bg-brand-bg/50">
-                    <AnimatePresence mode="wait">
-                        {/* IF PROVIDER SELECTED: SHOW ADDRESS/UID INPUT FORM */}
-                        {selectedProvider ? (
-                            <motion.div 
-                                key="provider-form"
-                                initial={{ opacity: 0, scale: 0.95 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 0.95 }}
-                                className="space-y-4"
-                            >
-                                <div className="flex items-center justify-between bg-white/5 p-3 rounded-2xl border border-white/10">
-                                    <div>
-                                        <h3 className="text-xs font-black text-white font-orbitron uppercase">{selectedProvider.name}</h3>
-                                        <p className="text-[9px] text-brand-cyan font-mono font-bold uppercase">{selectedProvider.type} • {selectedProvider.chain}</p>
-                                    </div>
-                                    <div className="flex items-center gap-1.5">
-                                        {selectedProvider.url && (
-                                            <button 
-                                                type="button" 
-                                                onClick={(e) => handleOpenExternalUrl(selectedProvider.url, e)}
-                                                className="px-2.5 py-1 rounded-lg bg-amber-400/20 text-amber-300 hover:bg-amber-400/40 text-[9px] font-bold font-mono transition-all flex items-center gap-1"
-                                            >
-                                                🌐 Відкрити
-                                            </button>
-                                        )}
-                                        <button 
-                                            type="button" 
-                                            onClick={() => setSelectedProvider(null)}
-                                            className="px-2.5 py-1 rounded-lg bg-white/10 text-[9px] font-bold text-slate-300 hover:text-white"
-                                        >
-                                            ← Змінити
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <form onSubmit={handleConfirmProviderConnection} className="space-y-3">
-                                    {/* Connection Mode Selector for CEX / Wallets */}
-                                    <div className="flex bg-black/60 p-1 rounded-xl border border-white/10">
-                                        <button 
-                                            type="button" 
-                                            onClick={() => { triggerHaptic('selection'); setConnectionMode('uid'); }}
-                                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${connectionMode === 'uid' ? 'bg-brand-cyan text-black font-bold shadow' : 'text-slate-400'}`}
-                                        >
-                                            🆔 UID / Адреса
-                                        </button>
-                                        <button 
-                                            type="button" 
-                                            onClick={() => { triggerHaptic('selection'); setConnectionMode('api'); }}
-                                            className={`flex-1 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${connectionMode === 'api' ? 'bg-amber-400 text-black font-bold shadow' : 'text-slate-400'}`}
-                                        >
-                                            🔑 Read-Only API
-                                        </button>
-                                    </div>
-
-                                    {connectionMode === 'api' ? (
-                                        <div className="space-y-2">
-                                            <div>
-                                                <div className="flex items-center justify-between mb-1">
-                                                    <label className="text-[9px] font-black uppercase text-amber-300 font-mono">
-                                                        API Key (Read-Only)
-                                                    </label>
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={generateDemoAddress}
-                                                        className="text-[9px] text-amber-400 hover:underline font-mono"
-                                                    >
-                                                        ⚡ Демо API
-                                                    </button>
-                                                </div>
-                                                <input 
-                                                    type="text"
-                                                    value={apiKeyInput}
-                                                    onChange={(e) => setApiKeyInput(e.target.value)}
-                                                    aria-label="Введіть API Key біржі"
-                                                    placeholder="Введіть API Key биржи..."
-                                                    className="w-full bg-black/60 border border-amber-500/30 rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-amber-400 transition-colors placeholder:text-slate-600"
-                                                    autoFocus
-                                                />
-                                            </div>
-                                            <div>
-                                                <label className="text-[9px] font-black uppercase text-slate-400 font-mono block mb-1">
-                                                    API Secret (Read-Only)
-                                                </label>
-                                                <input 
-                                                    type="password"
-                                                    value={apiSecretInput}
-                                                    onChange={(e) => setApiSecretInput(e.target.value)}
-                                                    aria-label="Введіть API Secret біржі"
-                                                    placeholder="••••••••••••••••••••"
-                                                    className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-white font-mono focus:outline-none focus:border-amber-400 transition-colors placeholder:text-slate-600"
-                                                />
-                                            </div>
-                                            <div className="p-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-[10px] text-amber-200 font-mono space-y-1">
-                                                <p className="font-bold">🔒 Безпечний доступ Read-Only:</p>
-                                                <p>Синхронізація балансу Spot & Futures без права зняття чи переказу коштів.</p>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div>
-                                            <div className="flex items-center justify-between mb-1">
-                                                <label className="text-[9px] font-black uppercase text-slate-300 font-mono">
-                                                    UID Біржі / Публічна Адреса ({selectedProvider.chain})
-                                                </label>
-                                                <div className="flex gap-2">
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={handlePasteClipboard}
-                                                        aria-label="Вставити адресу з буфера обміну"
-                                                        className="text-[9px] text-brand-cyan hover:underline font-mono"
-                                                    >
-                                                        📋 Вставити
-                                                    </button>
-                                                    <button 
-                                                        type="button" 
-                                                        onClick={generateDemoAddress}
-                                                        aria-label="Згенерувати тестову адресу"
-                                                        className="text-[9px] text-amber-400 hover:underline font-mono"
-                                                    >
-                                                        ⚡ Тест
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <input 
-                                                type="text"
-                                                value={providerAddressInput}
-                                                onChange={(e) => setProviderAddressInput(e.target.value)}
-                                                aria-label={`UID біржі або публічна адреса ${selectedProvider.chain}`}
-                                                placeholder={selectedProvider.chain === 'ETH' ? '0x71C... або UID биржи' : selectedProvider.chain === 'SOL' ? 'Solana public address...' : 'EQA1... або Telegram UID'}
-                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-mono focus:outline-none focus:border-brand-cyan transition-colors placeholder:text-slate-600"
-                                                autoFocus
-                                            />
-                                            <div className="mt-2 p-3 rounded-xl bg-brand-cyan/5 border border-brand-cyan/20 text-[10px] text-slate-300 font-mono space-y-1">
-                                                <p className="text-brand-cyan font-bold">ℹ️ Безпечне підключення:</p>
-                                                <p>Використовується лише публічна адреса або UID для моніторингу балансу та транзакцій у реальному часі.</p>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="flex gap-2 pt-1">
-                                        <button 
-                                            type="button"
-                                            onClick={() => setSelectedProvider(null)}
-                                            className="flex-1 py-3 rounded-xl bg-white/5 border border-white/10 text-slate-400 font-bold font-orbitron text-xs uppercase"
-                                        >
-                                            Скасувати
-                                        </button>
-                                        <button 
-                                            type="submit"
-                                            disabled={isConnecting}
-                                            className="flex-[2] py-3 rounded-xl bg-brand-cyan text-black font-black font-orbitron text-xs uppercase tracking-wider hover:bg-brand-cyan/90 transition-all active:scale-95 shadow-lg"
-                                        >
-                                            Підключити
-                                        </button>
-                                    </div>
-                                </form>
-                            </motion.div>
-                        ) : (
-                            <>
-                                {/* TAB 1: TON & TELEGRAM WALLETS */}
-                                {activeTab === 'ton' && (
-                                    <motion.div 
-                                        key="tab-ton"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="space-y-4"
-                                    >
-                                        <p className="text-xs text-slate-300 font-mono leading-relaxed text-center">
-                                            Офіційне підключення TON Connect для Telegram Wallet (@wallet), Tonkeeper, GRAM Token & TON Space.
-                                        </p>
-
-                                        <button 
-                                            onClick={handleTonConnect}
-                                            className="w-full h-14 rounded-2xl bg-[#0098EA] relative overflow-hidden group shadow-[0_0_25px_rgba(0,152,234,0.3)] transition-all active:scale-[0.98] hover:shadow-[0_0_40px_rgba(0,152,234,0.5)] flex items-center justify-center gap-3"
-                                        >
-                                            <TelegramIcon className="w-6 h-6 text-white" />
-                                            <span className="font-black text-white font-orbitron uppercase tracking-widest text-xs">
-                                                TON Connect (Telegram / Tonkeeper)
-                                            </span>
-                                        </button>
-
-                                        {/* Telegram Ecosystem Tokens & Stars Info Badge */}
-                                        <div className="p-3.5 rounded-2xl bg-gradient-to-r from-sky-950/60 to-black border border-sky-500/30 text-[10px] text-slate-300 font-mono space-y-1.5">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sky-400 font-bold font-orbitron uppercase flex items-center gap-1">
-                                                    💎 Telegram Ecosystem Hub
-                                                </span>
-                                                <span className="text-[8px] bg-sky-500/20 text-sky-300 px-1.5 py-0.5 rounded font-bold border border-sky-500/30">
-                                                    TON • GRAM • ⭐
-                                                </span>
-                                            </div>
-                                            <p className="text-[9px] text-slate-300 leading-normal">
-                                                Підтримуються транзакції <b>TON</b>, <b>GRAM Token</b> (Telegram Community Token) та платіжний баланс <b>Telegram Stars ⭐</b>.
-                                            </p>
-                                        </div>
-                                    </motion.div>
-                                )}
-
-                                 {/* TAB 2: CRYPTO EXCHANGES (CEX & WEB3) */}
-                                {activeTab === 'exchange' && (
-                                    <motion.div 
-                                        key="tab-exchange"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="space-y-4"
-                                    >
-                                        <div>
-                                            <p className="text-[10px] font-black uppercase tracking-wider text-amber-400 font-mono mb-2 flex items-center gap-1">
-                                                🏦 Централізовані Біржі (CEX Spot / Futures)
-                                            </p>
-                                            <div className="space-y-2">
-                                                {cexExchanges.map((ex) => (
-                                                    <div 
-                                                        key={ex.name}
-                                                        onClick={() => handleSelectProviderCard(ex.name, ex.chain, ex.type, ex.url)}
-                                                        className={`w-full p-3.5 rounded-2xl bg-gradient-to-r ${ex.color} border ${ex.border} flex items-center justify-between group transition-all cursor-pointer active:scale-[0.98] hover:border-amber-400/60`}
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-xl bg-amber-400/10 border border-amber-400/30 flex items-center justify-center text-amber-300 font-bold font-orbitron text-xs">
-                                                                {ex.name.slice(0, 2)}
-                                                            </div>
-                                                            <div className="text-left">
-                                                                <p className="text-white font-bold text-xs font-orbitron">{ex.name}</p>
-                                                                <p className="text-[9px] text-slate-400 font-mono uppercase">{ex.type}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => handleOpenExternalUrl(ex.url, e)}
-                                                                className="px-2 py-1 rounded bg-amber-400/20 text-amber-300 hover:bg-amber-400/40 text-[9px] font-bold font-mono transition-all flex items-center gap-1"
-                                                                title="Перейти на сайт/додаток біржі"
-                                                            >
-                                                                🌐 Відкрити
-                                                            </button>
-                                                            <span className="text-[8px] font-black uppercase px-2 py-1 rounded bg-amber-400/20 text-amber-300 border border-amber-400/30">
-                                                                {ex.badge}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-
-                                        <div className="pt-2 border-t border-white/5">
-                                            <p className="text-[10px] font-black uppercase tracking-wider text-brand-cyan font-mono mb-2 flex items-center gap-1">
-                                                ⚡ Web3 Гаманці Бірж
-                                            </p>
-                                            <div className="space-y-2">
-                                                {web3Exchanges.map((ex) => (
-                                                    <div 
-                                                        key={ex.name}
-                                                        onClick={() => handleSelectProviderCard(ex.name, ex.chain, ex.type, ex.url)}
-                                                        className={`w-full p-3.5 rounded-2xl bg-gradient-to-r ${ex.color} border ${ex.border} flex items-center justify-between group transition-all cursor-pointer active:scale-[0.98] hover:border-brand-cyan/50`}
-                                                    >
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-xl bg-white/10 flex items-center justify-center text-white font-bold font-orbitron text-xs">
-                                                                {ex.name.slice(0, 2)}
-                                                            </div>
-                                                            <div className="text-left">
-                                                                <p className="text-white font-bold text-xs font-orbitron">{ex.name}</p>
-                                                                <p className="text-[9px] text-slate-400 font-mono uppercase">{ex.type} • {ex.chain}</p>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <button
-                                                                type="button"
-                                                                onClick={(e) => handleOpenExternalUrl(ex.url, e)}
-                                                                className="px-2 py-1 rounded bg-white/10 text-brand-cyan hover:bg-white/20 text-[9px] font-bold font-mono transition-all flex items-center gap-1"
-                                                                title="Перейти на сайт/додаток"
-                                                            >
-                                                                🌐 Відкрити
-                                                            </button>
-                                                            <span className="text-[8px] font-black uppercase px-2 py-1 rounded bg-white/10 text-brand-cyan border border-brand-cyan/20">
-                                                                {ex.badge}
-                                                            </span>
-                                                        </div>
-                                                    </div>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                )}
-
-                                {/* TAB 3: WEB3 MULTI-CHAIN WALLETS */}
-                                {activeTab === 'web3' && (
-                                    <motion.div 
-                                        key="tab-web3"
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        exit={{ opacity: 0, y: -10 }}
-                                        className="space-y-3"
-                                    >
-                                        {/* Direct Browser Extension Connect Button (MetaMask / injected window.ethereum) */}
-                                        <button 
-                                            onClick={handleDirectMetaMaskConnect}
-                                            disabled={isConnecting}
-                                            className="w-full py-3.5 px-4 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-600 text-black font-black font-orbitron text-xs uppercase tracking-wider flex items-center justify-between shadow-[0_0_20px_rgba(245,158,11,0.3)] hover:brightness-110 active:scale-[0.98] transition-all"
-                                        >
-                                            <div className="flex items-center gap-2.5">
-                                                <span className="text-base">🦊</span>
-                                                <span>MetaMask Direct Extension</span>
-                                            </div>
-                                            <span className="text-[9px] bg-black/30 text-white px-2 py-0.5 rounded font-mono font-bold uppercase">
-                                                {typeof window !== 'undefined' && (window as any).ethereum ? 'DETECTED ⚡' : 'CONNECT'}
-                                            </span>
-                                        </button>
-
-                                        <p className="text-[10px] text-slate-400 font-mono leading-relaxed my-2">
-                                            Або оберіть потрібний Web3-гаманець для введення адреси:
-                                        </p>
-
-                                        {web3Wallets.map((w) => (
-                                            <div 
-                                                key={w.name}
-                                                onClick={() => handleSelectProviderCard(w.name, w.chain, 'Web3 Wallet', w.url)}
-                                                className="w-full p-4 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-between group transition-all cursor-pointer active:scale-[0.98] hover:border-brand-cyan/50 hover:bg-white/10"
-                                            >
-                                                <div className="flex items-center gap-3">
-                                                    <div className="w-9 h-9 rounded-xl bg-brand-cyan/10 border border-brand-cyan/30 flex items-center justify-center text-brand-cyan font-bold text-xs">
-                                                        {w.name[0]}
-                                                    </div>
-                                                    <div className="text-left">
-                                                        <p className="text-white font-bold text-xs font-orbitron">{w.name}</p>
-                                                        <p className="text-[9px] text-slate-400 font-mono uppercase">Web3 Provider • {w.chain}</p>
-                                                    </div>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <button
-                                                        type="button"
-                                                        onClick={(e) => handleOpenExternalUrl(w.url, e)}
-                                                        className="px-2 py-1 rounded bg-brand-cyan/10 text-brand-cyan hover:bg-brand-cyan/20 text-[9px] font-bold font-mono transition-all flex items-center gap-1"
-                                                    >
-                                                        🌐 Відкрити
-                                                    </button>
-                                                    <span className="text-[8px] font-black uppercase px-2 py-1 rounded bg-brand-cyan/20 text-brand-cyan">
-                                                        {w.badge}
-                                                    </span>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </motion.div>
-                                )}
-                            </>
-                        )}
-
-                        {/* TAB 4: CUSTOM ADDRESS / API LINKING */}
-                        {activeTab === 'custom' && (
-                            <motion.div 
-                                key="tab-custom"
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -10 }}
-                                className="space-y-4"
-                            >
-                                <p className="text-xs text-slate-300 font-mono leading-relaxed">
-                                    Введіть публічну адресу гаманця або ID облікового запису біржі для відстеження активів:
-                                </p>
-
-                                <form onSubmit={handleConnectCustom} className="space-y-3">
-                                    <div>
-                                        <label className="text-[9px] font-black uppercase text-slate-400 font-mono block mb-1">Мережа / Назва</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {(['ETH', 'TON', 'SOL'] as const).map(c => (
-                                                <button 
-                                                    type="button"
-                                                    key={c}
-                                                    onClick={() => setCustomChain(c)}
-                                                    className={`py-2 rounded-xl text-[9px] font-black font-orbitron border transition-all ${customChain === c ? 'bg-brand-cyan text-black border-brand-cyan' : 'bg-white/5 border-white/10 text-slate-400'}`}
-                                                >
-                                                    {c}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="text-[9px] font-black uppercase text-slate-400 font-mono block mb-1">Публічна адреса / Exchange UID</label>
-                                        <input 
-                                            type="text"
-                                            value={customAddress}
-                                            onChange={(e) => setCustomAddress(e.target.value)}
-                                            aria-label="Публічна адреса гаманця або Exchange UID"
-                                            placeholder={customChain === 'ETH' ? '0x1234...abcd' : customChain === 'TON' ? 'EQA123...xyz' : 'Solana Address...'}
-                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-mono focus:outline-none focus:border-brand-cyan transition-colors placeholder:text-slate-600"
-                                        />
-                                    </div>
-
-                                    <button 
-                                        type="submit"
-                                        disabled={isConnecting}
-                                        className="w-full py-3.5 rounded-xl bg-brand-cyan text-black font-black font-orbitron text-xs uppercase tracking-widest hover:bg-brand-cyan/90 transition-all active:scale-95 shadow-lg"
-                                    >
-                                        Прив'язати адресу
-                                    </button>
-                                </form>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
-                
-                {/* Footer status */}
-                <div className="p-3 bg-black/60 text-center shrink-0 border-t border-white/5 relative overflow-hidden">
-                    <p className="text-[9px] text-slate-500 font-mono flex items-center justify-center gap-2 uppercase font-black tracking-widest">
-                        <ActivityIcon className="w-3 h-3 text-brand-green" /> Multi-Chain Encrypted Link v8.0
-                    </p>
                 </div>
             </motion.div>
         </motion.div>

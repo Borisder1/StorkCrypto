@@ -16,7 +16,7 @@ import Skeleton from '../Skeleton';
 import { PortfolioDistributionChart } from '../PortfolioDistributionChart';
 import { HelpIndicator } from '../HelpIndicator';
 import { getTonConnectUI } from '../../services/tonConnectService';
-import { useIsConnectionRestored } from '@tonconnect/ui-react';
+import { useIsConnectionRestored, useTonAddress, useTonWallet } from '@tonconnect/ui-react';
 
 // OPTIMIZATION: Memoized component to prevent re-renders on parent state changes
 const AssetEntry = React.memo(({ asset, totalPortfolioValue, t }: { asset: Asset, totalPortfolioValue: number, t: (key: string) => string }) => {
@@ -71,17 +71,28 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
     };
     
     const isConnectionRestored = useIsConnectionRestored();
+    const tonAddress = useTonAddress();
+    const tonWallet = useTonWallet();
+    const effectiveAddress = tonAddress || wallet.address;
+    const isTonConnected = Boolean(effectiveAddress && (wallet.isConnected || tonWallet));
+
+    useEffect(() => {
+        if (tonAddress && !wallet.isConnected) {
+            useStore.getState().connectWallet(tonAddress, tonWallet?.device?.appName || 'TON Wallet', 'TON');
+        }
+    }, [tonAddress, tonWallet, wallet.isConnected]);
+
     const isSyncing = wallet.isSyncing && balanceType === 'MAINNET';
 
     const [walletConnectState, setWalletConnectState] = useState<'disconnected' | 'opening chooser' | 'connecting' | 'connected' | 'cancelled' | 'failed' | 'disconnected again'>('disconnected');
 
     useEffect(() => {
-        if (wallet.isConnected) {
+        if (isTonConnected) {
             setWalletConnectState('connected');
         } else if (walletConnectState === 'connected') {
             setWalletConnectState('disconnected again');
         }
-    }, [wallet.isConnected]);
+    }, [isTonConnected]);
 
     useEffect(() => {
         const unsubscribe = binanceWS.subscribe((data) => {
@@ -189,15 +200,15 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                     </div>
                     {balanceType === 'MAINNET' && (
                         <div className="mt-5 space-y-3">
-                            {wallet.isConnected ? (
+                            {isTonConnected ? (
                                 <div className="p-4 rounded-2xl bg-black/60 border border-brand-cyan/30 text-left space-y-3 font-mono text-xs shadow-[0_0_20px_rgba(0,240,255,0.08)]">
                                     <div className="flex items-center justify-between pb-2 border-b border-white/5">
                                         <div className="flex items-center gap-2">
                                             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                                            <span className="text-emerald-400 font-bold font-orbitron text-[11px] uppercase tracking-wider">TON Wallet connected</span>
+                                            <span className="text-emerald-400 font-bold font-orbitron text-[11px] uppercase tracking-wider">TON Wallet Connected</span>
                                         </div>
                                         <span className="text-[10px] px-2 py-0.5 rounded bg-white/5 text-slate-400 border border-white/5 font-mono">
-                                            {wallet.walletType || 'TON Wallet'}
+                                            {tonWallet?.device?.appName || wallet.walletType || 'TON Wallet'}
                                         </span>
                                     </div>
 
@@ -205,15 +216,15 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                         <div>
                                             <span className="text-[10px] text-slate-500 uppercase tracking-wider block">Address:</span>
                                             <code className="text-white font-bold font-mono text-xs tracking-wider">
-                                                {shortenTonAddress(wallet.address)}
+                                                {shortenTonAddress(effectiveAddress)}
                                             </code>
                                         </div>
                                         <div className="flex items-center gap-1.5 flex-wrap">
                                             <button
                                                 type="button"
                                                 onClick={() => {
-                                                    if (wallet.address) {
-                                                        navigator.clipboard?.writeText(wallet.address);
+                                                    if (effectiveAddress) {
+                                                        navigator.clipboard?.writeText(effectiveAddress);
                                                         triggerHaptic('success');
                                                         showToast('Адресу TON скопійовано');
                                                     }
@@ -224,7 +235,7 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                                 Copy
                                             </button>
                                             <a
-                                                href={`https://tonscan.org/address/${encodeURIComponent(wallet.address || '')}`}
+                                                href={`https://tonscan.org/address/${encodeURIComponent(effectiveAddress || '')}`}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
                                                 aria-label="Open in explorer"
@@ -234,8 +245,14 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                             </a>
                                             <button
                                                 type="button"
-                                                onClick={() => {
+                                                onClick={async () => {
                                                     triggerHaptic('light');
+                                                    try {
+                                                        const tonConnectUI = getTonConnectUI();
+                                                        if (tonConnectUI?.connected) {
+                                                            await tonConnectUI.disconnect();
+                                                        }
+                                                    } catch {}
                                                     disconnectWallet();
                                                     setWalletConnectState('disconnected again');
                                                 }}
@@ -260,7 +277,9 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="flex flex-col items-center justify-center gap-2">
+                                <div className="flex flex-col items-center justify-center gap-2 p-3 rounded-2xl bg-black/40 border border-white/5">
+                                    <span className="font-orbitron font-bold text-xs text-white uppercase tracking-wider">TON Wallet</span>
+                                    <span className="text-[10px] text-slate-500 font-mono">Not connected</span>
                                     <button
                                         type="button"
                                         onClick={async () => {
@@ -296,7 +315,6 @@ const PortfolioScreen: React.FC<{ onClose?: () => void }> = ({ onClose }) => {
                                             ? 'Connect TON Wallet (Retry)'
                                             : 'Connect TON Wallet'}
                                     </button>
-                                    <span className="text-[10px] text-slate-500 font-mono">TON Wallet not connected</span>
                                 </div>
                             )}
                         </div>

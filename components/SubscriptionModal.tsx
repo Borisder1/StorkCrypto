@@ -149,20 +149,29 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         try {
             const tg = window.Telegram?.WebApp;
             const tgInitData = tg?.initData || '';
-            const res = await fetch('/api/payments/stars/create', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `tma ${tgInitData}`
-                },
-                body: JSON.stringify({
-                    plan: selectedPlan === 'PRO' ? 'pro_monthly' : 'whale_monthly',
-                    planId: selectedPlan,
-                    clientRequestId,
-                    initData: tgInitData,
-                    userId: userStats?.id || 'tg_user'
-                })
-            });
+
+            let res: Response;
+            if (tgInitData) {
+                res = await fetch('/api/payments/stars/create', {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `tma ${tgInitData}`
+                    },
+                    body: JSON.stringify({
+                        plan: selectedPlan === 'PRO' ? 'pro_monthly' : 'whale_monthly'
+                    })
+                });
+            } else {
+                // Standalone browser fallback (external web checkout)
+                res = await fetch('/api/payments/stars/create-link', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        plan: selectedPlan === 'PRO' ? 'pro_monthly' : 'whale_monthly'
+                    })
+                });
+            }
 
             if (!res.ok) {
                 const errData = await res.json().catch(() => ({}));
