@@ -10,7 +10,7 @@ interface Context {
 // In-memory intent registry with 15-minute TTL
 export const activeIntents = new Map<string, {
   intentId: string;
-  plan: 'PRO' | 'WHALE';
+  plan: 'STARTER' | 'PRO' | 'WHALE';
   amountNano: string;
   receiver: string;
   nonce: string;
@@ -58,19 +58,19 @@ export async function onRequestPost(context: Context): Promise<Response> {
     const body = await context.request.json() as any;
     const { plan, userId } = body || {};
 
-    if (!plan || (plan !== 'PRO' && plan !== 'WHALE')) {
+    if (!plan || (plan !== 'STARTER' && plan !== 'PRO' && plan !== 'WHALE')) {
       return new Response(JSON.stringify({
         success: false,
         error: 'INVALID_PLAN',
-        message: 'Plan must be PRO or WHALE'
+        message: 'Plan must be STARTER, PRO or WHALE'
       }), {
         status: 400,
         headers
       });
     }
 
-    const treasuryReceiver = context.env?.ADMIN_TREASURY_WALLET || TREASURY_ALLOWLIST[0];
-    const amountNano = plan === 'PRO' ? '1500000000' : '3000000000'; // 1.5 TON / 3.0 TON
+    const treasuryReceiver = context.env?.ADMIN_TREASURY_WALLET || context.env?.VITE_TREASURY_TON_WALLET || TREASURY_ALLOWLIST[0];
+    const amountNano = plan === 'STARTER' ? '1000000000' : plan === 'PRO' ? '2500000000' : '5000000000'; // 1.0 TON, 2.5 TON, 5.0 TON
     const nonce = Math.random().toString(36).substring(2, 10).toUpperCase();
     const intentId = `INTENT_${Date.now()}_${nonce}`;
     const expiry = Date.now() + 15 * 60 * 1000; // 15 mins

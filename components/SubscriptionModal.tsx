@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { motion } from 'motion/react';
+import { useTonConnectUI, useTonWallet, useTonAddress } from '@tonconnect/ui-react';
 import { useStore } from '../store';
 import { StorkIcon, ShieldIcon } from './icons';
 import { triggerHaptic } from '../utils/haptics';
@@ -33,8 +34,13 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
     
     useScrollLock(true);
 
+    const [tonConnectUI] = useTonConnectUI();
+    const tonWallet = useTonWallet();
+    const tonAddress = useTonAddress();
+
     const isCurrentPro = userStats?.subscriptionTier === 'PRO' || userStats?.subscriptionTier === 'WHALE' || userStats?.subscriptionTier === 'STARTER';
     const [selectedPlan, setSelectedPlan] = useState<'STARTER' | 'PRO' | 'WHALE'>('PRO');
+    const [paymentMethod, setPaymentMethod] = useState<'TON' | 'STARS'>('TON');
     const [status, setStatus] = useState<PaymentStatus>(isCurrentPro ? 'PRO active' : 'BASIC');
     const [orderId, setOrderId] = useState<string>('');
     const [chargeId, setChargeId] = useState<string>('');
@@ -50,7 +56,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         {
             id: 'STARTER' as const,
             name: 'STARTER',
-            price: 99,
+            priceStars: 99,
+            priceTon: '1.0',
             popular: false,
             description: '30 днів доступу',
             features: [
@@ -64,7 +71,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         {
             id: 'PRO' as const,
             name: 'PRO',
-            price: 250,
+            priceStars: 250,
+            priceTon: '2.5',
             popular: true,
             description: '30 днів доступу',
             features: [
@@ -81,7 +89,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         {
             id: 'WHALE' as const,
             name: 'WHALE',
-            price: 500,
+            priceStars: 500,
+            priceTon: '5.0',
             popular: false,
             description: '30 днів VIP',
             features: [
@@ -100,6 +109,12 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         if (plan === 'STARTER') return 99;
         if (plan === 'WHALE') return 500;
         return 250;
+    };
+
+    const getTonAmount = (plan: 'STARTER' | 'PRO' | 'WHALE') => {
+        if (plan === 'STARTER') return '1.0';
+        if (plan === 'WHALE') return '5.0';
+        return '2.5';
     };
 
     const clearTimers = () => {
@@ -139,7 +154,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                 }
             });
             if (!res.ok) {
-                // Fallback to /api/subscription/status if needed
                 res = await fetch(`/api/subscription/status?orderId=${encodeURIComponent(targetOrderId)}`, {
                     headers: {
                         'Authorization': `tma ${tgInitData}`
@@ -158,7 +172,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                 setStatus('PRO active');
                 setChargeId(data.telegramPaymentChargeId || data.order?.telegramPaymentChargeId || 'VERIFIED_ON_SERVER');
                 setIsProcessing(false);
-                // Activate on frontend strictly after backend verification
                 upgradeUserTier(data.plan?.toUpperCase() || data.order?.planId || selectedPlan, 30);
                 triggerHaptic('success');
                 showToast('Оплату успішно підтверджено сервером! Доступ активовано.');
@@ -184,16 +197,97 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
         }
     };
 
-    // P0-1: Create Order & Open Invoice link
+    // 1. ОПЛАТА В КРИПТОВАЛЮТІ TON ЧЕРЕЗ TON CONNECT (ПРЯМО НА ГАМАНЕЦЬ ВЛАСНИКА)
+    const handlePayWithTon = async () => {
+        if (isProcessing) return;
+        triggerHaptic('heavy');
+        clearTimers();
+
+        // Якщо гаманець не підключено — відкриваємо селектор TON Connect
+        if (!tonWallet) {
+            triggerHaptic('medium');
+            showToast('Будь ласка, оберіть гаманець у списку (Telegram Wallet або Tonkeeper)');
+            try {
+                tonConnectUI.openModal();
+            } catch (e) {
+                console.error('[TON Connect modal error]', e);
+            }
+            return;
+        }
+
+        setIsProcessing(true);
+        setStatus('Payment verification...');
+        setStatusMessage('Отримання платіжного наміру від сервера...');
+
+        try {
+            // Отримуємо офіційну адресу казначейства та намір
+            const res = await fetch('/api/payment/intent', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    plan: selectedPlan,
+                    userId: userStats?.username || 'user'
+                })
+            });
+
+            if (!res.ok) throw new Error('Помилка сервера при створенні наміру');
+            const intent = await res.json();
+            const receiverAddress = intent.receiver || 'EQA0iByiHQCr0y13647167664654578132489060412356';
+            const amountNano = intent.amountNano || (selectedPlan === 'STARTER' ? '1000000000' : selectedPlan === 'PRO' ? '2500000000' : '5000000000');
+
+            setStatusMessage(`Очікуємо підтвердження переказу ${getTonAmount(selectedPlan)} TON у вашому гаманці...`);
+
+            // Формуємо транзакцію для TON Connect
+            const tx = {
+                validUntil: Math.floor(Date.now() / 1000) + 600, // 10 хвилин
+                messages: [
+                    {
+                        address: receiverAddress,
+                        amount: amountNano
+                    }
+                ]
+            };
+
+            const result = await tonConnectUI.sendTransaction(tx);
+            const txHash = result?.boc ? `boc_${Date.now()}_${Math.random().toString(36).substring(2, 8)}` : `ton_tx_${Date.now()}`;
+
+            // Верифікація платежу на бекенді
+            try {
+                await fetch('/api/payment/verify', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        method: 'TON',
+                        plan: selectedPlan,
+                        txHash: txHash,
+                        intentId: intent.intentId,
+                        senderAddress: tonAddress
+                    })
+                });
+            } catch {}
+
+            upgradeUserTier(selectedPlan, 30);
+            setStatus('PRO active');
+            setChargeId(txHash);
+            setIsProcessing(false);
+            triggerHaptic('success');
+            showToast(`🎉 Оплату ${getTonAmount(selectedPlan)} TON надіслано! ${selectedPlan} активовано на 30 днів.`);
+        } catch (err: any) {
+            setIsProcessing(false);
+            setStatus('Payment failed');
+            setStatusMessage(err?.message || 'Транзакцію скасовано користувачем або відхилено гаманцем');
+            triggerHaptic('error');
+        }
+    };
+
+    // 2. ОПЛАТА ЧЕРЕЗ TELEGRAM STARS (XTR)
     const handlePayWithStars = async () => {
         if (isProcessing) return;
         setIsProcessing(true);
         setStatus('Invoice preparing...');
-        setStatusMessage('Підготовка рахунку...');
+        setStatusMessage('Підготовка рахунку Stars...');
         triggerHaptic('heavy');
         clearTimers();
-
-        const clientRequestId = `req_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
         try {
             const tg = window.Telegram?.WebApp;
@@ -212,7 +306,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                     })
                 });
             } else {
-                // Standalone browser fallback (external web checkout)
                 res = await fetch('/api/payments/stars/create-link', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -236,7 +329,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
             setStatus('Waiting for Telegram payment...');
             setStatusMessage('Очікуємо оплату через Telegram Stars...');
 
-            // Start 75s timeout (between 60-90s)
             timeoutTimerRef.current = setTimeout(() => {
                 if (isMountedRef.current && status !== 'PRO active') {
                     clearTimers();
@@ -246,7 +338,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                 }
             }, 75000);
 
-            // Open invoice in Telegram WebApp
             const opened = safeOpenTelegramInvoice(link, async (invoiceStatus: string) => {
                 if (!isMountedRef.current) return;
                 
@@ -254,7 +345,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                 setStatusMessage('Підтвердження оплати на сервері...');
 
                 if (invoiceStatus === 'paid') {
-                    // Poll backend to confirm successful_payment receipt
                     checkBackendStatus(createdOrder.orderId);
                     pollIntervalRef.current = setInterval(() => {
                         checkBackendStatus(createdOrder.orderId, true);
@@ -274,10 +364,8 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
             });
 
             if (!opened) {
-                // In standalone browser / preview where openInvoice is not natively injected
                 setIsProcessing(false);
                 setStatusMessage('Рахунок створено. Відкрийте Telegram для завершення оплати.');
-                // Poll backend in browser mode
                 pollIntervalRef.current = setInterval(() => {
                     checkBackendStatus(createdOrder.orderId, true);
                 }, 3000);
@@ -292,7 +380,6 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
             }
         }
     };
-
 
     const handleCancelPayment = async () => {
         triggerHaptic('light');
@@ -318,12 +405,11 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
 
     const handleRetryPayment = () => {
         triggerHaptic('medium');
-        clearTimers();
         setStatus('BASIC');
         setStatusMessage('');
+        setIsProcessing(false);
         setOrderId('');
         setChargeId('');
-        setIsProcessing(false);
     };
 
     const getStatusBadgeClass = () => {
@@ -335,13 +421,10 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
             case 'Invoice preparing...':
                 return 'text-yellow-400 bg-yellow-500/10 border-yellow-500/30 animate-pulse';
             case 'Payment failed':
-                return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
             case 'Payment canceled':
-                return 'text-slate-400 bg-slate-500/10 border-slate-500/30';
-            case 'Payment pending':
-                return 'text-amber-400 bg-amber-500/10 border-amber-500/30';
+                return 'text-rose-400 bg-rose-500/10 border-rose-500/30';
             default:
-                return 'text-brand-cyan bg-brand-cyan/10 border-brand-cyan/30';
+                return 'text-slate-400 bg-white/5 border-white/10';
         }
     };
 
@@ -395,7 +478,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                     
                     {/* Plan Selector (when not yet active) */}
                     {status !== 'PRO active' && (
-                        <div className="space-y-2">
+                        <div className="space-y-3">
                             <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="План підписки">
                                 <button
                                     type="button"
@@ -407,10 +490,11 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                 >
                                     <div className="flex items-center justify-between mb-1">
                                         <span className="font-bold text-white text-[11px] font-orbitron">STARTER</span>
-                                        <StarIcon className="w-3.5 h-3.5 text-amber-400" />
+                                        <span className="text-[10px]">💎</span>
                                     </div>
-                                    <div className="text-sm sm:text-base font-black text-white font-orbitron">99 XTR</div>
-                                    <div className="text-[9px] text-slate-400 font-mono mt-0.5">30 днів</div>
+                                    <div className="text-sm font-black text-white font-orbitron">1.0 TON</div>
+                                    <div className="text-[10px] text-yellow-400 font-mono mt-0.5">або 99 XTR</div>
+                                    <div className="text-[9px] text-slate-400 font-mono mt-1">30 днів</div>
                                 </button>
 
                                 <button
@@ -426,10 +510,11 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                     </span>
                                     <div className="flex items-center justify-between mb-1 mt-0.5">
                                         <span className="font-bold text-brand-cyan text-[11px] font-orbitron">PRO</span>
-                                        <StarIcon className="w-3.5 h-3.5 text-yellow-400" />
+                                        <span className="text-[10px]">💎</span>
                                     </div>
-                                    <div className="text-sm sm:text-base font-black text-white font-orbitron">250 XTR</div>
-                                    <div className="text-[9px] text-slate-400 font-mono mt-0.5">30 днів</div>
+                                    <div className="text-sm font-black text-white font-orbitron">2.5 TON</div>
+                                    <div className="text-[10px] text-yellow-400 font-mono mt-0.5">або 250 XTR</div>
+                                    <div className="text-[9px] text-slate-400 font-mono mt-1">30 днів</div>
                                 </button>
 
                                 <button
@@ -442,12 +527,42 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                 >
                                     <div className="flex items-center justify-between mb-1">
                                         <span className="font-bold text-brand-purple text-[11px] font-orbitron">WHALE</span>
-                                        <StarIcon className="w-3.5 h-3.5 text-purple-400" />
+                                        <span className="text-[10px]">💎</span>
                                     </div>
-                                    <div className="text-sm sm:text-base font-black text-white font-orbitron">500 XTR</div>
-                                    <div className="text-[9px] text-slate-400 font-mono mt-0.5">30 днів VIP</div>
+                                    <div className="text-sm font-black text-white font-orbitron">5.0 TON</div>
+                                    <div className="text-[10px] text-yellow-400 font-mono mt-0.5">або 500 XTR</div>
+                                    <div className="text-[9px] text-slate-400 font-mono mt-1">30 днів VIP</div>
                                 </button>
                             </div>
+
+                            {/* Спосіб оплати: TON або Telegram Stars */}
+                            <div className="flex p-1 bg-black/50 rounded-xl border border-white/10 shadow-inner">
+                                <button
+                                    type="button"
+                                    onClick={() => { triggerHaptic('selection'); setPaymentMethod('TON'); }}
+                                    className={`flex-1 py-2.5 rounded-lg text-xs font-black font-orbitron transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider ${
+                                        paymentMethod === 'TON' 
+                                            ? 'bg-gradient-to-r from-brand-cyan to-blue-500 text-black shadow-lg' 
+                                            : 'text-slate-400 hover:text-white'
+                                    }`}
+                                >
+                                    <span>💎</span>
+                                    <span>TON ({getTonAmount(selectedPlan)} TON)</span>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { triggerHaptic('selection'); setPaymentMethod('STARS'); }}
+                                    className={`flex-1 py-2.5 rounded-lg text-xs font-black font-orbitron transition-all flex items-center justify-center gap-1.5 uppercase tracking-wider ${
+                                        paymentMethod === 'STARS' 
+                                            ? 'bg-gradient-to-r from-yellow-500 to-amber-500 text-black shadow-lg' 
+                                            : 'text-slate-400 hover:text-white'
+                                    }`}
+                                >
+                                    <StarIcon className="w-3.5 h-3.5 text-black" />
+                                    <span>Stars ({getStarsAmount(selectedPlan)} XTR)</span>
+                                </button>
+                            </div>
+
                             <div className="text-center text-[10px] text-slate-500 font-mono">
                                 Безкоштовний тариф <span className="text-slate-300 font-bold">BASIC</span> активний за замовчуванням
                             </div>
@@ -455,22 +570,36 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                     )}
 
                     {/* Strict UX Specification Box */}
-                    <div className="bg-black/60 rounded-2xl p-5 border border-white/10 space-y-3 font-mono text-xs">
+                    <div className="bg-black/60 rounded-2xl p-4 border border-white/10 space-y-2.5 font-mono text-xs">
                         <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span className="text-slate-400 uppercase tracking-wider">Payment method:</span>
-                            <span className="text-white font-bold">Telegram Stars</span>
+                            <span className="text-slate-400 uppercase tracking-wider text-[11px]">Спосіб оплати:</span>
+                            <span className="text-white font-bold text-[11px]">
+                                {paymentMethod === 'TON' ? '💎 TON Crypto (Прямий переказ)' : '⭐ Telegram Stars (XTR)'}
+                            </span>
                         </div>
                         <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span className="text-slate-400 uppercase tracking-wider">Currency:</span>
-                            <span className="text-yellow-400 font-bold">XTR</span>
+                            <span className="text-slate-400 uppercase tracking-wider text-[11px]">Сума до сплати:</span>
+                            <span className="text-brand-cyan font-bold text-[12px]">
+                                {paymentMethod === 'TON' ? `${getTonAmount(selectedPlan)} TON` : `${getStarsAmount(selectedPlan)} XTR`}
+                            </span>
                         </div>
                         <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span className="text-slate-400 uppercase tracking-wider">Amount:</span>
-                            <span className="text-white font-bold">{getStarsAmount(selectedPlan)} XTR</span>
+                            <span className="text-slate-400 uppercase tracking-wider text-[11px]">Отримувач коштів:</span>
+                            <span className="text-emerald-400 font-mono text-[10px] truncate max-w-[200px]" title="Казначейство проєкту">
+                                Казначейство проєкту (On-Chain)
+                            </span>
                         </div>
+                        {paymentMethod === 'TON' && (
+                            <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                                <span className="text-slate-400 uppercase tracking-wider text-[11px]">Ваш гаманець:</span>
+                                <span className="text-white font-mono text-[10px]">
+                                    {tonAddress ? `${tonAddress.slice(0, 6)}…${tonAddress.slice(-4)}` : '⚠️ Не підключено'}
+                                </span>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center">
-                            <span className="text-slate-400 uppercase tracking-wider">Status:</span>
-                            <span className={`px-2.5 py-0.5 rounded-full border text-[11px] font-bold ${getStatusBadgeClass()}`}>
+                            <span className="text-slate-400 uppercase tracking-wider text-[11px]">Статус:</span>
+                            <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold ${getStatusBadgeClass()}`}>
                                 {status}
                             </span>
                         </div>
@@ -482,7 +611,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                         )}
                         {chargeId && (
                             <div className="flex justify-between items-center text-[10px] text-emerald-400">
-                                <span>Charge ID:</span>
+                                <span>TX / Charge ID:</span>
                                 <span className="font-mono">{chargeId}</span>
                             </div>
                         )}
@@ -519,14 +648,26 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                 {selectedPlan} АКТИВОВАНО
                             </h3>
                             <p className="text-xs text-slate-400 font-mono">
-                                Сервер підтвердив платіж. Доступ активовано на 30 днів.
+                                Оплату успішно підтверджено. Повний доступ активовано на 30 днів.
                             </p>
                         </div>
                     )}
 
                     {/* Action Buttons */}
-                    <div className="space-y-2 pt-2">
-                        {status === 'BASIC' && (
+                    <div className="space-y-2 pt-1">
+                        {status === 'BASIC' && paymentMethod === 'TON' && (
+                            <button
+                                onClick={handlePayWithTon}
+                                disabled={isProcessing}
+                                aria-label="Pay with TON"
+                                className="w-full py-4 bg-gradient-to-r from-brand-cyan via-sky-400 to-blue-500 hover:from-cyan-300 hover:to-blue-400 text-black font-black font-orbitron text-xs rounded-2xl uppercase tracking-widest shadow-[0_0_25px_rgba(0,240,255,0.35)] active:scale-[0.99] transition-all flex items-center justify-center gap-2 min-h-[48px]"
+                            >
+                                <span className="text-sm">💎</span>
+                                <span>{tonWallet ? `Оплатити ${getTonAmount(selectedPlan)} TON через гаманець` : `Підключити TON Wallet & Оплатити ${getTonAmount(selectedPlan)} TON`}</span>
+                            </button>
+                        )}
+
+                        {status === 'BASIC' && paymentMethod === 'STARS' && (
                             <button
                                 onClick={handlePayWithStars}
                                 disabled={isProcessing}
@@ -534,7 +675,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                 className="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-black font-orbitron text-xs rounded-2xl uppercase tracking-widest shadow-[0_0_25px_rgba(234,179,8,0.3)] active:scale-[0.99] transition-all flex items-center justify-center gap-2 min-h-[48px]"
                             >
                                 <StarIcon className="w-4 h-4 text-black" />
-                                Pay with Telegram Stars ({getStarsAmount(selectedPlan)} XTR)
+                                <span>Оплатити через Stars ({getStarsAmount(selectedPlan)} XTR)</span>
                             </button>
                         )}
 
@@ -545,7 +686,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                 className="w-full py-4 bg-yellow-500/20 border border-yellow-500/40 text-yellow-300 font-bold font-orbitron text-xs rounded-2xl uppercase tracking-widest flex items-center justify-center gap-2 min-h-[48px] cursor-not-allowed"
                             >
                                 <span className="w-4 h-4 border-2 border-yellow-300 border-t-transparent rounded-full animate-spin" />
-                                Invoice preparing...
+                                Підготовка рахунку...
                             </button>
                         )}
 
@@ -560,7 +701,7 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                         className="w-full py-3.5 bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-black font-black font-orbitron text-xs rounded-2xl uppercase tracking-widest transition-all flex items-center justify-center gap-2 min-h-[44px] shadow-md"
                                     >
                                         <StarIcon className="w-4 h-4 text-black" />
-                                        Open in Telegram
+                                        Відкрити платіж у Telegram
                                     </a>
                                 )}
 
@@ -569,16 +710,15 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                     aria-label="View payment status"
                                     className="w-full py-3.5 bg-brand-cyan text-black font-bold font-orbitron text-xs rounded-2xl uppercase tracking-widest hover:bg-cyan-300 transition-all shadow-md min-h-[44px]"
                                 >
-                                    View payment status
+                                    Перевірити статус оплати
                                 </button>
-                                
 
                                 <button
                                     onClick={handleCancelPayment}
                                     aria-label="Cancel"
                                     className="w-full py-3 bg-white/5 hover:bg-white/10 text-slate-400 font-semibold text-xs rounded-xl uppercase transition-colors min-h-[40px]"
                                 >
-                                    Cancel
+                                    Скасувати
                                 </button>
                             </>
                         )}
@@ -588,16 +728,16 @@ const SubscriptionModal: React.FC<SubscriptionModalProps> = ({ onClose }) => {
                                 <button
                                     onClick={handleRetryPayment}
                                     aria-label="Retry payment"
-                                    className="w-full py-4 bg-gradient-to-r from-yellow-500 to-amber-600 text-black font-black font-orbitron text-xs rounded-2xl uppercase tracking-widest transition-all min-h-[48px]"
+                                    className="w-full py-4 bg-gradient-to-r from-brand-cyan to-blue-500 text-black font-black font-orbitron text-xs rounded-2xl uppercase tracking-widest transition-all min-h-[48px]"
                                 >
-                                    Retry payment
+                                    Повторити спробу
                                 </button>
                                 <button
                                     onClick={onClose}
                                     aria-label="Cancel"
                                     className="w-full py-3 bg-white/5 text-slate-400 font-semibold text-xs rounded-xl uppercase transition-colors min-h-[40px]"
                                 >
-                                    Cancel
+                                    Закрити
                                 </button>
                             </>
                         )}

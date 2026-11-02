@@ -98,7 +98,7 @@ function apiChatDevPlugin() {
             const plan = payload.plan || 'PRO';
             const nonce = Math.random().toString(36).substring(2, 10).toUpperCase();
             const intentId = `INTENT_${Date.now()}_${nonce}`;
-            const amountNano = plan === 'PRO' ? '1500000000' : '3000000000';
+            const amountNano = plan === 'STARTER' ? '1000000000' : plan === 'PRO' ? '2500000000' : '5000000000';
             res.writeHead(200);
             res.end(JSON.stringify({
               success: true,
@@ -513,6 +513,49 @@ function apiChatDevPlugin() {
             order: orderData,
             verifiedAt: new Date().toISOString()
           }));
+          return;
+        }
+
+        // 0.9 Payment Intent Endpoint (POST /api/payment/intent for direct TON transfers)
+        if (rawUrl === '/api/payment/intent') {
+          if (req.method === 'OPTIONS') {
+            res.writeHead(204, {
+              'Access-Control-Allow-Origin': '*',
+              'Access-Control-Allow-Methods': 'POST, OPTIONS',
+              'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+            });
+            res.end();
+            return;
+          }
+
+          let intentBody = '';
+          req.setEncoding('utf8');
+          req.on('data', (c: string) => { intentBody += c; });
+          req.on('end', () => {
+            res.setHeader('Content-Type', 'application/json');
+            res.setHeader('Access-Control-Allow-Origin', '*');
+            let payload: any = {};
+            try { payload = JSON.parse(intentBody); } catch {}
+
+            const plan = (payload.plan || 'PRO').toUpperCase();
+            const receiver = process.env.ADMIN_TREASURY_WALLET || process.env.VITE_TREASURY_TON_WALLET || 'EQA0iByiHQCr0y13647167664654578132489060412356';
+            const amountNano = plan === 'STARTER' ? '1000000000' : plan === 'PRO' ? '2500000000' : '5000000000';
+            const intentId = `INTENT_${Date.now()}_${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+
+            res.writeHead(200);
+            res.end(JSON.stringify({
+              success: true,
+              intentId,
+              plan,
+              amountNano,
+              receiver,
+              network: -239,
+              nonce: Math.random().toString(36).substring(2, 10).toUpperCase(),
+              expiry: Date.now() + 15 * 60 * 1000,
+              comment: `STORK_${plan}_${intentId}`
+            }));
+          });
+          req.resume();
           return;
         }
 

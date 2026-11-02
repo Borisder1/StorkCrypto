@@ -77,7 +77,7 @@ export async function onRequestPost(context: Context): Promise<Response> {
 
   const { method, plan, txHash, invoicePayload, telegramPaymentIdentifier, amount, intentId, senderAddress } = payload || {};
 
-  if (!plan || (plan !== 'PRO' && plan !== 'WHALE')) {
+  if (!plan || (plan !== 'STARTER' && plan !== 'PRO' && plan !== 'WHALE')) {
     return new Response(JSON.stringify({ 
       success: false, 
       status: 'FAILED', 
