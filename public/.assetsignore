@@ -1,0 +1,5 @@
+# Cloudflare Pages Asset Ignore Rule
+# Exclude heavy PDF attachments and non-web assets from edge CDN deployment
+*.pdf
+**/*.pdf
+assets/aistudio/**
