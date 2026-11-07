@@ -4,9 +4,11 @@ export async function onRequest(context) {
   const origin = url.origin;
 
   const manifest = {
-    "url": origin + "/",
+    "url": origin,
     "name": "StorkCrypto",
-    "iconUrl": origin + "/logo.jpg"
+    "iconUrl": origin + "/icon-180.png",
+    "termsOfUseUrl": origin + "/terms",
+    "privacyPolicyUrl": origin + "/privacy"
   };
 
   return new Response(JSON.stringify(manifest), {

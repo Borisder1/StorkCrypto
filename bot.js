@@ -35,6 +35,40 @@ if (!token) {
 
 const bot = new TelegramBot(token || 'dummy_token', { polling: !!token });
 
+// Видаляємо старий webhook (якщо був встановлений раніше), щоб Telegram polling не блокувався конфліктом 409
+if (token) {
+    bot.deleteWebHook({ drop_pending_updates: false })
+        .then(() => {
+            console.log('[TELEGRAM] Webhook successfully cleared. Long polling is ready.');
+        })
+        .catch((err) => {
+            console.warn('[TELEGRAM] deleteWebHook status:', err?.message || err);
+        });
+}
+
+// Очищення спецсимволів Markdown, щоб Telegram ніколи не відхиляв повідомлення через нікнейм або ім'я
+function safeMarkdown(text) {
+    if (!text) return 'Трейдер';
+    return String(text).replace(/[_*[\]()~`>#+=|{}.!-]/g, ' ');
+}
+
+// Куленепробивна відправка: якщо Telegram Markdown парсер дає збій (400), автоматично відправляється чистий текст
+async function safeSendMessage(chatId, text, options = {}) {
+    try {
+        return await bot.sendMessage(chatId, text, options);
+    } catch (err) {
+        console.warn(`[SEND RETRY] Markdown sendMessage failed for chatId ${chatId}: ${err?.message}. Retrying with plain text.`);
+        const fallbackOptions = { ...options };
+        delete fallbackOptions.parse_mode;
+        const cleanText = text.replace(/[*_`]/g, '');
+        try {
+            return await bot.sendMessage(chatId, cleanText, fallbackOptions);
+        } catch (fatalErr) {
+            console.error(`[SEND FATAL] Failed fallback delivery to ${chatId}:`, fatalErr?.message);
+        }
+    }
+}
+
 // ============================================================================
 // 2. HEALTH CHECK СЕРВЕР ДЛЯ RENDER.COM
 // ============================================================================
@@ -63,9 +97,21 @@ server.on('error', (err) => {
     }
 });
 
-server.listen(PORT, () => {
-    console.log(`[RENDER HEALTHCHECK] Server active on port ${PORT}`);
+server.listen(PORT, '0.0.0.0', () => {
+    console.log(`[RENDER HEALTHCHECK] Server active on 0.0.0.0:${PORT}`);
 });
+
+// Render Web Service Keep-Alive: запобігає засинанню (spin-down) безкоштовного інстансу Render
+const RENDER_EXTERNAL_URL = process.env.RENDER_EXTERNAL_URL;
+if (RENDER_EXTERNAL_URL) {
+    console.log(`[RENDER KEEP-ALIVE] Auto-heartbeat enabled for ${RENDER_EXTERNAL_URL}`);
+    setInterval(() => {
+        try {
+            const client = RENDER_EXTERNAL_URL.startsWith('https') ? https : http;
+            client.get(`${RENDER_EXTERNAL_URL}/health`, () => {}).on('error', () => {});
+        } catch {}
+    }, 8 * 60 * 1000); // Кожні 8 хвилин
+}
 
 // ============================================================================
 // 3. АВТОНОМНЕ СХОВИЩЕ ДАНИХ (data/subscribers.json)
@@ -210,7 +256,7 @@ async function broadcastMessage(targetUserIds, messageBuilder, optionsBuilder) {
         const options = optionsBuilder ? optionsBuilder(sub) : { parse_mode: 'Markdown' };
 
         try {
-            await bot.sendMessage(chatId, text, options);
+            await safeSendMessage(chatId, text, options);
             successCount++;
         } catch (err) {
             if (err?.response?.statusCode === 403) {
@@ -411,25 +457,30 @@ bot.on('polling_error', (error) => {
 });
 
 bot.on('message', async (msg) => {
-    const chatId = msg.chat.id;
-    const text = (msg.text || '').trim();
-    const sub = getOrCreateSubscriber(chatId, msg.from);
+    try {
+        const chatId = msg.chat.id;
+        const text = (msg.text || '').trim();
+        const sub = getOrCreateSubscriber(chatId, msg.from);
+        const safeFirstName = safeMarkdown(sub.firstName);
+        const safeUsername = sub.username ? `@${safeMarkdown(sub.username.replace('@', ''))}` : 'без username';
 
-    // КОМАНДА /start — Персоналізований онбординг з чесним дисклеймером та 1-денним тріалом
-    if (text === '/start') {
-        const now = Date.now();
-        const trialExpires = new Date(sub.trialExpiresAt || sub.joinedAt || now).getTime();
-        const isTrialActive = now < trialExpires;
-        const remainingHours = isTrialActive ? Math.max(1, Math.round((trialExpires - now) / 3600000)) : 0;
+        console.log(`[MSG RECEIVED] chatId=${chatId}, text="${text}", from="${safeFirstName}"`);
 
-        const trialStatusBadge = isTrialActive 
-            ? `🎁 *ВАМ НАДАНО 1 ДЕНЬ БЕЗКОШТОВНОГО ТРІАЛУ (TRIAL)*\n• Активно ще: ~${remainingHours} год.\n• Усі персональні алерти волатильності (> 1.5%) надходять безкоштовно прямо в цей чат!`
-            : `ℹ️ *ВАШ ТРІАЛ ЗАВЕРШЕНО*\n• Оберіть тарифний план (STARTER / PRO / WHALE) у терміналі, щоб отримувати сигнали 24/7.`;
+        // КОМАНДА /start (або /start з реферальними чи додатковими параметрами)
+        if (text === '/start' || text.startsWith('/start')) {
+            const now = Date.now();
+            const trialExpires = new Date(sub.trialExpiresAt || sub.joinedAt || now).getTime();
+            const isTrialActive = now < trialExpires;
+            const remainingHours = isTrialActive ? Math.max(1, Math.round((trialExpires - now) / 3600000)) : 0;
 
-        const welcomeMessage = 
+            const trialStatusBadge = isTrialActive 
+                ? `🎁 *ВАМ НАДАНО 1 ДЕНЬ БЕЗКОШТОВНОГО ТРІАЛУ (TRIAL)*\n• Активно ще: ~${remainingHours} год.\n• Усі персональні алерти волатильності (> 1.5%) надходять безкоштовно прямо в цей чат!`
+                : `ℹ️ *ВАШ ТРІАЛ ЗАВЕРШЕНО*\n• Оберіть тарифний план (STARTER / PRO / WHALE) у терміналі, щоб отримувати сигнали 24/7.`;
+
+            const welcomeMessage = 
 `🦅 *STORKCRYPTO // NEURAL COMPANION*
 
-Вітаю, *${sub.firstName}*! 👋
+Вітаю, *${safeFirstName}*! 👋
 Ваш інтелектуальний помічник трейдера та аналітичний Web3-термінал активовано.
 
 ━━━━━━━━━━━━━━━━━━━━━
@@ -449,21 +500,21 @@ ${trialStatusBadge}
 
 👇 Оберіть дію в меню нижче або налаштуйте монети для відстеження:`;
 
-        await bot.sendMessage(chatId, welcomeMessage, {
-            parse_mode: 'Markdown',
-            reply_markup: buildWelcomeKeyboard()
-        });
-        return;
-    }
+            await safeSendMessage(chatId, welcomeMessage, {
+                parse_mode: 'Markdown',
+                reply_markup: buildWelcomeKeyboard()
+            });
+            return;
+        }
 
-    // КОМАНДА /alerts — Налаштування монет для користувача
-    if (text === '/alerts' || text === '/settings') {
-        const trackedList = sub.trackedCoins && sub.trackedCoins.length > 0
-            ? sub.trackedCoins.map(c => `${TRACKED_COINS_META[c]?.icon || '•'} ${c}`).join(', ')
-            : 'жодної (сповіщення вимкнено)';
+        // КОМАНДА /alerts — Налаштування монет для користувача
+        if (text === '/alerts' || text === '/settings') {
+            const trackedList = sub.trackedCoins && sub.trackedCoins.length > 0
+                ? sub.trackedCoins.map(c => `${TRACKED_COINS_META[c]?.icon || '•'} ${c}`).join(', ')
+                : 'жодної (сповіщення вимкнено)';
 
-        const alertsMsg = 
-`⚙️ *НАЛАШТУВАННЯ СПОВІЩЕНЬ // ${sub.firstName}*
+            const alertsMsg = 
+`⚙️ *НАЛАШТУВАННЯ СПОВІЩЕНЬ // ${safeFirstName}*
 
 Ви самі контролюєте, які монети моніторить бот!
 Коли обраний актив зростає або падає більше ніж на *${sub.alertThreshold}%*, ви отримаєте персональне сповіщення.
@@ -472,53 +523,53 @@ ${trialStatusBadge}
 
 Натискайте на кнопки нижче, щоб увімкнути (✅) або вимкнути (❌) сповіщення для кожного активу:`;
 
-        await bot.sendMessage(chatId, alertsMsg, {
-            parse_mode: 'Markdown',
-            reply_markup: buildAlertsKeyboard(sub)
-        });
-        return;
-    }
-
-    // КОМАНДА /price — Огляд актуальних курсів
-    if (text === '/price' || text === '/prices') {
-        try {
-            const prices = await fetchCoinPrices();
-            let priceMsg = `💰 *АКТУАЛЬНІ КОТИРУВАННЯ РИНКУ*\n\n` +
-                           `Шановний(а) *${sub.firstName}*, ось свіжі дані з біржі Binance:\n\n`;
-
-            for (const [coin, meta] of Object.entries(TRACKED_COINS_META)) {
-                const val = prices[coin];
-                const priceFormatted = val ? `$${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}` : 'Завантаження...';
-                const isTracked = sub.trackedCoins && sub.trackedCoins.includes(coin) ? '🔔 Відстежується' : '🔕';
-                priceMsg += `${meta.icon} *${coin}* (${meta.name}): \`${priceFormatted}\` · ${isTracked}\n`;
-            }
-
-            priceMsg += `\n⏱ _Дані оновлюються в реальному часі_`;
-
-            await bot.sendMessage(chatId, priceMsg, {
+            await safeSendMessage(chatId, alertsMsg, {
                 parse_mode: 'Markdown',
-                reply_markup: {
-                    inline_keyboard: [
-                        [
-                            { text: '🔄 Оновити котирування', callback_data: 'check_prices' },
-                            { text: '⚙️ Змінити монети', callback_data: 'open_alerts_menu' }
-                        ],
-                        [
-                            { text: '📊 Детальні графіки у додатку', web_app: { url: WEB_APP_URL } }
-                        ]
-                    ]
-                }
+                reply_markup: buildAlertsKeyboard(sub)
             });
-        } catch {
-            await bot.sendMessage(chatId, `❌ Не вдалося отримати ціни з біржі. Спробуйте через кілька секунд.`, { parse_mode: 'Markdown' });
+            return;
         }
-        return;
-    }
 
-    // КОМАНДА /news — Свіжі макро- та крипто-новини
-    if (text === '/news') {
-        const newsMsg = 
-`📰 *МАКРОЕКОНОМІЧНИЙ ДАЙДЖЕСТ ДЛЯ ${sub.firstName.toUpperCase()}*
+        // КОМАНДА /price — Огляд актуальних курсів
+        if (text === '/price' || text === '/prices') {
+            try {
+                const prices = await fetchCoinPrices();
+                let priceMsg = `💰 *АКТУАЛЬНІ КОТИРУВАННЯ РИНКУ*\n\n` +
+                               `Шановний(а) *${safeFirstName}*, ось свіжі дані з біржі Binance:\n\n`;
+
+                for (const [coin, meta] of Object.entries(TRACKED_COINS_META)) {
+                    const val = prices[coin];
+                    const priceFormatted = val ? `$${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}` : 'Завантаження...';
+                    const isTracked = sub.trackedCoins && sub.trackedCoins.includes(coin) ? '🔔 Відстежується' : '🔕';
+                    priceMsg += `${meta.icon} *${coin}* (${meta.name}): \`${priceFormatted}\` · ${isTracked}\n`;
+                }
+
+                priceMsg += `\n⏱ _Дані оновлюються в реальному часі_`;
+
+                await safeSendMessage(chatId, priceMsg, {
+                    parse_mode: 'Markdown',
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                { text: '🔄 Оновити котирування', callback_data: 'check_prices' },
+                                { text: '⚙️ Змінити монети', callback_data: 'open_alerts_menu' }
+                            ],
+                            [
+                                { text: '📊 Детальні графіки у додатку', web_app: { url: WEB_APP_URL } }
+                            ]
+                        ]
+                    }
+                });
+            } catch {
+                await safeSendMessage(chatId, `❌ Не вдалося отримати ціни з біржі. Спробуйте через кілька секунд.`, { parse_mode: 'Markdown' });
+            }
+            return;
+        }
+
+        // КОМАНДА /news — Свіжі макро- та крипто-новини
+        if (text === '/news') {
+            const newsMsg = 
+`📰 *МАКРОЕКОНОМІЧНИЙ ДАЙДЖЕСТ ДЛЯ ${safeFirstName.toUpperCase()}*
 
 🏛 *Ключові фактори впливу на ринок сьогодні:*
 
@@ -536,44 +587,44 @@ ${trialStatusBadge}
 
 [Повний аналітичний блок доступний у терміналі StorkCrypto]`;
 
-        await bot.sendMessage(chatId, newsMsg, {
-            parse_mode: 'Markdown',
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        { text: '📊 Читати стрічку новин у Web App', web_app: { url: WEB_APP_URL } }
-                    ],
-                    [
-                        { text: '💰 Перевірити ціни', callback_data: 'check_prices' }
+            await safeSendMessage(chatId, newsMsg, {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: '📊 Читати стрічку новин у Web App', web_app: { url: WEB_APP_URL } }
+                        ],
+                        [
+                            { text: '💰 Перевірити ціни', callback_data: 'check_prices' }
+                        ]
                     ]
-                ]
-            }
-        });
-        return;
-    }
-
-    // КОМАНДА /status — Системний стан бота та підписки користувача
-    if (text === '/status') {
-        const uptimeHours = (process.uptime() / 3600).toFixed(1);
-        const now = Date.now();
-        const trialExpires = new Date(sub.trialExpiresAt || sub.joinedAt || now).getTime();
-        const isTrialActive = now < trialExpires;
-        const remainingHours = isTrialActive ? Math.max(1, Math.round((trialExpires - now) / 3600000)) : 0;
-        const hasPaidPlan = sub.plan === 'STARTER' || sub.plan === 'PRO' || sub.plan === 'WHALE';
-
-        let planStatusText = '';
-        if (hasPaidPlan) {
-            planStatusText = `💎 *Активний план:* \`${sub.plan}\` (Безлімітні сигнали 24/7)`;
-        } else if (isTrialActive) {
-            planStatusText = `🎁 *Пробний період (Trial):* \`АКТИВНИЙ\`\n⏳ *Залишилось часу:* ~${remainingHours} год.`;
-        } else {
-            planStatusText = `🔴 *Пробний період (Trial):* \`ВИЧЕРПАНО\`\n⚠️ Сигнали призупинено. Оберіть тариф для продовження.`;
+                }
+            });
+            return;
         }
 
-        const statusMsg = 
+        // КОМАНДА /status — Системний стан бота та підписки користувача
+        if (text === '/status') {
+            const uptimeHours = (process.uptime() / 3600).toFixed(1);
+            const now = Date.now();
+            const trialExpires = new Date(sub.trialExpiresAt || sub.joinedAt || now).getTime();
+            const isTrialActive = now < trialExpires;
+            const remainingHours = isTrialActive ? Math.max(1, Math.round((trialExpires - now) / 3600000)) : 0;
+            const hasPaidPlan = sub.plan === 'STARTER' || sub.plan === 'PRO' || sub.plan === 'WHALE';
+
+            let planStatusText = '';
+            if (hasPaidPlan) {
+                planStatusText = `💎 *Активний план:* \`${sub.plan}\` (Безлімітні сигнали 24/7)`;
+            } else if (isTrialActive) {
+                planStatusText = `🎁 *Пробний період (Trial):* \`АКТИВНИЙ\`\n⏳ *Залишилось часу:* ~${remainingHours} год.`;
+            } else {
+                planStatusText = `🔴 *Пробний період (Trial):* \`ВИЧЕРПАНО\`\n⚠️ Сигнали призупинено. Оберіть тариф для продовження.`;
+            }
+
+            const statusMsg = 
 `🟢 *СИСТЕМНИЙ СТАТУС: ОНЛАЙН*
 
-👤 *Ваш профіль:* ${sub.firstName} (${sub.username ? '@' + sub.username : 'без username'})
+👤 *Ваш профіль:* ${safeFirstName} (${safeUsername})
 ${planStatusText}
 👥 *Усього користувачів бота:* ${subscribersMap.size}
 ⏱ *Час безперервної роботи:* ${uptimeHours} год.
@@ -582,122 +633,127 @@ ${planStatusText}
 💾 *Сховище бази:* \`data/subscribers.json\` (Автономне, активне)
 🌐 *Web App:* [storkcrypto.pages.dev](${WEB_APP_URL})`;
 
-        await bot.sendMessage(chatId, statusMsg, {
-            parse_mode: 'Markdown',
-            disable_web_page_preview: true,
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        { text: '💎 Тарифні плани (TON / Stars)', web_app: { url: WEB_APP_URL } }
-                    ],
-                    [
-                        { text: '⚙️ Налаштувати мої монети', callback_data: 'open_alerts_menu' },
-                        { text: '💰 Котирування', callback_data: 'check_prices' }
+            await safeSendMessage(chatId, statusMsg, {
+                parse_mode: 'Markdown',
+                disable_web_page_preview: true,
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: '💎 Тарифні плани (TON / Stars)', web_app: { url: WEB_APP_URL } }
+                        ],
+                        [
+                            { text: '⚙️ Налаштувати мої монети', callback_data: 'open_alerts_menu' },
+                            { text: '💰 Котирування', callback_data: 'check_prices' }
+                        ]
                     ]
-                ]
-            }
-        });
-        return;
-    }
-
-    // КОМАНДА /broadcast (Тільки для адміністратора)
-    if (text.startsWith('/broadcast')) {
-        const message = text.replace('/broadcast', '').trim();
-        if (!message) {
-            await bot.sendMessage(chatId, `⚠️ Використання: /broadcast [текст повідомлення]`);
+                }
+            });
             return;
         }
 
-        const allIds = Array.from(subscribersMap.keys());
-        const count = await broadcastMessage(
-            allIds,
-            (targetSub) => `📢 *ОФІЦІЙНЕ ПОВІДОМЛЕННЯ STORKCRYPTO*\n\n` +
-                           `Шановний(а) *${targetSub.firstName}*,\n\n${message}`
+        // КОМАНДА /broadcast (Тільки для адміністратора)
+        if (text.startsWith('/broadcast')) {
+            const message = text.replace('/broadcast', '').trim();
+            if (!message) {
+                await safeSendMessage(chatId, `⚠️ Використання: /broadcast [текст повідомлення]`);
+                return;
+            }
+
+            const allIds = Array.from(subscribersMap.keys());
+            const count = await broadcastMessage(
+                allIds,
+                (targetSub) => `📢 *ОФІЦІЙНЕ ПОВІДОМЛЕННЯ STORKCRYPTO*\n\n` +
+                               `Шановний(а) *${safeMarkdown(targetSub.firstName)}*,\n\n${message}`
+            );
+
+            await safeSendMessage(chatId, `✅ Повідомлення успішно доставлено ${count} користувачам.`);
+            return;
+        }
+
+        // Будь-яке інше повідомлення — зрозуміла підказка
+        await safeSendMessage(
+            chatId,
+            `Привіт, ${safeFirstName}! Використовуйте кнопки або команди:\n/start — Меню та привітання\n/alerts — Налаштувати монети\n/price — Курси криптовалют\n/news — Огляд новин\n/status — Стан бота`,
+            { reply_markup: buildWelcomeKeyboard() }
         );
-
-        await bot.sendMessage(chatId, `✅ Повідомлення успішно доставлено ${count} користувачам.`);
-        return;
+    } catch (msgErr) {
+        console.error('[CRITICAL BOT MESSAGE ERROR]', msgErr);
     }
-
-    // Невідоме повідомлення — підказка
-    await bot.sendMessage(
-        chatId,
-        `Привіт, ${sub.firstName}! Використовуйте кнопки або команди:\n/start — Меню та привітання\n/alerts — Налаштувати монети\n/price — Курси криптовалют\n/news — Огляд новин\n/status — Стан бота`,
-        { reply_markup: buildWelcomeKeyboard() }
-    );
 });
 
 // ============================================================================
 // 9. ОБРОБКА ІНТЕРАКТИВНИХ ІНЛАЙН-КНОПОК (CALLBACK QUERIES)
 // ============================================================================
 bot.on('callback_query', async (query) => {
-    const chatId = query.message?.chat.id;
-    if (!chatId) return;
+    try {
+        const chatId = query.message?.chat.id;
+        if (!chatId) return;
 
-    const data = query.data || '';
-    const sub = getOrCreateSubscriber(chatId, query.from);
+        const data = query.data || '';
+        const sub = getOrCreateSubscriber(chatId, query.from);
+        const safeFirstName = safeMarkdown(sub.firstName);
 
-    // Перемикання окремої монети: toggle_coin_BTC тощо
-    if (data.startsWith('toggle_coin_')) {
-        const coin = data.replace('toggle_coin_', '');
-        if (TRACKED_COINS_META[coin]) {
-            if (!sub.trackedCoins) sub.trackedCoins = [];
-            if (sub.trackedCoins.includes(coin)) {
-                sub.trackedCoins = sub.trackedCoins.filter(c => c !== coin);
-                await bot.answerCallbackQuery(query.id, { text: `🔕 Сповіщення для ${coin} вимкнено` });
-            } else {
-                sub.trackedCoins.push(coin);
-                await bot.answerCallbackQuery(query.id, { text: `🔔 Сповіщення для ${coin} увімкнено!` });
+        // Перемикання окремої монети: toggle_coin_BTC тощо
+        if (data.startsWith('toggle_coin_')) {
+            const coin = data.replace('toggle_coin_', '');
+            if (TRACKED_COINS_META[coin]) {
+                if (!sub.trackedCoins) sub.trackedCoins = [];
+                if (sub.trackedCoins.includes(coin)) {
+                    sub.trackedCoins = sub.trackedCoins.filter(c => c !== coin);
+                    await bot.answerCallbackQuery(query.id, { text: `🔕 Сповіщення для ${coin} вимкнено` });
+                } else {
+                    sub.trackedCoins.push(coin);
+                    await bot.answerCallbackQuery(query.id, { text: `🔔 Сповіщення для ${coin} увімкнено!` });
+                }
+                saveStorage();
+
+                try {
+                    await bot.editMessageReplyMarkup(buildAlertsKeyboard(sub), {
+                        chat_id: chatId,
+                        message_id: query.message?.message_id
+                    });
+                } catch {}
             }
-            saveStorage();
+            return;
+        }
 
+        // Увімкнути всі монети
+        if (data === 'enable_all_coins') {
+            sub.trackedCoins = Object.keys(TRACKED_COINS_META);
+            saveStorage();
+            await bot.answerCallbackQuery(query.id, { text: '✅ Усі 4 активи увімкнено для сповіщень' });
             try {
                 await bot.editMessageReplyMarkup(buildAlertsKeyboard(sub), {
                     chat_id: chatId,
                     message_id: query.message?.message_id
                 });
             } catch {}
+            return;
         }
-        return;
-    }
 
-    // Увімкнути всі монети
-    if (data === 'enable_all_coins') {
-        sub.trackedCoins = Object.keys(TRACKED_COINS_META);
-        saveStorage();
-        await bot.answerCallbackQuery(query.id, { text: '✅ Усі 4 активи увімкнено для сповіщень' });
-        try {
-            await bot.editMessageReplyMarkup(buildAlertsKeyboard(sub), {
-                chat_id: chatId,
-                message_id: query.message?.message_id
-            });
-        } catch {}
-        return;
-    }
+        // Вимкнути всі монети
+        if (data === 'disable_all_coins') {
+            sub.trackedCoins = [];
+            saveStorage();
+            await bot.answerCallbackQuery(query.id, { text: '🔕 Усі сповіщення вимкнено' });
+            try {
+                await bot.editMessageReplyMarkup(buildAlertsKeyboard(sub), {
+                    chat_id: chatId,
+                    message_id: query.message?.message_id
+                });
+            } catch {}
+            return;
+        }
 
-    // Вимкнути всі монети
-    if (data === 'disable_all_coins') {
-        sub.trackedCoins = [];
-        saveStorage();
-        await bot.answerCallbackQuery(query.id, { text: '🔕 Усі сповіщення вимкнено' });
-        try {
-            await bot.editMessageReplyMarkup(buildAlertsKeyboard(sub), {
-                chat_id: chatId,
-                message_id: query.message?.message_id
-            });
-        } catch {}
-        return;
-    }
+        // Відкрити меню налаштувань сповіщень
+        if (data === 'open_alerts_menu') {
+            await bot.answerCallbackQuery(query.id);
+            const trackedList = sub.trackedCoins && sub.trackedCoins.length > 0
+                ? sub.trackedCoins.map(c => `${TRACKED_COINS_META[c]?.icon || '•'} ${c}`).join(', ')
+                : 'жодної (сповіщення вимкнено)';
 
-    // Відкрити меню налаштувань сповіщень
-    if (data === 'open_alerts_menu') {
-        await bot.answerCallbackQuery(query.id);
-        const trackedList = sub.trackedCoins && sub.trackedCoins.length > 0
-            ? sub.trackedCoins.map(c => `${TRACKED_COINS_META[c]?.icon || '•'} ${c}`).join(', ')
-            : 'жодної (сповіщення вимкнено)';
-
-        const alertsMsg = 
-`⚙️ *НАЛАШТУВАННЯ СПОВІЩЕНЬ // ${sub.firstName}*
+            const alertsMsg = 
+`⚙️ *НАЛАШТУВАННЯ СПОВІЩЕНЬ // ${safeFirstName}*
 
 Ви самі контролюєте, які монети моніторить бот!
 Коли актив зростає або падає більше ніж на *${sub.alertThreshold}%*, ви отримаєте персональне сповіщення.
@@ -706,51 +762,51 @@ bot.on('callback_query', async (query) => {
 
 Натискайте на кнопки, щоб увімкнути (✅) або вимкнути (❌):`;
 
-        await bot.sendMessage(chatId, alertsMsg, {
-            parse_mode: 'Markdown',
-            reply_markup: buildAlertsKeyboard(sub)
-        });
-        return;
-    }
-
-    // Перевірити поточні ціни через кнопку
-    if (data === 'check_prices') {
-        await bot.answerCallbackQuery(query.id, { text: 'Завантажуємо курси...' });
-        const prices = await fetchCoinPrices();
-        let priceMsg = `💰 *АКТУАЛЬНІ КОТИРУВАННЯ РИНКУ*\n\n` +
-                       `Шановний(а) *${sub.firstName}*, свіжі котирування Binance:\n\n`;
-
-        for (const [coin, meta] of Object.entries(TRACKED_COINS_META)) {
-            const val = prices[coin];
-            const priceFormatted = val ? `$${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}` : 'Завантаження...';
-            const isTracked = sub.trackedCoins && sub.trackedCoins.includes(coin) ? '🔔' : '🔕';
-            priceMsg += `${meta.icon} *${coin}* (${meta.name}): \`${priceFormatted}\` · ${isTracked}\n`;
+            await safeSendMessage(chatId, alertsMsg, {
+                parse_mode: 'Markdown',
+                reply_markup: buildAlertsKeyboard(sub)
+            });
+            return;
         }
 
-        priceMsg += `\n⏱ _Оновлено щойно_`;
+        // Перевірити поточні ціни через кнопку
+        if (data === 'check_prices') {
+            await bot.answerCallbackQuery(query.id, { text: 'Завантажуємо курси...' });
+            const prices = await fetchCoinPrices();
+            let priceMsg = `💰 *АКТУАЛЬНІ КОТИРУВАННЯ РИНКУ*\n\n` +
+                           `Шановний(а) *${safeFirstName}*, свіжі котирування Binance:\n\n`;
 
-        await bot.sendMessage(chatId, priceMsg, {
-            parse_mode: 'Markdown',
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        { text: '🔄 Оновити ще раз', callback_data: 'check_prices' },
-                        { text: '⚙️ Налаштувати монети', callback_data: 'open_alerts_menu' }
-                    ],
-                    [
-                        { text: '📊 Детальний графік у StorkCrypto', web_app: { url: WEB_APP_URL } }
-                    ]
-                ]
+            for (const [coin, meta] of Object.entries(TRACKED_COINS_META)) {
+                const val = prices[coin];
+                const priceFormatted = val ? `$${val.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 4 })}` : 'Завантаження...';
+                const isTracked = sub.trackedCoins && sub.trackedCoins.includes(coin) ? '🔔' : '🔕';
+                priceMsg += `${meta.icon} *${coin}* (${meta.name}): \`${priceFormatted}\` · ${isTracked}\n`;
             }
-        });
-        return;
-    }
 
-    // Показати новини через кнопку
-    if (data === 'show_news') {
-        await bot.answerCallbackQuery(query.id);
-        const newsMsg = 
-`📰 *МАКРОЕКОНОМІЧНИЙ ДАЙДЖЕСТ ДЛЯ ${sub.firstName.toUpperCase()}*
+            priceMsg += `\n⏱ _Оновлено щойно_`;
+
+            await safeSendMessage(chatId, priceMsg, {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: '🔄 Оновити ще раз', callback_data: 'check_prices' },
+                            { text: '⚙️ Налаштувати монети', callback_data: 'open_alerts_menu' }
+                        ],
+                        [
+                            { text: '📊 Детальний графік у StorkCrypto', web_app: { url: WEB_APP_URL } }
+                        ]
+                    ]
+                }
+            });
+            return;
+        }
+
+        // Показати новини через кнопку
+        if (data === 'show_news') {
+            await bot.answerCallbackQuery(query.id);
+            const newsMsg = 
+`📰 *МАКРОЕКОНОМІЧНИЙ ДАЙДЖЕСТ ДЛЯ ${safeFirstName.toUpperCase()}*
 
 🏛 *Головні тренди ринку:*
 • *BTC & Macro:* Біткоїн утримує стратегічні рівні підтримки на тлі стабільності індексу DXY.
@@ -759,65 +815,69 @@ bot.on('callback_query', async (query) => {
 
 💡 *Порада від StorkCrypto:* Трейдинг вимагає холодної голови та дисципліни. Слідкуйте за трендами у нашому терміналі!`;
 
-        await bot.sendMessage(chatId, newsMsg, {
-            parse_mode: 'Markdown',
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        { text: '🦅 Відкрити повний дайджест у додатку', web_app: { url: WEB_APP_URL } }
+            await safeSendMessage(chatId, newsMsg, {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: '🦅 Відкрити повний дайджест у додатку', web_app: { url: WEB_APP_URL } }
+                        ]
                     ]
-                ]
-            }
-        });
-        return;
-    }
-
-    // Показати статус через кнопку
-    if (data === 'show_status') {
-        await bot.answerCallbackQuery(query.id);
-        const uptimeHours = (process.uptime() / 3600).toFixed(1);
-        const now = Date.now();
-        const trialExpires = new Date(sub.trialExpiresAt || sub.joinedAt || now).getTime();
-        const isTrialActive = now < trialExpires;
-        const remainingHours = isTrialActive ? Math.max(1, Math.round((trialExpires - now) / 3600000)) : 0;
-        const hasPaidPlan = sub.plan === 'STARTER' || sub.plan === 'PRO' || sub.plan === 'WHALE';
-
-        let planStatusText = '';
-        if (hasPaidPlan) {
-            planStatusText = `💎 *Активний план:* \`${sub.plan}\``;
-        } else if (isTrialActive) {
-            planStatusText = `🎁 *Пробний період (Trial):* \`АКТИВНИЙ\` (~${remainingHours} год.)`;
-        } else {
-            planStatusText = `🔴 *Пробний період (Trial):* \`ВИЧЕРПАНО\``;
+                }
+            });
+            return;
         }
 
-        const statusMsg = 
+        // Показати статус через кнопку
+        if (data === 'show_status') {
+            await bot.answerCallbackQuery(query.id);
+            const uptimeHours = (process.uptime() / 3600).toFixed(1);
+            const now = Date.now();
+            const trialExpires = new Date(sub.trialExpiresAt || sub.joinedAt || now).getTime();
+            const isTrialActive = now < trialExpires;
+            const remainingHours = isTrialActive ? Math.max(1, Math.round((trialExpires - now) / 3600000)) : 0;
+            const hasPaidPlan = sub.plan === 'STARTER' || sub.plan === 'PRO' || sub.plan === 'WHALE';
+            const safeUsername = sub.username ? `@${safeMarkdown(sub.username.replace('@', ''))}` : 'без username';
+
+            let planStatusText = '';
+            if (hasPaidPlan) {
+                planStatusText = `💎 *Активний план:* \`${sub.plan}\``;
+            } else if (isTrialActive) {
+                planStatusText = `🎁 *Пробний період (Trial):* \`АКТИВНИЙ\` (~${remainingHours} год.)`;
+            } else {
+                planStatusText = `🔴 *Пробний період (Trial):* \`ВИЧЕРПАНО\``;
+            }
+
+            const statusMsg = 
 `🟢 *СИСТЕМНИЙ СТАТУС: ОНЛАЙН*
 
-👤 *Користувач:* ${sub.firstName} (${sub.username ? '@' + sub.username : 'без username'})
+👤 *Користувач:* ${safeFirstName} (${safeUsername})
 ${planStatusText}
 👥 *Підписників бота:* ${subscribersMap.size}
 ⏱ *Час роботи процесу:* ${uptimeHours} год.
 📡 *Моніторинг:* BTC, ETH, TON, SOL (поріг > 1.5%)
 💾 *Сховище даних:* автономне (\`data/subscribers.json\`)`;
 
-        await bot.sendMessage(chatId, statusMsg, {
-            parse_mode: 'Markdown',
-            reply_markup: {
-                inline_keyboard: [
-                    [
-                        { text: '💎 Тарифні плани (TON / Stars)', web_app: { url: WEB_APP_URL } }
-                    ],
-                    [
-                        { text: '⚙️ Налаштувати мої монети', callback_data: 'open_alerts_menu' }
+            await safeSendMessage(chatId, statusMsg, {
+                parse_mode: 'Markdown',
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            { text: '💎 Тарифні плани (TON / Stars)', web_app: { url: WEB_APP_URL } }
+                        ],
+                        [
+                            { text: '⚙️ Налаштувати мої монети', callback_data: 'open_alerts_menu' }
+                        ]
                     ]
-                ]
-            }
-        });
-        return;
-    }
+                }
+            });
+            return;
+        }
 
-    await bot.answerCallbackQuery(query.id);
+        await bot.answerCallbackQuery(query.id);
+    } catch (cbErr) {
+        console.error('[CALLBACK QUERY ERROR]', cbErr);
+    }
 });
 
 console.log('🦅 StorkCrypto Sentinel Bot v9.0 is online!');
